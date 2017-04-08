@@ -1,2 +1,2 @@
-# ccprism
-Probabilistic programming in SWI Prolog using delimited continuations
+# ccprism: Probabilistic programming as a library using delimited control
+
