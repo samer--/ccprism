@@ -1,6 +1,10 @@
 :- module(lazymath, [ add/3, sub/3, mul/3, max/3, min/3, stoch/2, exp/2, log_e/2, surp/2, lse/2, pow/3, log_stoch/2
                     , patient/3, patient/4, lazy/4, map_sum/3, map_sum/4]).
 
+/** <module> Multimoded arithmetic operations
+   This module is here mostly because there are some numerical problems with library(clpr).
+*/
+
 :- use_module(library(math), [stoch/3]).
 :- use_module(library(callutils)).
 :- use_module(library(insist)).
