@@ -38,7 +38,7 @@ run_sampling(Sampler,Goal,S1,S2) :-
 
 uniform_sampler(SW,X) --> {call(SW,_,Xs,[])}, pure(uniform(Xs),X).
 lookup_sampler(Map,SW,X) --> {call(SW,ID,Xs,[]), rb_lookup(ID,Ps,Map)}, pure(discrete(Xs,Ps),X).
-make_lookup_sampler(Params,ccprism:lookup_sampler(Map)) :- list_to_rbtree(Params, Map).
+make_lookup_sampler(Params,ccp_handlers:lookup_sampler(Map)) :- list_to_rbtree(Params, Map).
 fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 
 % -------- handlers for tabled explanation graph building -----------
@@ -55,7 +55,7 @@ expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
 run_tab(Goal, Ans)    :- p_reset(tab, Goal, Status), cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(tab(TableAs,Work,ccprism:p_shift(prob,tab(TableAs))), Cont), Ans) :-
+cont_tab(susp(tab(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Ans) :-
    term_variables(TableAs, Y), K = (\\Y`Ans`Cont),
    term_to_ground(TableAs, Variant),
    nbr_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs)),

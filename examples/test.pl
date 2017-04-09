@@ -9,16 +9,16 @@
 :- use_module(library(delimcc), [ccshell/0]).
 :- use_module(library(prob/strand)).
 :- use_module(library(ccprism/machines)).
-:- use_module(library(ccprism/handlers), [uniform_sampler//2, run_sampling//2]).
-:- use_module(library(ccprism/graph), [graph_params/3]).
-:- use_module(library(ccprism/switches), [marg_log_prob/3]).
+:- use_module(library(ccprism/effects)).
+:- use_module(library(ccprism/handlers)).
+:- use_module(library(ccprism/graph)).
+:- use_module(library(ccprism/switches)).
 :- use_module(library(ccprism/mcmc)).
+:- use_module(library(ccprism/display)).
 :- use_module(library(ccprism), [goal_graph/2]).
 :- use_module(models).
 
 :- set_prolog_flag(back_quotes, symbol_char).
-
-:- op(951,fx,??).
 
 :- meta_predicate samp(0).
 samp(G) :- strand(run_sampling(uniform_sampler,G)).
@@ -72,7 +72,6 @@ distof(Xs,Dist) :-
    length(Xs,N),
    maplist(fsnd(divby(N)), Hist, Dist).
 
-
 nathist(Dom,Ns,H) :- 
 	setof(N-C, aggregate(count, member(N,Ns), C), NCs),
 	maplist(lup(NCs), Dom, H).
@@ -92,5 +91,5 @@ test_mcmc(NumSamples, Sub, Spec, S) :-
                       >> drop(2000),
           S).
 
-
+:- module(ccp_test).
 % vim: ft=prolog

@@ -55,6 +55,8 @@ rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
 
 % mean machine
 mean(In,Out) :- mean(=(0), add, divby, In, Out).
+
+:- meta_predicate mean(1,3,3,+,-).
 mean(Zero,Add,DivBy,In,Out) :- call(Zero,Z), moore(mm_step(Add), mm_out(DivBy), 0-Z, In, Out).
 mm_step(Add,X,N-Y,M-Z) :- succ(N,M), call(Add,X,Y,Z).
 mm_out(DivBy,N-S,M) :- call(DivBy,N,S,M).
