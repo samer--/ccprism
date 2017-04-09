@@ -3,7 +3,7 @@
 /** <module> Top level runner */
 
 :- use_module(library(rbutils),     [rb_fold/4, rb_add//2]).
-:- use_module(ccprism/handlers,     [run_with_tables/2, run_prob/4, run_tab/2, run_sampling//2, expl//1]).
+:- use_module(ccprism/handlers,     [run_with_tables/2, run_prob/4, run_tab/2, expl//1]).
 :- use_module(ccprism/graph,        [prune_graph/4]).
 
 :- meta_predicate goal_graph(0,-).
