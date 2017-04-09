@@ -4,8 +4,7 @@
                      , igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
 
-/** <module> Continuation based probabilistic inference.
-*/
+/** <module> Inference and statistics on explanation hypergraphs */
 
 :- use_module(library(apply_macros)).
 :- use_module(library(dcg_pair)).

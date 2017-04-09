@@ -1,12 +1,10 @@
 :- module(ccp_effects, [ ccstore/2, ccstored/1, cctabled/2, uniform/2, dist/2, dist/3, (:=)/2, sample/2 ]).
 
-/** <module> Computational effects for supporting probabilistic models
-*/
+/** <module> Computational effects for supporting probabilistic models */
 
 :- use_module(library(listutils),   [zip/3]).
 :- use_module(library(delimcc),     [p_shift/2]).
 
-% ------------- effects -----------
 :- meta_predicate :=(3,-), ccstore(:,0), ccstored(:), cctabled(:,0), sample(3,-).
 
 dist(Dist,X)  :- zip(Ps,Xs,Dist), p_shift(prob,dist(Ps,Xs,X)).

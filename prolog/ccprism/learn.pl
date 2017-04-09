@@ -1,6 +1,6 @@
 :- module(ccp_learn, [ converge/5, learn/4, learn/5 ]).
 
-/** <module> Continuation based probabilistic inference.
+/** <module> Expectation-maximisation, variational Bayes and deterministic annealling
 */
 
 :- use_module(library(math),       [sub/3]).

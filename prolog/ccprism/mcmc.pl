@@ -1,7 +1,6 @@
 :- module(ccp_mcmc, [ mc_perplexity/4, mc_machine/5, gibbs_posterior_machine/5]).
 
-/** <module> Continuation based probabilistic inference.
-*/
+/** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
 :- use_module(library(insist)).
 :- use_module(library(callutils),   [(*)/4]).
