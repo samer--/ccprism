@@ -13,7 +13,10 @@
    * outside probabilities for computing parameter sufficient statistics
  
    Based on these several EM parameter learning methods are provided: maximum likelihood,
-   maximum a posterior, variational Bayes, and (to come, probably) Viterbi learning.
+   maximum a posterior, variational Bayes, and Viterbi learning. Deterministic
+	annealling can be used with all of these methods.
+
+	A couple of MCMC explanation sampling methods are also provided.
 
 ## Usage Examples
 
