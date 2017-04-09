@@ -1,5 +1,5 @@
 :- module(ccp_switches, [ map_sw/3, map_swc/3, map_sum_sw/3, map_sum_sw/4, map_swc/4
-                        , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, marg_log_prob/3
+                        , sw_samples/2, sw_expectations/2, sw_log_prob/3, sw_posteriors/3, marg_log_prob/3
                         , dirichlet/2
                         ]).
 
