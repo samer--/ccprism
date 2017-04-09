@@ -14,9 +14,9 @@
  
    Based on these several EM parameter learning methods are provided: maximum likelihood,
    maximum a posterior, variational Bayes, and Viterbi learning. Deterministic
-	annealling can be used with all of these methods.
+   annealling can be used with all of these methods.
 
-	A couple of MCMC explanation sampling methods are also provided.
+   A couple of MCMC explanation sampling methods are also provided.
 
 ## Usage Examples
 
