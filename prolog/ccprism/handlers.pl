@@ -2,6 +2,15 @@
                         , expl//1, uniform_sampler//2, make_lookup_sampler/2, fallback_sampler//4
                         ]).
 
+/** <module> Effect handlers for probabilistic programming
+
+   This module provides tabled explanation search and sampling as computational
+   effects using delimited control.
+   
+   @tbd
+   - Goal subsumtion in table lookup
+   - Lazy explanation search (see ccbeam in cclab)
+*/
 :- use_module(library(typedef)).
 :- use_module(library(lambda2)).
 :- use_module(library(prob/tagged), [discrete//3, uniform//2]).

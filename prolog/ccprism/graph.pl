@@ -4,7 +4,11 @@
                      , igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
 
-/** <module> Inference and statistics on explanation hypergraphs */
+/** <module> Inference and statistics on explanation hypergraphs
+   @tbd
+   - CLP(Q/R) for semiring ops
+   - Automatic differentiation for outside computation
+*/
 
 :- use_module(library(apply_macros)).
 :- use_module(library(dcg_pair)).

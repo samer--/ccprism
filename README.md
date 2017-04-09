@@ -15,15 +15,11 @@
    Based on these several EM parameter learning methods are provided: maximum likelihood,
    maximum a posterior, variational Bayes, and (to come, probably) Viterbi learning.
 
-## Testing
+## Usage Examples
 
    You can load the test module included in the examples directory like this:
    ```
    swipl -O -g 'consult(pack(ccprism/examples/test)), ccp_test:init'
    ```
+   More information on how to use the system to follow...
 
-   @tbd
-      - CLP R/Q
-      - Automatic differentiation for counts?
-      - Goal subsumption in tabling lookup
-      - lazy explanation search, ccbeam etc
