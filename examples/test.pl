@@ -1,13 +1,20 @@
 #! /usr/bin/env swipl -O -g init
+:- module(ccp_test, []).
+
 :- use_module(library(data/pair)).
 :- use_module(library(callutils)).
 :- use_module(library(listutils), [take/3]).
 :- use_module(library(math)).
 :- use_module(library(lambda2)).
 :- use_module(library(delimcc), [ccshell/0]).
-:- use_module(library(machines)).
-:- use_module(library(ccprism)).
-:- use_module(ptabled).
+:- use_module(library(prob/strand)).
+:- use_module(library(ccprism/machines)).
+:- use_module(library(ccprism/handlers), [uniform_sampler//2, run_sampling//2]).
+:- use_module(library(ccprism/graph), [graph_params/3]).
+:- use_module(library(ccprism/switches), [marg_log_prob/3]).
+:- use_module(library(ccprism/mcmc)).
+:- use_module(library(ccprism), [goal_graph/2]).
+:- use_module(models).
 
 :- set_prolog_flag(back_quotes, symbol_char).
 
@@ -19,8 +26,8 @@ unfold(N0,M,S) :- succ(N0,N), time(samp(call(take(N)*unfold, M, [_|S]))).
 
 make_dataset(N,XX) :-
    length(XX,N),
-   ptabled:biased_sampler(SS),
-   strand(run_sampling(SS, maplist(phrase(ptabled:s), XX))).
+   biased_sampler(SS),
+   strand(run_sampling(SS, maplist(phrase(s), XX))).
 
 assert_new_data(I,N) :- make_dataset(N,X), assert(dataset(I,X)).
 
@@ -29,9 +36,9 @@ init :- maplist(assert_new_data,[1,2,3],[10,20,30]).
 user:portray(X) :- float(X), !, format('~5g',[X]).
 
 dice_gibbs(AA,Stride,Spec>F,M) :-
-   goal_graph(maplist(ptabled:two_dice,[4,4,4]), G), 
-   graph_params(mul(AA)*uniform,G,P0), 
-	call(call(Spec,G,P0,P0) >> drop(500) >> subsample(Stride) >> mapper(cctab:snd*nth1(1)*F), M).
+   goal_graph(maplist(two_dice,[4,4,4]), G), 
+   graph_params((math:mul(AA))*uniform,G,P0), 
+	call(call(Spec,G,P0,P0) >> drop(500) >> subsample(Stride) >> mapper(snd*nth1(1)*F), M).
 
 gibbs_samples(AA,Spec,K,NumSamples,S) :- unfold(NumSamples, dice_gibbs(AA,K,Spec), S).
 
@@ -53,7 +60,7 @@ exact_probs(AA, Dist) :-
    counts_multiplicities(HH), 
    maplist(pair, CC, NN, HH),
    maplist(pair, CC, Ps, Dist),
-   maplist(cctab:exp*mul(2)*marg_log_prob(Alphas),CC,Ws), 
+   maplist(exp*mul(2)*marg_log_prob(Alphas),CC,Ws), 
    maplist(mul,NN,Ws,Ws1),
    stoch(Ws1,Ps,_).
 
@@ -85,6 +92,5 @@ test_mcmc(NumSamples, Sub, Spec, S) :-
                       >> drop(2000),
           S).
 
-:- module(ptabled).
 
 % vim: ft=prolog

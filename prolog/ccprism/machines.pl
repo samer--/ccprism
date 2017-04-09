@@ -1,7 +1,9 @@
 :- module(machines, [ iterate/4, unfold/2, unfold_finite/2, scanner/3, scan0/4, (**)//2
+                    , mean/2, mean/5
                     , (>>)/3, iterator/3, unfolder/3, mapper/3, moore/5, progress/2, subsample/3, drop/3]).
 
 :- use_module(library(dcg_progress), [seqmap_with_progress//3]).
+:- use_module(library(math),         [add/3, divby/3]).
 :- use_module(library(lazy),         [lazy_unfold/4, lazy_unfold_finite/4]).
 
 % running machines
@@ -50,3 +52,10 @@ prog_step(X,I-_,J-X) :- J is I+1, format('~d: ~w\n',[J,X]).
 **(G,N) --> {var(N)} -> rep_var(N,G); rep_nonvar(N,G).
 rep_nonvar(N,G) --> {N=<0} -> []; {M is N-1}, call_dcg(G), rep_nonvar(M,G).
 rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
+
+% mean machine
+mean(In,Out) :- mean(=(0), add, divby, In, Out).
+mean(Zero,Add,DivBy,In,Out) :- call(Zero,Z), moore(mm_step(Add), mm_out(DivBy), 0-Z, In, Out).
+mm_step(Add,X,N-Y,M-Z) :- succ(N,M), call(Add,X,Y,Z).
+mm_out(DivBy,N-S,M) :- call(DivBy,N,S,M).
+
