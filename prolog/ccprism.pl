@@ -35,4 +35,7 @@ soln_expls(G,Y,Y1-Es) -->
    {copy_term(G-Y,G1-Y1), numbervars(G1-Y1, 0, _)}, % NB Es is already ground
    (rb_add(G1,Es) -> []; []). % NB duplicate goals should have the same explanations!
 
+%% graph_params(+Spec:sw_init_spec, +G:graph, -P:sw_params) is det.
+%  Initialise parameters for all switches referenced in graph G.
+%  See sw_init/2 for more information.
 graph_params(Spec,G,Params) :- call(sw_init(Spec)*graph_switches, G, Params).
