@@ -2,11 +2,14 @@
 
 /** <module> Top level tabled explanation graph creation */
 
+:- use_module(library(typedef)).
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
 :- use_module(ccprism/handlers,   [run_with_tables/2, run_prob/4, run_tab/2, expl//1]).
 :- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2]).
 :- use_module(ccprism/switches,   [sw_init/3]).
+
+:- type graph == list(pair(goal, list(list(factor)))).
 
 %% goal_graph(+Goal:callable, -Graph:graph) is det.
 %  Finds all solutions to Goal in a delimited context supplying tabling and 

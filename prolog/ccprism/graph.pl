@@ -59,7 +59,7 @@ pmap_collate(Conv,Def,Map,SW,SW-XX) :-
 pmap_get(Conv,Def,Map,SW,Val,X) :- 
    rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
 
-%% semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?:params(T), -R:list(pair(goal,C))) is det.
+%% semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
 %
 %  Folds the semiring SR over the explanation graph G, resulting in R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
