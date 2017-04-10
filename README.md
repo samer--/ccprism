@@ -25,4 +25,5 @@
    swipl -g 'consult(pack(ccprism/examples/test)), ccp_test:init'
    ```
    More information on how to use the system to follow...
+   NB. the test module requires the memo pack to be installed.
 

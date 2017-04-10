@@ -1,6 +1,6 @@
-#! /usr/bin/env swipl -O -g init
 :- module(ccp_test, []).
 
+:- use_module(library(memo)).
 :- use_module(library(data/pair)).
 :- use_module(library(callutils)).
 :- use_module(library(listutils), [rep/3, take/3]).
@@ -10,8 +10,9 @@
 :- use_module(library(ccprism/machines)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers)).
+:- use_module(library(ccprism/switches), [marg_log_prob/3]).
 :- use_module(library(ccprism/graph)).
-:- use_module(library(ccprism/switches)).
+:- use_module(library(ccprism/learn)).
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
@@ -43,13 +44,15 @@ user:portray(X) :- float(X), !, format('~5g',[X]).
 
 % ---- Testing small fragment of English grammar -----
 
-init :- maplist(assert_new_data,[1,2,3],[10,20,30]).
-assert_new_data(I,N) :- make_dataset(N,X), assert(dataset(I,X)).
+:- initialization memo_attach('datasets',[]).
 
-make_dataset(N,XX) :-
+:- persistent_memo dataset(+ground,+nonneg,-list(list(atom))).
+dataset(_,N,XX) :-
    length(XX,N),
    biased_sampler(SS),
    strand(run_sampling(SS, maplist(phrase(s), XX))).
+
+dataset(ID,XX) :- browse(dataset(ID,_,XX)).
 
 
 % ----- Testing MCMC with the two_dice system ----
