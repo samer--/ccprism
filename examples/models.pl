@@ -1,31 +1,75 @@
-:- module(models, [ s//0, np//0, vp//0, biased_sampler/1
+:- module(models, [ s//0, np//0, vp//0, biased_sampler/1, parse/2
                   , two_dice/1, two_dice/2, three_dice/1, dice/2]).
 
-/** <module> Test predicates for probabilistic tabling
-   NB. this module expects cctabled/1 to be imported into user.
-*/
+/** <module> Example probabilistic models (see code for commentary) */
 
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers), [make_lookup_sampler/2]).
-:- use_module(library(lambda2)).
-:- use_module(library(callutils), [(*)/4]).
-:- use_module(library(listutils), [take/3]).
 
-:- set_prolog_flag(back_quotes, symbol_char).
+%% iota(+N:natural, L1:list(natural), L2:list(natural)) is det.
+%  Difference list version of numlist, useful for switch domains.
+iota(0,L,L) :- !.
+iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
 
-:- op(1200,xfx,~~>).
-:- op(1150,xfx,~>).
+/* Switches are represented by callable terms which must have type
+   =|switch(A) == pred(-switch(A), -list(A), +list(A))|=, where =|A|= is the
+   type of the switch's possible values. The predicate must return a canonical
+   representation of the switch predicate (eg with a its source module specifier),
+   along with a difference list representation of the switch domain.
 
+   This term expansion takes care of the canonical representation part.
+*/
 user:term_expansion(Lab | Body, Clause) :-
    prolog_load_context(module,Module),
    Lab =.. Args,   append(Args, [Module:Lab], Args1),
    Head =.. Args1, dcg_translate_rule(Head --> Body, Clause).
 
-% sample terminal directly from switch
+% some switch declarations
+coin | iota(2).
+die | iota(4).    % tetrahedral die
+die(_) | iota(3). % impossible three sided die
+
+% models of dice throws
+:- cctable three_dice/1, two_dice/2, two_dice/1, dice/2.
+three_dice(X)   :- length(Xs,3), maplist(:=(die), Xs), sumlist(Xs,X).
+two_dice(X1,X2) :- die := X1, die := X2.
+two_dice(X)     :- die(1) := D1, die(2) := D2, X is D1+D2.
+
+dice(0,0).
+dice(N,Z) :- succ(M,N), die := X, dice(M,Y), Z is X+Y.
+
+% mode to test handling of variables in answers
+:- cctable ssucc/2.
+ssucc(X, a(X)).
+test(Y,Z) :- (X=1;X=2;X=3), ssucc(A,Y), A=X, ssucc(_,Z).
+
+
+/* -------------------------- Grammars -------------------------
+
+   Grammars are encoded here in a couple of ways. The first here is mostly like a
+   normal Prolog DCG, except that disjunctions need to be controlled by a 
+   probabilistic choice. The goal expansion =|SW ~> Alternatives|= uses the
+   natural valued switch =|SW|= to select one of the disjuncts in =|Alternatives|=,
+   each of which can be a normal DCG body. It's a bit annoying having to manually
+   declare the switch for each set of alternatives, but I couldn't find a way
+   to do it automatically and still work with the cctable declaration system.
+
+   Terminals can be generated the usual way using =|[T]|=, but the process is
+   simplified here, where calling =|+SW|= samples a value from SW and outputs it
+   directly as a terminal. Hence, =|SW|= is used like a 'pre-terminal' symbol.
+*/
+
+:- op(1150,xfx,~>).
+
+%% +(PT:switch(A), L1:list(A), L2:list(A)) is nondet.
+%  Use switch PT as a preterminal, sampling a value from it to use as a terminal.
 :- meta_predicate +(3,?,?).
 +Lab --> [T], {Lab := T}.
 
+%% ((SW:switch(natural)) ~> Alternatives)// is nondet. 
+%  Use a value 1..N from SW to select one of the N disjuncts in Alternatives.
+%  Implemented only as a goal expansion.
 user:goal_expansion(~>(S,Alts,L1,L2), Goals) :- 
    expand_alts(I,Alts,0,DCGGoals),
    dcg_translate_rule((h --> {S:=I}, DCGGoals), (h(L1,L2) :- Goals)).
@@ -34,6 +78,7 @@ expand_alts(K, (B; Bs), I, (G; Goals)) :- !, succ(I,J), expand_alt(K,B,J,G), exp
 expand_alts(K, B, I, G) :- succ(I,J), expand_alt(K,B,J,G).
 expand_alt(K, Goals, J, ({J=K} -> Goals)).
 
+% --- test grammar ----
 :- cctable s//0, np//0, vp//0, pp//0, nom//0.
 
 np  | iota(3).
@@ -57,8 +102,12 @@ nom --> nom ~> +n
 
 pp --> +p, np.
 
+%% biased_sampler(-S:switch_sampler) is det.
+%  Creates a switch parameter sampler for the grammar which avoids placing
+%  too much probability on the recursive branches of the nom//0 and np//0
+%  predicates. See library(ccprism/handlers) for information about switch samplers.
 biased_sampler(fallback_sampler(LU,uniform_sampler)) :-
-   make_lookup_sampler([(ptabled:nom)-[0.8,0.2], (ptabled:np)-[0.3,0.6,0.1]],LU).
+   make_lookup_sampler([(models:nom)-[0.8,0.2], (models:np)-[0.3,0.6,0.1]],LU).
 
 % preterminal switch declarations
 adj | [hot,cold,thin,fat,disgusting,lovely].
@@ -71,33 +120,23 @@ iv  | [lived, worked].
 n   | [dog,telescope,man,cat,mat,cake,box,floor,face,pie,moose,pyjamas,park].
 p   | [with,on,under,in,without,by].
 
-die | iota(4).
-die(_) | iota(3).
 
-:- cctable three_dice/1, two_dice/2, two_dice/1.
-three_dice(X) :- length(Xs,3), maplist(:=(die), Xs), sumlist(Xs,X).
-two_dice(X1,X2) :- die := X1, die := X2.
-two_dice(X) :- die(1) := D1, die(2) := D2, X is D1+D2.
+/* This is an alternative grammar system that uses 'pre-stored' tables to avoid
+   having to work with difference lists in the grammar predicates. Instead, 
+   sequences are 'stored' (similar to assertion, but handled more declaratively
+   by using the continuation based tabling system), after which terminals are 
+   accessed by position index. The lookup predicate c//1 is itself tabled, and
+   works by looking up the stored sequence.
 
-:- cctable dice/2.
-dice(0,0).
-dice(N,Z) :- succ(M,N), die := X, dice(M,Y), Z is X+Y.
-
-% test handling of variables in answers
-:- cctable ssucc/2.
-ssucc(X, a(X)).
-test(Y,Z) :- (X=1;X=2;X=3), ssucc(A,Y), A=X, ssucc(_,Z).
-
-iota(0,L,L) :- !.
-iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
-
-% grammar system avoiding difference lists
+   To parse [the,cat] using, eg np2//0, use =|goal_graph(parse(np2,[the,cat]), G)|=
+   ==
+*/
 :- cctable c//1.
 c(T, S-I, S-J) :- ccstored(sequence(S,Ts)), nth0(I,Ts,T), succ(I,J).
-phr(NT,S) :- ccstored(sequence(S,Ts)),length(Ts,N), call_dcg(NT,S-0,S-N).
+parse(NT,Words) :- 
+   gensym(seq,S),   ccstore(sequence(S,W),W=Words),
+   length(Words,N), call_dcg(NT,S-0,S-N).
 
-coin | iota(2).
 :- cctable np2//0, nom2//0.
-np2 --> coin ~> c(the), nom2
-              ; c(a), nom2.
+np2 --> coin ~> c(the), nom2; c(a), nom2.
 nom2 --> die ~> c(cat); c(mat); c(dog); c(frog).
