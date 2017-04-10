@@ -1,4 +1,4 @@
-:- module(ccp_graph, [ graph_params/3, prune_graph/4, top_value/2
+:- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2
                      , semiring_graph_fold/4, graph_viterbi/4, graph_nviterbi/4, graph_inside/3
                      , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/5
                      , igraph_sample_tree/4, igraph_sample_tree/3
@@ -18,11 +18,10 @@
 :- use_module(library(math),        [stoch/3]).
 :- use_module(library(listutils),   [cons//1, foldr/4, zip/3]).
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
-:- use_module(library(data/pair),   [fst/2, snd/2, (&)/4, op(650,xfy,&) ]).
+:- use_module(library(data/pair),   [fst/2, snd/2]).
 :- use_module(library(rbutils),     [rb_gen/3, rb_add//2, rb_app//2, rb_get//2]).
-:- use_module(machines,  [(>>)/3]).
 :- use_module(effects,   [dist/3]).
-:- use_module(switches,  [map_swc/4, dirichlet/2]).
+:- use_module(switches,  [map_swc/4]).
 :- use_module(lazymath,  [ max/3, add/3, mul/3, exp/2, log_e/2, surp/2
                          , lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4, lazy/4]).
 
@@ -44,22 +43,10 @@ children(Top,  M, G) -->
 new_children(M, G, F) -->
    rb_get(F,_) -> []; children(F,M,G).
 
-% --- extracting and initialising parameters ---
-graph_params(Spec,G,Params) :- 
-   (setof(L, graph_sw(G,L), SWs) -> true; SWs=[]), 
-   maplist((=) & sw_init(Spec)*sw_values, SWs, Params).
-graph_sw(G,SW) :- member(_-Es,G), member(E,Es), member(SW:=_,E).
-
-sw_init(uniform,Vs, Params) :- uniform_probs(Vs,Params).
-sw_init(unit,   Vs, Params) :- maplist(const(1),Vs,Params).
-sw_init(random, Vs, Params) :- random_probs(Vs,Params).
-sw_init(F*Spec, Vs, Params) :- sw_init(Spec,Vs,P0), maplist(F, P0, Params).
-sw_init(S1+S2,  Vs, Params) :- sw_init(S1,Vs,P1), sw_init(S2,Vs,P2), maplist(add,P1,P2,Params).
-
-uniform_probs(Vals,Probs) :- length(Vals,N), P is 1/N, maplist(const(P),Vals,Probs).
-random_probs(Vals,Probs)  :- maplist(const(1),Vals,Ones), dirichlet(Ones,Probs).
-
-sw_values(SW,Values) :- call(SW,_,Values,[]).
+%% graph_switches(+G:graph, -SWs:list(switch(_))) is det.
+%  Extract list of switches referenced in an explanation graph.
+graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]). 
+graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 % --------- switch-value map -----------
 pmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
@@ -67,7 +54,7 @@ pmap_sws(Map,SWs) :- setof(SW, V^X^rb_gen(SW:=V,X,Map), SWs) -> true; SWs=[].
 
 :- meta_predicate pmap_collate(3,1,+,+,?).
 pmap_collate(Conv,Def,Map,SW,SW-XX) :- 
-   sw_values(SW,Vals), maplist(pmap_get(Conv,Def,Map,SW),Vals,XX).
+   call(SW,_,Vals,[]), maplist(pmap_get(Conv,Def,Map,SW),Vals,XX).
 
 pmap_get(Conv,Def,Map,SW,Val,X) :- 
    rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
@@ -226,7 +213,7 @@ graph_counts(io(IScaling), PScaling, Graph, P1, LP-Eta) :-
    top_value(InsideG, TopBeta-_), 
    foldl(soln_edges, InsideG, QCs, []), 
    call(group_pairs_by_key * keysort, QCs, InvGraph),
-   call(rb_empty >> pmap(top:'$top$',TopAlpha), Map1),
+   rb_empty(Empty), pmap(top:'$top$',TopAlpha, Empty, Map1),
    foldl(q_alpha(IScaling), InvGraph, Map1, Map2),
    maplist(pmap_collate(right,=(Min),Map2)*fst, P1, Grad),
    map_swc(patient(MakeCounts), P1, Grad, Eta).

@@ -14,7 +14,7 @@
 :- use_module(library(ccprism/switches)).
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
-:- use_module(library(ccprism), [goal_graph/2]).
+:- use_module(library(ccprism)).
 :- use_module(models).
 
 % ---- general purpose utilities ----
@@ -58,7 +58,7 @@ dice_gibbs_samples(AA,Spec,K,NumSamples,S) :- unfold(NumSamples, dice_gibbs(AA,K
 
 dice_gibbs(AA,Stride,Spec>F,M) :-
    goal_graph(maplist(two_dice,[4,4,4]), G), 
-   graph_params((math:mul(AA))*uniform,G,P0), 
+   graph_params(AA*uniform,G,P0), 
 	call(call(Spec,G,P0,P0) >> drop(500) >> subsample(Stride) >> mapper(snd*nth1(1)*F), M).
 
 counts(Counts) :- setof( Xs, expl_stats(Xs), Counts).
@@ -77,14 +77,14 @@ dice_exact_probs(AA, Dist) :-
    maplist(mul,NN,Ws,Ws1),
    stoch(Ws1,Ps,_).
 
-test_mcmc(NumSamples, Sub, Spec, S) :-
-	counts(CC), 
-   member(Spec>F, [gibbs_posterior_machine(counts)>(=), mc_machine(mh)>mcs_counts, mc_machine(gibbs2)>mcs_counts, mc_machine(gibbs)>mcs_counts]),
-	unfold(NumSamples, dice_gibbs(2,Sub,Spec>F) 
-                      >> mapper(ind(CC)) 
-                      >> mean(maplist(=(0)), maplist(add), vec_divby) 
-                      >> drop(2000),
-          S).
+% test_mcmc(NumSamples, Sub, Spec, S) :-
+% 	counts(CC), 
+%    member(Spec>F, [gibbs_posterior_machine(counts)>(=), mc_machine(mh)>mcs_counts, mc_machine(gibbs2)>mcs_counts, mc_machine(gibbs)>mcs_counts]),
+% 	unfold(NumSamples, dice_gibbs(2,Sub,Spec>F) 
+%                       >> mapper(ind(CC)) 
+%                       >> mean(maplist(=(0)), maplist(add), vec_divby) 
+%                       >> drop(2000),
+%           S).
 
 ind(Xs,X,Is) :- maplist(eq(X),Xs,Is).
 eq(X,Y,I) :- X=Y -> I=1; I=0.
