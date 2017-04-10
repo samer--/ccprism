@@ -19,7 +19,7 @@ dist(Ps,Xs,X) :- p_shift(prob,dist(Ps,Xs,X)).
 uniform(Xs,X) :- p_shift(prob,uniform(Xs,X)).
 
 %% sample(+P:pred(-A,+strand,-strand), -A) is det.
-%  Do arbitrary random sampling using capabilities of library(strand).
+%  Do arbitrary random sampling using capabilities of prob/strand.pl.
 %  NB. only works during sampling execution, not explanation search.
 sample(P,X)   :- p_shift(prob,sample(P,X)). 
 
@@ -34,7 +34,7 @@ SW := X       :- p_shift(prob,sw(SW,X)).
 
 %% cctabled(:Head, +Work:callable) is nondet.
 %  Execute Work using tabled execution and storing the result under Head.
-%  See library(ccprism/macros) for an automatic program transformation to
+%  See ccprism/macros.pl for an automatic program transformation to
 %  manage tabled predicates.
 cctabled(Head,Work) :- p_shift(tab, tab(Head,Work,Inj)), call(Inj).
 
