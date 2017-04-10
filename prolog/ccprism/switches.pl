@@ -64,9 +64,7 @@ sw_init(Spec, SW, SW-P) :- call(SW,_,Vals,[]), init(Spec, Vals, P).
 
 init(uniform,Vs, Params) :- length(Vs,N), P is 1/N, maplist(const(P),Vs,Params).
 init(unit,   Vs, Params) :- maplist(const(1),Vs,Params).
-init(random, Vs, Params) :- init(dirichlet*unit, Vs, Params).
-init(Spec>F, Vs, Params) :- init(Spec,Vs,P0), maplist(F, P0, Params).
-init(K*Spec, Vs, Params) :- init(mul(K)*Spec, Vs, Params).
+init(random, Vs, Params) :- call(dirichlet*init(unit), Vs, Params).
+init(K*Spec, Vs, Params) :- call(maplist(mul(K))*init(Spec), Vs, Params).
 init(S1+S2,  Vs, Params) :- init(S1,Vs,P1), init(S2,Vs,P2), maplist(add,P1,P2,Params).
-init(log(Spec), Vs, Params) :- init(log*Spec, Vs, Params).
-
+init(log(Spec), Vs, Params) :- call(maplist(log)*init(Spec), Vs, Params).

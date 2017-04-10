@@ -38,4 +38,4 @@ soln_expls(G,Y,Y1-Es) -->
 %% graph_params(+Spec:sw_init_spec, +G:graph, -P:sw_params) is det.
 %  Initialise parameters for all switches referenced in graph G.
 %  See sw_init/2 for more information.
-graph_params(Spec,G,Params) :- call(sw_init(Spec)*graph_switches, G, Params).
+graph_params(Spec,G,Params) :- call(maplist(sw_init(Spec))*graph_switches, G, Params).
