@@ -77,14 +77,14 @@ dice_exact_probs(AA, Dist) :-
    maplist(mul,NN,Ws,Ws1),
    stoch(Ws1,Ps,_).
 
-% test_mcmc(NumSamples, Sub, Spec, S) :-
-% 	counts(CC), 
-%    member(Spec>F, [gibbs_posterior_machine(counts)>(=), mc_machine(mh)>mcs_counts, mc_machine(gibbs2)>mcs_counts, mc_machine(gibbs)>mcs_counts]),
-% 	unfold(NumSamples, dice_gibbs(2,Sub,Spec>F) 
-%                       >> mapper(ind(CC)) 
-%                       >> mean(maplist(=(0)), maplist(add), vec_divby) 
-%                       >> drop(2000),
-%           S).
+test_mcmc(NumSamples, Sub, Spec, S) :-
+	counts(CC), 
+   member(Spec>F, [gibbs_posterior_machine(counts)>(=), mc_machine(mh)>mcs_counts, mc_machine(gibbs2)>mcs_counts, mc_machine(gibbs)>mcs_counts]),
+	unfold(NumSamples, dice_gibbs(2,Sub,Spec>F) 
+                      >> mapper(ind(CC)) 
+                      >> mean(maplist(=(0)), maplist(add), vec_divby) 
+                      >> drop(2000),
+          S).
 
 ind(Xs,X,Is) :- maplist(eq(X),Xs,Is).
 eq(X,Y,I) :- X=Y -> I=1; I=0.
