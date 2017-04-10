@@ -6,6 +6,17 @@ tabling. Predicates decalared `cctabled` are renamed (by a appending
 a '#' to their given name) and the original predicate name defined as
 a metacall of the renamed predicate via cctable/2, which is assumed 
 to be available in the module where the tabled predicate is defined.
+
+For example, to declare a tabled Fibonnaci sequence generator, do
+==
+:- cctable fib/2.
+fib(0,1) :- !.
+fib(1,1) :- !.
+fib(N,X) :- 
+   succ(N,N1), fib(N1,X1),
+   succ(N1,N2),fib(N2,X2),
+   X is N1+N1.
+==
 */
 
 :- op(1150,fx,cctable).
