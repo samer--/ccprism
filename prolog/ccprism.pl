@@ -1,4 +1,4 @@
-:- module(ccprism, [ goal_graph/2, tables_graph/2, graph_params/3]).
+:- module(ccprism, [ goal_graph/2, graph_params/3]).
 
 /** <module> Top level tabled explanation graph creation */
 
