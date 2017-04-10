@@ -62,7 +62,7 @@ marg_log_prob(Prior,Eta,LP) :-
 %     Add the results of initialising with Spec1 and Spec2
 sw_init(Spec, SW, SW-P) :- call(SW,_,Vals,[]), init(Spec, Vals, P).
 
-init(uniform,Vs, Params) :- length(Vs,N), P is 1/N, maplist(const(P),Vals,Params).
+init(uniform,Vs, Params) :- length(Vs,N), P is 1/N, maplist(const(P),Vs,Params).
 init(unit,   Vs, Params) :- maplist(const(1),Vs,Params).
 init(random, Vs, Params) :- init(dirichlet*unit, Vs, Params).
 init(Spec>F, Vs, Params) :- init(Spec,Vs,P0), maplist(F, P0, Params).
