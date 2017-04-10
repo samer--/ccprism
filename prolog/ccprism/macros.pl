@@ -13,9 +13,9 @@ For example, to declare a tabled Fibonnaci sequence generator, do
 fib(0,1) :- !.
 fib(1,1) :- !.
 fib(N,X) :- 
-   succ(N,N1), fib(N1,X1),
-   succ(N1,N2),fib(N2,X2),
-   X is N1+N1.
+   succ(N1,N), fib(N1,X1),
+   succ(N2,N1),fib(N2,X2),
+   X is X1+X2.
 ==
 */
 
