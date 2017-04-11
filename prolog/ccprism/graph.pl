@@ -27,8 +27,16 @@
 
 :- set_prolog_flag(back_quotes, symbol_char).
 
+%% top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
+%  Extract the value associated with the goal =|top:'$top$'|= from a list
+%  of goal-value pairs. This can be applied to explanation graphs or
+%  the results of semiring_graph_fold/4.
 top_value(Pairs, Top) :- memberchk((top:'$top$')-Top, Pairs).
 
+%% prune_graph(+P:pred(+A,-list(_)), +Top:goal, G1:list(pair(goal),A), G2:list(pair(goal),A)) is det.
+%  Prune a graph or annotated graph to keep only goals reachable from a given top goal.
+%  With apologies, the first argument is so badly typed, I cannot really explain what it does...
+%  @tbd Fix this so it can be explained.
 prune_graph(Mapper, Top, GL1, GL2) :-
    list_to_rbtree(GL1,G1), 
    rb_empty(E), children(Top,Mapper,G1,E,G2),
@@ -63,7 +71,44 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 %
 %  Folds the semiring SR over the explanation graph G, resulting in R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
-%  semirings can produce many kinds of parsing analysis.
+%  semirings can produce many kinds of parsing analysis. The algebra is not strictly a 
+%  semiring, as the times and plus operators have types =|A, B -> B|= and =|B, C -> C|=
+%  respectively as this makes it easier to avoid unnecessary operations like list appending.
+%
+%  An algebra of type =|sr(A,B,C,T)|= must provide 4 operators and 2 values:
+%  ==
+%  inject  : factor, T -> A
+%  times   : A, B -> B
+%  plus    : B, C -> C
+%  project : goal, C -> C, A
+%  unit    : B
+%  zero    : C
+%  ==
+%
+%  Available semirings:
+%     * r(pred(+T,-A), pred(+C,-C), pred(+A,+B,-B), pred(+B,+C,-C))
+%     A term containing the 4 restricted operators as callable terms.
+%     * best(oneof([lin,log]))
+%     Finds the best single explanation for each goal. If scaling is 'lin', parameters 
+%     are assumed to be probabilities; if it's 'log', they are assumed to be log probabilities.
+%     * kbest
+%     Produces for each goal a lazy list of explanations in order of %     probabilitity.
+%     * ann(sr(A,B,C,T))
+%     Annotates the original hypergraph with the results of any semiring analysis.
+%     *  sr(A1,B1,C1,T) - sr(A1,B1,C1,T)
+%     For each goal, return a pair of results from any two semiring analyses.
+%
+%  Various standard analysis can be obtained by using the appropriate semiring:
+%     * r(=,=,mul,add)
+%     Inside algorithm from  linear probabilities.
+%     * r(log_e,lse,add,cons)
+%     Inside algorithm from linear probabilities but with log-scaling internally.
+%     * r(=,lse,add,cons)
+%     Inside algorithm with log-scaling from log probabilities
+%     * r(=,=,mul,max)
+%     Viterbi probabilities.
+%     * r(log_e,=,add,max)
+%     Viterbi log-scaled probabilities from linear probabilities
 semiring_graph_fold(SR, Graph, Params, GoalSums) :- 
    rb_empty(E), 
    foldl(sr_sum(SR), Graph, GoalSums, E, Map), pmap_sws(Map, SWs),
