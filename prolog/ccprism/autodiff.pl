@@ -1,12 +1,11 @@
 :- module(ccp_autodiff, [graph_counts_ad/4]).
 
-/** <module> Inside-Outside computaton using automatic differentiation */
+/** <module> Inside-Outside computation using automatic differentiation */
 
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(autodiff),  [llog/2, log/2, exp/2, add/3, mul/3, go/0, clean/0, deriv/3]).
 :- use_module(graph,    [top_value/2, semiring_graph_fold/4]).
 :- use_module(switches, [map_swc/3, map_swc/4]).
-:- use_module(lazymath, []).
 
 ccp_graph:sr_inj(auto(_,_),   _, P, P).
 ccp_graph:sr_proj(auto(_,_),  _, X, X, X).
@@ -26,4 +25,3 @@ grad_log_params(lin, LogProb, P0, Eta, P0) :-
 grad_log_params(log, LogProb, P0, Eta, LogP0) :-
    map_swc(exp, LogP0, P0),
    map_swc(deriv(LogProb), LogP0, Eta).
-
