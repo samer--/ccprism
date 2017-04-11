@@ -1,11 +1,8 @@
 :- module(ccp_sr_autodiff, [graph_io_auto/5]).
 
-:- use_module(library(dcg_pair)).
-:- use_module(library(listutils), [foldr/4]).
 :- use_module(graph,    [top_value/2, semiring_graph_fold/4]).
-:- use_module(switches, [map_swc/3]).
-:- use_module(lazymath, []).
 :- use_module(autodiff, [log/2, add/3, mul/3, go/0, clean/0, deriv/3]).
+:- use_module(switches, [map_swc/3]).
 
 ccp_graph:sr_inj(auto(_,_),   _, P, P).
 ccp_graph:sr_proj(auto(_,_),  _, X, X, X).
