@@ -26,6 +26,8 @@
 dirichlet(As,Ps) :- sample(pure(dirichlet(As)),Ps).
 
 % manipulating parameter lists
+:- meta_predicate map_sw(2,?,?), map_swc(2,?,?), map_swc(3,?,?,?), map_sum_sw(2,+,-), map_sum_sw(3,+,+,-).
+
 map_sw(P,X,Y) :- maplist(fsnd(P),X,Y).
 map_swc(P,X,Y) :- map_sw(maplist(P),X,Y).
 map_swc(P,X,Y,Z) :- maplist(fsnd3(maplist(P)),X,Y,Z).
