@@ -58,6 +58,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 % --------- switch-value map -----------
 pmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
+% pmap_sws(Map,SWs) :- setof(SW, Map^V^X^rb_gen(SW:=V,X,Map), SWs) -> true; SWs=[].
 pmap_sws(Map,SWs) :- rb_fold(pmap_entry_sw,Map,SWs1,[]), sort(SWs1,SWs).
 pmap_entry_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
 
