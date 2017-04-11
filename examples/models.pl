@@ -1,5 +1,5 @@
 :- module(models, [ s//0, np//0, vp//0, biased_sampler/1, parse/2
-                  , two_dice/1, two_dice/2, three_dice/1, dice/2]).
+                  , two_dice/1, two_dice/2, three_dice/1, dice/2, die/3]).
 
 /** <module> Example probabilistic models (see code for commentary) */
 
