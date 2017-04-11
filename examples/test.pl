@@ -13,6 +13,7 @@
 :- use_module(library(ccprism/switches), [marg_log_prob/3]).
 :- use_module(library(ccprism/graph)).
 :- use_module(library(ccprism/kbest)).
+:- use_module(library(ccprism/sr_autodiff)).
 :- use_module(library(ccprism/learn)).
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
@@ -21,8 +22,9 @@
 
 % ---- general purpose utilities ----
 
-:- meta_predicate samp(0).
+:- meta_predicate samp(0), samp(0,+,-).
 samp(G) :- strand(run_sampling(uniform_sampler,G)).
+samp(G) --> run_sampling(uniform_sampler,G).
 unfold(N0,M,S) :- succ(N0,N), time(samp(call(take(N)*unfold, M, [_|S]))).
 
 histof(Xs,Hist) :- setof(X-N, aggregate(count,member(X,Xs),N), Hist).
