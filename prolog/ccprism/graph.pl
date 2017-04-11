@@ -58,7 +58,8 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 % --------- switch-value map -----------
 pmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
-pmap_sws(Map,SWs) :- setof(SW, V^X^rb_gen(SW:=V,X,Map), SWs) -> true; SWs=[].
+pmap_sws(Map,SWs) :- rb_fold(pmap_entry_sw,Map,SWs1,[]), sort(SWs1,SWs).
+pmap_entry_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
 
 :- meta_predicate pmap_collate(3,1,+,+,?).
 pmap_collate(Conv,Def,Map,SW,SW-XX) :- 
@@ -109,7 +110,8 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 
 semiring_graph_fold(SR, Graph, Params, GoalSums) :- 
    rb_empty(E), 
-   foldl(sr_sum(SR), Graph, GoalSums, E, Map), pmap_sws(Map, SWs),
+   foldl(sr_sum(SR), Graph, GoalSums, E, Map), 
+   pmap_sws(Map, SWs),
    maplist(pmap_collate(sr_param(SR),true1,Map),SWs,Params).
 
 sr_sum(SR, Goal-Expls, Goal-Sum1) -->
@@ -124,6 +126,7 @@ sr_add_prod(SR, Expl) -->
 sr_factor(SR, M:Head)  --> pmap(M:Head,X) <\> sr_times(SR,X), !. 
 sr_factor(SR, SW:=Val) --> pmap(SW:=Val,X) <\> sr_times(SR,X), !. 
 sr_factor(SR, @P)      --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X), !.
+
 sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X).
 
 % --------- semirings ---------
