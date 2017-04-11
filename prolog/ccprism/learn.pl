@@ -13,19 +13,19 @@
 
 learn(Method,Stats,Graph,Step) :- learn(Method,Stats,1,Graph,Step).
 
-learn(ml, Stats, ITemp, Graph, ccprism:unify3(t(P1,P2,LL))) :-
+learn(ml, Stats, ITemp, Graph, ccp_learn:unify3(t(P1,P2,LL))) :-
    graph_counts(Stats, lin, Graph, PP, LL-Eta),
    map_swc(pow(ITemp), P1, PP),
    map_sw(stoch, Eta, P2).
 
-learn(map(Prior), Stats, ITemp, Graph, ccprism:unify3(t(P1,P2,LL+LP))) :-
+learn(map(Prior), Stats, ITemp, Graph, ccp_learn:unify3(t(P1,P2,LL+LP))) :-
    graph_counts(Stats, lin, Graph, PP, LL-Eta),
    patient(mul(ITemp)*sw_log_prob(Prior), P1, LP),
    sw_posteriors(Prior, Eta, Post),
    map_swc(pow(ITemp), P1, PP),
    map_sw(stoch*maplist(max(0)*add(-1)), Post, P2).
 
-learn(vb(Prior), Stats, ITemp, Graph, ccprism:unify3(t(A1,A2,LL-Div))) :-
+learn(vb(Prior), Stats, ITemp, Graph, ccp_learn:unify3(t(A1,A2,LL-Div))) :-
    maplist(map_swc(true2,Prior), [A1,Pi]), % establish same shape as prior
    map_swc(mul_add(ITemp,1-ITemp), Prior, EffPrior),
    map_sum_sw(log_partition_dirichlet, Prior, LogZPrior),

@@ -34,8 +34,8 @@ mc_perplexity(Method, Graph, Prior, Stream) :-
 
 p_params_given_post(Probs,Post,P) :- sw_log_prob(Post,Probs,LP), P is exp(LP).
 
-method_machine_mapper(gibbs, _,     ccprism:gibbs_posterior_machine(posterior), =).
-method_machine_mapper(mh,    Prior, mc_machine(mh), ccprism:sw_posteriors(Prior)*mcs_counts).
+method_machine_mapper(gibbs, _,     ccp_mcmc:gibbs_posterior_machine(posterior), =).
+method_machine_mapper(mh,    Prior, mc_machine(mh), ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
 
 gibbs_posterior_machine(Rot, Graph, Prior, P1, M) :-
    graph_inside(Graph, P0, IG),
