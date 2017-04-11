@@ -25,11 +25,11 @@ deriv(L,X,DX), add(_,X,Y) ==> deriv(L,Y,DY),                 agg(DY,DX).
 % accumulation of sums
 acc(X) \ acc(X) <=> true.
 
-acc(X,S1), agg(Z,X) <=> add1(Z,S1,S2), acc(S2,X).
-acc(X,S) <=> S=X.
+acc(S1,X), agg(Z,X) <=> add1(Z,S1,S2), acc(S2,X).
+acc(S,X) <=> S=X.
 
 % triggering accumulation
-go \ acc(DX) <=> acc(DX,0).
+go \ acc(DX) <=> acc(0,DX).
 
 % cleaning up...
 clean \ deriv(_,_,_) <=> true.
