@@ -12,6 +12,7 @@
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/switches), [marg_log_prob/3]).
 :- use_module(library(ccprism/graph)).
+:- use_module(library(ccprism/kbest)).
 :- use_module(library(ccprism/learn)).
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).

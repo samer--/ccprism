@@ -1,5 +1,5 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2
-                     , semiring_graph_fold/4, graph_viterbi/4, graph_nviterbi/4, graph_inside/3
+                     , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
                      , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/5
                      , igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
@@ -14,7 +14,6 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lambda2)).
-:- use_module(library(lazy),        [lazy_maplist/3, lazy_unfold_finite/4]).
 :- use_module(library(math),        [stoch/3]).
 :- use_module(library(listutils),   [cons//1, foldr/4, zip/3]).
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
@@ -22,10 +21,11 @@
 :- use_module(library(rbutils),     [rb_gen/3, rb_add//2, rb_app//2, rb_get//2]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/4]).
-:- use_module(lazymath,  [ max/3, add/3, mul/3, exp/2, log_e/2, surp/2
-                         , lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4, lazy/4]).
+:- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
 
 :- set_prolog_flag(back_quotes, symbol_char).
+
+:- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2.
 
 %% top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
 %  Extract the value associated with the goal =|top:'$top$'|= from a list
@@ -67,6 +67,7 @@ pmap_collate(Conv,Def,Map,SW,SW-XX) :-
 pmap_get(Conv,Def,Map,SW,Val,X) :- 
    rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
 
+
 %% semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
 %
 %  Folds the semiring SR over the explanation graph G, resulting in R, a list of pairs
@@ -84,15 +85,15 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 %  unit    : B
 %  zero    : C
 %  ==
+%  Semirings are extensible using multifile predicates sr_inj/4, sr_proj/5, sr_times/4,
+%  sr_plus/4, sr_unit/2 and sr_zero/2.
 %
-%  Available semirings:
+%  Available semirings in this module:
 %     * r(pred(+T,-A), pred(+C,-C), pred(+A,+B,-B), pred(+B,+C,-C))
 %     A term containing the 4 restricted operators as callable terms.
 %     * best(oneof([lin,log]))
 %     Finds the best single explanation for each goal. If scaling is 'lin', parameters 
 %     are assumed to be probabilities; if it's 'log', they are assumed to be log probabilities.
-%     * kbest
-%     Produces for each goal a lazy list of explanations in order of %     probabilitity.
 %     * ann(sr(A,B,C,T))
 %     Annotates the original hypergraph with the results of any semiring analysis.
 %     *  sr(A1,B1,C1,T) - sr(A1,B1,C1,T)
@@ -101,14 +102,11 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 %  Various standard analysis can be obtained by using the appropriate semiring:
 %     * r(=,=,mul,add)
 %     Inside algorithm from  linear probabilities.
-%     * r(log_e,lse,add,cons)
-%     Inside algorithm from linear probabilities but with log-scaling internally.
 %     * r(=,lse,add,cons)
 %     Inside algorithm with log-scaling from log probabilities
 %     * r(=,=,mul,max)
 %     Viterbi probabilities.
-%     * r(log_e,=,add,max)
-%     Viterbi log-scaled probabilities from linear probabilities
+
 semiring_graph_fold(SR, Graph, Params, GoalSums) :- 
    rb_empty(E), 
    foldl(sr_sum(SR), Graph, GoalSums, E, Map), pmap_sws(Map, SWs),
@@ -132,37 +130,31 @@ sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X).
 sr_inj(r(I,_,_,_),  _, P, X)     :- call(I,P,X).
 sr_inj(best(log), F, P, P-F).
 sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
-sr_inj(kbest,     F, P, [Q-F]) :- surp(P,Q).
 sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
 sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
 
 sr_proj(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
 sr_proj(best(_),  G, X-E, X-E, X-(G-E)).
-sr_proj(kbest,    G, X, X, Y)         :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
 sr_proj(ann(SR),  G, X-Z, W-Z, Y-G)     :- sr_proj(SR,G,X,W,Y).
 sr_proj(R1-R2,    G, X1-X2, Z1-Z2, Y1-Y2) :- sr_proj(R1,G,X1,Z1,Y1), sr_proj(R2,G,X2,Z2,Y2).
 
 sr_plus(r(_,_,_,O), X) --> call(O,X).
 sr_plus(best(_),  X) --> v_max(X).
-sr_plus(kbest,    X) --> lazy(k_min,X).
 sr_plus(ann(SR),  X-Expl) --> sr_plus(SR,X) <\> cons(X-Expl).
 sr_plus(R1-R2,    X1-X2) --> sr_plus(R1,X1) <\> sr_plus(R2,X2).
 
 sr_times(r(_,_,O,_), X) --> call(O,X).
 sr_times(best(_),  X-F) --> add(X) <\> cons(F).
-sr_times(kbest,    X) --> lazy(k_mul,X).
 sr_times(ann(SR),  X-F) --> sr_times(SR,X) <\> cons(X-F).
 sr_times(R1-R2,    X1-X2) --> sr_times(R1,X1) <\> sr_times(R2,X2).
 
 sr_zero(r(_,_,_,O), I) :- m_zero(O,I).
 sr_zero(best(_),  Z-_)   :- m_zero(max,Z).
-sr_zero(kbest,    []).
 sr_zero(ann(SR),  Z-[])  :- sr_zero(SR,Z).
 sr_zero(R1-R2,    Z1-Z2) :- sr_zero(R1,Z1), sr_zero(R2,Z2).
 
 sr_unit(r(_,_,O,_), I) :- m_zero(O,I).
 sr_unit(best(_),  0-[]).
-sr_unit(kbest,    [0-[]]).
 sr_unit(ann(SR),  U-[])  :- sr_unit(SR,U).
 sr_unit(R1-R2,    U1-U2) :- sr_unit(R1,U1), sr_unit(R2,U2).
 
@@ -173,43 +165,11 @@ m_zero(cons,[]).
 
 v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 
-% ---- lazy k-best algebra ----
-k_tag(G,L-X,L-(G-X)). % tag explanaiton with head goal
-k_min([],Y,Y) :- !.
-k_min(X,[],X) :- !.
-k_min([X|Xs],[Y|Ys],[Z|Zs]) :-
-   (  LX-_=X, LY-_=Y, LX =< LY
-   -> Z=X, freeze(Zs, k_min(Xs,[Y|Ys],Zs))
-   ;  Z=Y, freeze(Zs, k_min([X|Xs],Ys,Zs))
-   ).
-
-k_mul(X,Y,Z) :-
-   empty_set(EmptyS), empty_heap(EmptyQ),
-   k_queue(0^X-0^Y, EmptyS-EmptyQ, TQ1),
-   lazy_unfold_finite(k_next, Z, TQ1, _).
-
-k_next(L-[XF|YFs]) -->
-   \> pq_get(L,P),
-   {P=I^[X0|X]-J^[Y0|Y], _-XF=X0, _-YFs=Y0}, 
-   {succ(J,J1)}, k_queue(I^X-J1^[Y0|Y]),
-   {succ(I,I1)}, k_queue(I1^[X0|X]-J^Y).
-
-k_queue(P) --> {P=I^X-J^Y}, \< add_to_set(I-J), {k_cost(X,Y,L)} -> \> pq_add(L,P); [].
-k_cost([X0-_|_],[Y0-_|_], L) :- L is X0+Y0.
-
-pq_add(L,P,H1,H2) :- add_to_heap(H1,L,P,H2).
-pq_get(L,P,H1,H2) :- get_from_heap(H1,L,P,H2).
-add_to_set(X,S1,[X|S1]) :- \+memberchk(X,S1).
-empty_set([]).
-
 % ---------- inside and viterbi probs, explanation trees -----------
 graph_inside(Graph, Params, IGraph)  :- 
    semiring_graph_fold(ann(r(=,=,mul,add)), Graph, Params, IGraph).
 graph_viterbi(Graph, Params, Tree, LP) :- 
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
-graph_nviterbi(Graph, Params, Tree, LP) :-
-   semiring_graph_fold(kbest, Graph, Params, VGraph), top_value(VGraph, Expls),
-   member(LP-Tree,Expls).
 
 igraph_sample_tree(Graph, Tree, LogProb) :-
    igraph_sample_tree(Graph, top:'$top$', Tree, LogProb).
