@@ -1,11 +1,24 @@
 :- module(ccp_kbest, [graph_nviterbi/4]).
 
+/** <module> Lazy k-best parsing
+   This module provides a semiring for generating parse trees lazily in best-first
+   order, based on the algorithm of Huang and Chiang [1]. Unlike their method
+   however, this needs no preassigned limit on the number of parses to produce.
+
+   [1] Liang Huang and David Chiang. Better k-best parsing. 
+       In Proceedings of the Ninth International Workshop on Parsing Technology, pages 53–64.
+       Association for Computational Linguistics, 2005.
+*/
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lazy), [lazy_maplist/3, lazy_unfold_finite/4]).
 :- use_module(lazymath, [surp/2, lazy/4]).
 :- use_module(graph, [semiring_graph_fold/4, top_value/2]).
 
+%% graph_nviterbi(+G:graph, +P:sw_params, -T:expl_tree, -LP:number) is nondet.
+%
+%  Find the most probable parse tree, and then find progressively less probable
+%  parse trees on backtracking.
 graph_nviterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(kbest, Graph, Params, VGraph), 
    top_value(VGraph, Expls),

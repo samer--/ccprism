@@ -4,9 +4,21 @@
                      , igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
 
-/** <module> Inference and statistics on explanation hypergraphs */
+/** <module> Inference and statistics on explanation hypergraphs 
 
-:- use_module(library(apply_macros)).
+   This module provides algorithms on explanation hypergraphs, based on the ideas
+   of Sato (in PRISM), Klein and Manning [1] and Goodman [2]. Also provided
+   are methods for sampling explanations from their posterior distribution [2] and
+   computing the entropy of the posterior distribution using a method which,
+   to my knowledge, has not been published before.
+
+   [1] D. Klein and C. D. Manning. Parsing and hypergraphs. 
+   In New developments in parsing technology, pages 351–372. Springer, 2004.
+
+   [2] J. Goodman. Parsing inside-out. PhD thesis, 
+       Division of Engineering and Applied Sciences, Harvard University, 1998.
+*/
+
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lambda2)).

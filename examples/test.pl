@@ -1,5 +1,7 @@
 :- module(ccp_test, []).
 
+:- use_module(library(apply_macros)).
+
 :- use_module(library(memo)).
 :- use_module(library(data/pair)).
 :- use_module(library(callutils)).
@@ -56,6 +58,9 @@ dataset(_,N,XX) :-
    strand(run_sampling(SS, maplist(phrase(s), XX))).
 
 dataset(ID,XX) :- browse(dataset(ID,_,XX)).
+
+dataset_goal(ID,sentences(XX)) :- dataset(ID,XX).
+sentences(XX) :- maplist(phrase(s),XX).
 
 
 % ----- Testing MCMC with the two_dice system ----
