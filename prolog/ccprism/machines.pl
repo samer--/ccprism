@@ -1,6 +1,5 @@
-:- module(machines, [ iterate/4, unfold/2, unfold_finite/2, scanner/3, scan0/4, (**)//2
-                    , mean/2, mean/5
-                    , (>>)/3, iterator/3, unfolder/3, mapper/3, moore/5, progress/2, subsample/3, drop/3]).
+:- module(machines, [ iterate/4, unfold/2, unfold_finite/2, scanner/3, scan0/4, mean/2, mean/5
+                    , (>>)/3, iterator/3, unfolder/3, mapper/3, moore/5, subsample/3, drop/3]).
 
 :- use_module(library(dcg_progress), [seqmap_with_progress//3]).
 :- use_module(library(math),         [add/3, divby/3]).
@@ -45,13 +44,6 @@ drop(N, unfolder(T,S0), unfolder(T,S1)) :- length(X,N), foldl(T,X,S0,S1).
 
 subsample(N, unfolder(T,S0), unfolder(skip(N,T),S0)).
 skip(N,T,X,S1,S2) :- length([X|Y],N), foldl(T,[X|Y],S1,S2).
-
-progress(M1,M2) :- moore(prog_step,snd,0-_,M1,M2).
-prog_step(X,I-_,J-X) :- J is I+1, format('~d: ~w\n',[J,X]).
-
-**(G,N) --> {var(N)} -> rep_var(N,G); rep_nonvar(N,G).
-rep_nonvar(N,G) --> {N=<0} -> []; {M is N-1}, call_dcg(G), rep_nonvar(M,G).
-rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
 
 % mean machine
 mean(In,Out) :- mean(=(0), add, divby, In, Out).

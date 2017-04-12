@@ -47,6 +47,10 @@ seq_dist(S,CC) :-
 
 user:portray(X) :- float(X), !, format('~5g',[X]).
 
+**(G,N) --> {var(N)} -> rep_var(N,G); rep_nonvar(N,G).
+rep_nonvar(N,G) --> {N=<0} -> []; {M is N-1}, call_dcg(G), rep_nonvar(M,G).
+rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
+
 % ---- Testing small fragment of English grammar -----
 
 :- initialization memo_attach('datasets',[]).
