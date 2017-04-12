@@ -23,7 +23,7 @@
 bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
 
 mc_perplexity(Method, Graph, Prior, Stream) :-
-   converge(rel(1e-6), learn(vb(Prior), io(lin,lin), Graph), _, Prior, VBPost),
+   converge(rel(1e-6), learn(vb(Prior), io(lin), Graph), _, Prior, VBPost),
    sw_expectations(VBPost, VBProbs), 
    call(log*fst*top_value*graph_inside(Graph), VBProbs, LogPDataGivenVBProbs),
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
