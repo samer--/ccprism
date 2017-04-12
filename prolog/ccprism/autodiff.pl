@@ -1,4 +1,4 @@
-:- module(ccp_autodiff, [graph_counts_ad/4]).
+:- module(ccp_autodiff, [graph_counts_ad/5]).
 
 /** <module> Inside-Outside computation using automatic differentiation */
 
@@ -14,7 +14,13 @@ ccp_graph:sr_times(auto(_,_), X) --> mul(X).
 ccp_graph:sr_zero(auto(_,Z),  Z).
 ccp_graph:sr_unit(auto(O,_),  O).
 
-graph_counts_ad(Sc, Graph, Params, LogProb-Eta) :- 
+%% graph_counts_ad(+Scaling:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
+%
+%  Compute expected switch counts C from explanation graph G with switch parameters
+%  P. Uses automatic differentiation of the expression for the log of the inside 
+%  probability LP of the graph. Params can be unbound - binding them later triggers
+%  the computations required to yield numerical values in the result.
+graph_counts_ad(Sc, Graph, Params, Eta, LogProb) :- 
    call(log*top_value*semiring_graph_fold(auto(O,Z), Graph), P0, LogProb),
    grad_log_params(Sc, LogProb, P0, Eta, Params0),
    go, clean, O=1, Z=0, 

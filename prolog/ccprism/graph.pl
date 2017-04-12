@@ -1,6 +1,6 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2
                      , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
-                     , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/5
+                     , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/6
                      , igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
 
@@ -10,6 +10,7 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lambda2)).
+:- use_module(library(typedef)).
 :- use_module(library(math),        [stoch/3]).
 :- use_module(library(listutils),   [cons//1, foldr/4, zip/3]).
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
@@ -22,6 +23,10 @@
 :- set_prolog_flag(back_quotes, symbol_char).
 
 :- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2.
+
+:- type graph == list(pair(goal, list(list(factor)))).
+:- type counts_method ---> vit; io(scaling).
+:- type scaling ---> lin; log.
 
 %% top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
 %  Extract the value associated with the goal =|top:'$top$'|= from a list
@@ -68,7 +73,7 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 
 %% semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
 %
-%  Folds the semiring SR over the explanation graph G, resulting in R, a list of pairs
+%  Folds the semiring SR over the explanation graph G. Produces R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
 %  semirings can produce many kinds of parsing analysis. The algebra is not strictly a 
 %  semiring, as the times and plus operators have types =|A, B -> B|= and =|B, C -> C|=
@@ -89,7 +94,7 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 %  Available semirings in this module:
 %     * r(pred(+T,-A), pred(+C,-C), pred(+A,+B,-B), pred(+B,+C,-C))
 %     A term containing the 4 restricted operators as callable terms.
-%     * best(oneof([lin,log]))
+%     * best(scaling)
 %     Finds the best single explanation for each goal. If scaling is 'lin', parameters 
 %     are assumed to be probabilities; if it's 'log', they are assumed to be log probabilities.
 %     * ann(sr(A,B,C,T))
@@ -207,11 +212,16 @@ factor_entropy(M:Head) --> !, pmap(M:Head,H) <\> add(H).
 factor_entropy(_) --> []. 
 
 % --------- outside probabilities, ESS ----------------
-graph_counts(vit, PScaling, Graph, P1, LP-Eta) :-
+
+%% graph_counts(+M:counts_method, +Sc:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
+%  Compute expected switch counts C from graph G with switch parameters P. Also
+%  returns log probability of the graph in LP. Can do either inside-outside inference or
+%  Viterbi inference, depending on M.
+graph_counts(vit, PScaling, Graph, P1, Eta, LP) :-
    call(top_value * semiring_graph_fold(best(PScaling),Graph), P1, LP-Tree),
    when(ground(LP), tree_stats(_-Tree, Eta)).
 
-graph_counts(io(IScaling), PScaling, Graph, P1, LP-Eta) :-
+graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
    i_scaling_info(IScaling, Min, TopBeta, TopAlpha, LP),
    scaling_info(IScaling/PScaling, SR, MakeCounts),
    semiring_graph_fold(ann(SR), Graph, P1, InsideG),
