@@ -29,7 +29,7 @@ ccp_graph:sr_proj(kbest,  G, X, X, Y)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
 ccp_graph:sr_plus(kbest,  X) --> lazy(k_min,X).
 ccp_graph:sr_times(kbest, X) --> lazy(k_mul,X).
 ccp_graph:sr_zero(kbest,  []).
-ccp_graph:sr_unit(kbest,  [0-[]]).
+ccp_graph:sr_unit(kbest,  [0.0-[]]).
 
 k_tag(G,L-X,L-(G-X)). % tag explanaiton with head goal
 k_min([],Y,Y) :- !.

@@ -23,7 +23,7 @@ pow(1,X,X) :- !.
 pow(B,X,Y) :- when(ground(X), Y is X^B).
 log_stoch(X,Y) :- when(ground(X), log_stoch_strict(X,Y)).
 
-log_stoch_strict([_],[0]) :- !.
+log_stoch_strict([_],[0.0]) :- !.
 log_stoch_strict(LogWeights,LogProbs) :-
    log_sum_exp(LogWeights, LogTotal),
    maplist((math:sub(LogTotal)), LogWeights, LogProbs).

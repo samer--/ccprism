@@ -171,12 +171,12 @@ sr_zero(ann(SR),  Z-[])  :- sr_zero(SR,Z).
 sr_zero(R1-R2,    Z1-Z2) :- sr_zero(R1,Z1), sr_zero(R2,Z2).
 
 sr_unit(r(_,_,O,_), I) :- m_zero(O,I).
-sr_unit(best(_),  0-[]).
+sr_unit(best(_),  0.0-[]).
 sr_unit(ann(SR),  U-[])  :- sr_unit(SR,U).
 sr_unit(R1-R2,    U1-U2) :- sr_unit(R1,U1), sr_unit(R2,U2).
 
-m_zero(add,0).
-m_zero(mul,1).
+m_zero(add,0.0).
+m_zero(mul,1.0).
 m_zero(max,-inf).
 m_zero(cons,[]).
 
@@ -208,14 +208,14 @@ inside_graph_entropy(Scaling, IGraph, GoalEntropies) :-
 goal_entropy(Scaling, Goal-(_ - WeightedExpls), Goal-Entropy) -->
    pmap(Goal,Entropy),
    {zip(Ws, Es, WeightedExpls), scaling_stoch(Scaling, Ws, Ps)},
-   run_right(foldl(expl_entropy(Scaling),Ps,Es), 0, Entropy).
+   run_right(foldl(expl_entropy(Scaling),Ps,Es), 0.0, Entropy).
 
 scaling_stoch(lin,X,Y) :- stoch(X,Y).
 scaling_stoch(log,X,Y) :- log_stoch(X,Y).
 
 expl_entropy(Scaling, Pe, Expl) --> 
    {when(ground(FactorsEntropy-Pe), expl_entropy(Scaling, Pe, FactorsEntropy, ExplEntropy))},
-   run_right(foldl(mr(snd,factor_entropy),Expl), 0, FactorsEntropy) <\> add(ExplEntropy). 
+   run_right(foldl(mr(snd,factor_entropy),Expl), 0.0, FactorsEntropy) <\> add(ExplEntropy). 
 
 expl_entropy(lin, Pe, HFactors, HE) :- HE is Pe*(HFactors - log(Pe)).
 expl_entropy(log, Pe, HFactors, HE) :- HE is exp(Pe)*(HFactors - Pe).
@@ -246,7 +246,7 @@ graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
    map_swc(patient(MakeCounts), P1, Grad, Eta).
 right(_,X,X).
 
-i_scaling_info(lin, 0,    Pin, 1/Pin, LP) :- log_e(Pin,LP).
+i_scaling_info(lin, 0.0,  Pin, 1.0/Pin, LP) :- log_e(Pin,LP).
 i_scaling_info(log, -inf, LP, -LP, LP).
 
 scaling_info(lin/lin, r(=,=,mul,add),        math:mul).
@@ -259,13 +259,13 @@ soln_edges(P-(_-Expls)) --> foldl(expl_edges(P),Expls).
 expl_edges(P,Pe-Expl)       --> foldl(factor_edge(Pe,P),Expl).
 factor_edge(Pe,P,BetaQ-Q)   --> [Q-qc(BetaQ,Pe,P)].
 
-q_alpha(lin,Q-QCs) --> pmap(Q, AlphaQ), run_right(foldl(qc_alpha, QCs), 0, AlphaQ).
+q_alpha(lin,Q-QCs) --> pmap(Q, AlphaQ), run_right(foldl(qc_alpha, QCs), 0.0, AlphaQ).
 q_alpha(log,Q-QCs) --> pmap(Q, AlphaQ), run_right(foldl(qc_alpha_log, QCs), [], Alphas), 
                        {lse(Alphas,AlphaQ)}.
 
 qc_alpha(qc(BetaQ,Pe,P)) --> 
    pmap(P, AlphaP) <\> add(AlphaQC),
-   { when(ground(BetaQ), ( BetaQ =:= 0 -> AlphaQC=0
+   { when(ground(BetaQ), ( BetaQ =:= 0.0 -> AlphaQC=0.0
                          ; mul(AlphaP,Pe/BetaQ,AlphaQC))) }.
 
 qc_alpha_log(qc(BetaQ,Pe,P)) --> 

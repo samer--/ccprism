@@ -7,8 +7,8 @@
 :- use_module(graph,    [top_value/2, semiring_graph_fold/4]).
 :- use_module(switches, [map_swc/3, map_swc/4]).
 
-ccp_graph:m_zero(autodiff:mul,1).
-ccp_graph:m_zero(autodiff:add,0).
+ccp_graph:m_zero(autodiff:mul,1.0).
+ccp_graph:m_zero(autodiff:add,0.0).
 
 %% graph_counts_ad(+Scaling:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
 %
