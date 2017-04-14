@@ -34,7 +34,7 @@
 
 :- set_prolog_flag(back_quotes, symbol_char).
 
-:- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2.
+:- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2, m_zero/2.
 
 :- type graph == list(pair(goal, list(list(factor)))).
 :- type counts_method ---> vit; io(scaling).

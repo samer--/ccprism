@@ -7,12 +7,8 @@
 :- use_module(graph,    [top_value/2, semiring_graph_fold/4]).
 :- use_module(switches, [map_swc/3, map_swc/4]).
 
-ccp_graph:sr_inj(auto(_,_),   _, P, P).
-ccp_graph:sr_proj(auto(_,_),  _, X, X, X).
-ccp_graph:sr_plus(auto(_,_),  X) --> add(X).
-ccp_graph:sr_times(auto(_,_), X) --> mul(X).
-ccp_graph:sr_zero(auto(_,Z),  Z).
-ccp_graph:sr_unit(auto(O,_),  O).
+ccp_graph:m_zero(autodiff:mul,1).
+ccp_graph:m_zero(autodiff:add,0).
 
 %% graph_counts_ad(+Scaling:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
 %
@@ -21,10 +17,10 @@ ccp_graph:sr_unit(auto(O,_),  O).
 %  probability LP of the graph. Params can be unbound - binding them later triggers
 %  the computations required to yield numerical values in the result.
 graph_counts_ad(Sc, Graph, Params, Eta, LogProb) :- 
-   call(log*top_value*semiring_graph_fold(auto(O,Z), Graph), P0, LogProb),
+   semiring_graph_fold(r(=,=,autodiff:mul,autodiff:add), Graph, P0, IG),
+   call(log*top_value, IG, LogProb),
    grad_log_params(Sc, LogProb, P0, Eta, Params0),
-   go, clean, O=1, Z=0, 
-   Params=Params0.
+   go, clean, Params=Params0.
 
 grad_log_params(lin, LogProb, P0, Eta, P0) :- 
    map_swc(deriv(LogProb)*llog, P0, Eta).
