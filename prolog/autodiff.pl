@@ -2,7 +2,8 @@
 
 :- use_module(library(chr)).
 
-:- chr_constraint deriv/3, max/3, mul/3, add/3, log/2, llog/2, exp/2, go/0, clean/0, agg/2, acc/1, acc/2.
+:- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-),
+                  deriv(-,-,?), agg(?,-), acc(?,-), acc(-), go, clean.
 
 % operations interface
 mul(1,X,Y) <=> Y=X.
