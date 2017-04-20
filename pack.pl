@@ -1,5 +1,5 @@
 name(ccprism).
-version('0.0.7').
+version('0.0.8').
 author('Samer Abdallah','s.abdallah@ucl.ac.uk').
 title('Probabilistic programming using delimited continuations').
 download('https://github.com/samer--/ccprism.git').

@@ -9,8 +9,6 @@
 :- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2]).
 :- use_module(ccprism/switches,   [sw_init/3]).
 
-:- type graph == list(pair(goal, list(list(factor)))).
-
 %% goal_graph(+Goal:callable, -Graph:graph) is det.
 %  Finds all solutions to Goal in a delimited context supplying tabling and 
 %  probabilistic choice. Explanations are extracted from the tables and 
