@@ -68,6 +68,20 @@ dataset_goal(ID,sentences(XX)) :- dataset(ID,XX).
 sentences(XX) :- maplist(phrase(s),XX).
 
 
+:- meta_predicate speed_test(4,+,+,+,-,-).
+speed_test(CountsPred, InitSpec, Dataset, Reps, Counts, LogProb) :-
+   dataset_goal(Dataset, Goal),
+   goal_graph(Goal,G), 
+   graph_params(InitSpec,G,P1), 
+   time(call(CountsPred, G, P0, Counts0, LP0)), 
+   time(rep(Reps, eval(t(P0,Counts0,LP0),P1))),
+   copy_term(t(P0,Counts0,LP0), t(P1,Counts,LogProb)).
+
+eval(T,P1) :- copy_term(T,t(P1,_,_)).
+
+rep(0,_) :- !.
+rep(N,G) :- N1 is N-1, call(G), rep(N1,G).
+
 % ----- Testing MCMC with the two_dice system ----
 
 dice_gibbs_samples(AA,Spec,K,NumSamples,S) :- unfold(NumSamples, dice_gibbs(AA,K,Spec), S).
