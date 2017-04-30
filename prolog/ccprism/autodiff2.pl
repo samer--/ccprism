@@ -1,4 +1,4 @@
-:- module(ccp_autodiff2, [graph_counts_ad/5]).
+:- module(ccp_autodiff2, [graph_counts_ad/5, graph_counts_ad/6]).
 
 /** <module> Inside-Outside computation using automatic differentiation (variant) */
 
@@ -16,14 +16,19 @@ ccp_graph:m_zero(autodiff2:add,0.0).
 %  P. Uses automatic differentiation of the expression for the log of the inside 
 %  probability LP of the graph. Params can be unbound - binding them later triggers
 %  the computations required to yield numerical values in the result.
-graph_counts_ad(Sc, Graph, Params, Eta, LogProb) :- 
-   semiring_graph_fold(r(=,=,autodiff2:mul,autodiff2:add), Graph, P0, IG),
-   call(log*top_value, IG, LogProb),
-   grad_log_params(Sc, LogProb, P0, Eta, Params0),
+graph_counts_ad(ISc, PSc, Graph, Params, Eta, LogProb) :- 
+   scaling_semiring(ISc, SR, ToLogProb),
+   semiring_graph_fold(SR, Graph, P0, IG),
+   call(ToLogProb*top_value, IG, LogProb),
+   scaling_log_params(ISc, PSc, P0, Params0, LogP0),
+   map_swc(deriv(LogProb), LogP0, Eta),
    back(LogProb), compile, Params=Params0.
 
-grad_log_params(lin, LogProb, P0, Eta, P0) :- 
-   map_swc(deriv(LogProb)*llog, P0, Eta).
-grad_log_params(log, LogProb, P0, Eta, LogP0) :-
-   map_swc(exp, LogP0, P0),
-   map_swc(deriv(LogProb), LogP0, Eta).
+scaling_semiring(lin, r(=,=,autodiff2:mul,autodiff2:add), log).
+scaling_semiring(log, r(=,autodiff2:lse,autodiff2:add,cons), =).
+
+scaling_log_params(lin, lin, P0,    P0,    LogP0) :- map_swc(llog, P0, LogP0).
+scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(exp, LogP0, P0).
+scaling_log_params(log, lin, LogP0, P0,    LogP0) :- map_swc(log, P0, LogP0).
+scaling_log_params(log, log, LogP0, LogP0, LogP0). 
+

@@ -5,6 +5,8 @@
  - check ground constants are handled correctly in places where fixed probabilities might occur.
  - check performance impact of complete stoch_exp etc handling
  - check performance impact of powers vs. multiplications or divisions
+ - consider sum operator
+ - consider neg/sub/div operators
 */
 
 :- use_module(library(chr)).

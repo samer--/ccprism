@@ -68,12 +68,13 @@ dataset_goal(ID,sentences(XX)) :- dataset(ID,XX).
 sentences(XX) :- maplist(phrase(s),XX).
 
 
-:- meta_predicate speed_test(4,+,+,+,-,-).
-speed_test(CountsPred, InitSpec, Dataset, Reps, Counts, LogProb) :-
+:- meta_predicate speed_test(4,?,+,+,-,-).
+speed_test(CountsPred, PSc, Dataset, Reps, Counts, LogProb) :-
    dataset_goal(Dataset, Goal),
    goal_graph(Goal,G), 
+   member(PSc-InitSpec, [lin-uniform, log-log(uniform)]),
    graph_params(InitSpec,G,P1), 
-   time(call(CountsPred, G, P0, Counts0, LP0)), 
+   time(call(CountsPred, PSc, G, P0, Counts0, LP0)), 
    time(rep(Reps, eval(t(P0,Counts0,LP0),P1))),
    copy_term(t(P0,Counts0,LP0), t(P1,Counts,LogProb)).
 
