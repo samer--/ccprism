@@ -3,16 +3,15 @@
  
  Todo: 
  - check ground constants are handled correctly in places where fixed probabilities might occur.
- - check performance impact of complete stoch_exp etc handling
- - check performance impact of powers vs. multiplications or divisions
  - consider sum operator
  - consider neg/sub/div operators
 */
 
 :- use_module(library(chr)).
+:- use_module(library(listutils), [measure/2]).
 
 :- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-), pow(+,-,-),
-                  lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mx_e_s(+,-,-,-),
+                  lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mes(?,-,-,-),
                   deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go, compile.
 
 % operations interface with simplifications
@@ -28,17 +27,13 @@ add(X,0.0,Y) <=> Y=X.
 add(X,Y,Z1) \ add(X,Y,Z2) <=> Z1=Z2.
 
 % lse: log(sum(map(exp,Xs))), stoch_exp: stoch(map(exp,Xs))
-% Note: machinery for 2nd derivatives of lse is here but commented out for speed.
+% mes: max, exp, sum - used to share computation of max(Xs), exp(Exs-Max) and sum
 lse([X],Y) <=> X=Y. 
 lse(Xs,Y1) \ lse(Xs,Y2) <=> Y1=Y2.
-lse(Xs,_) ==> mx_e_s(Xs,_,_,_).
-% stoch_exp(Xs,Ys1) \ stoch_exp(Xs,Ys2) <=> Ys1=Ys2.
-stoch_exp(Xs,Ys) ==> same_length(Xs,Ys).
-% stoch_exp(Xs,Ys) ==> 
-%    mx_e_s(Xs,_,_,_),
-%    length(Xs,N), numlist(1,N,Ns), 
-%    maplist(stoch_exp(Xs),Ns,Ys).
-% mx_e_s(Xs,M1,Ws1,S1) \ mx_e_s(Xs,M2,Ws2,S2) <=> M1=M2, Ws1=Ws2, S1=S2.
+lse(Xs,_) ==> mes(Xs,_,_,_).
+stoch_exp(Xs,Ys1) \ stoch_exp(Xs,Ys2) <=> Ys1=Ys2.
+stoch_exp(Xs,Ys) ==> mes(Xs,_,_,_), measure(Xs,Ns), maplist(stoch_exp(Xs),Ns,Ys).
+mes(Xs,M1,Ws1,S1) \ mes(Xs,M2,Ws2,S2) <=> M1=M2, Ws1=Ws2, S1=S2.
 
 % propagate derivatives through unary and binary operators
 deriv(L,X,DX) \ deriv(L,X,DX1) <=> DX=DX1.
@@ -52,13 +47,13 @@ deriv(L,Y,DY), add(X1,X2,Y) ==> maplist(agg_add(L,DY),[X1,X2]).
 deriv(L,Y,DY), mul(X1,X2,Y) ==> maplist(agg_mul(L,DY),[X1,X2],[X2,X1]).
 deriv(L,Y,DY), max(X1,X2,Y) ==> maplist(agg_max(L,DY),[X1,X2],[X2,X1]).
 deriv(L,Y,DY), lse(Xs,Y)    ==> stoch_exp(Xs,Ps), maplist(agg_mul(L,DY),Xs,Ps).
-% deriv(L,Y,DY), stoch_exp(Xs,N,Y) ==>
-%    pow(2,Y,Y2), mul(-1.0,Y2,NY2), 
-%    mul(DY,NY2,T1), mul(DY,Y,T2),
-%    maplist(deriv(L),Xs,DXs),
-%    maplist(agg(T1),DXs),
-%    nth1(N,DXs,DXN), 
-%    agg(T2,DXN). 
+deriv(L,Y,DY), stoch_exp(Xs,N,Y) ==>
+   pow(2,Y,Y2), mul(-1.0,Y2,NY2), 
+   mul(DY,NY2,T1), mul(DY,Y,T2),
+   maplist(deriv(L),Xs,DXs),
+   maplist(agg(T1),DXs),
+   nth1(N,DXs,DXN), 
+   agg(T2,DXN). 
 
 dpow(K,X,T) :- K1 is K - 1, KK is float(K), pow(K1,X,XpowK1), mul(KK,XpowK1,T).
 agg_max(L,DY,X1,X2) :- var(X1) -> deriv(L,X1,DX1), ifge(X1,X2,DY,T1), agg(T1,DX1); true.
@@ -86,10 +81,10 @@ compile \ exp(X,Y)   <=> delay(exp(X),Y).
 compile \ pow(K,X,Y) <=> delay(X**K,Y).
 compile \ llog(_,_)  <=> true.
 
-% compile \ stoch_exp(_,_,_) <=> true.
-compile, mx_e_s(Xs,M,_,S)  \ lse(Xs,Y)        <=> when(ground(S), Y is M+log(S)).
-compile, mx_e_s(Xs,_,Ws,S) \ stoch_exp(Xs,Ys) <=> when(ground(S), maplist(divby(S),Ws,Ys)).
-compile\ mx_e_s(Xs,M,Ws,S)                    <=> when(ground(Xs), max_exp_sum(Xs,M,Ws,S)).
+compile\ stoch_exp(_,_,_) <=> true.
+compile, mes(Xs,M,_,S)  \ lse(Xs,Y)        <=> when(ground(S), Y is M+log(S)).
+compile, mes(Xs,_,Ws,S) \ stoch_exp(Xs,Ys) <=> when(ground(S), maplist(divby(S),Ws,Ys)).
+compile\ mes(Xs,M,Ws,S)                    <=> when(ground(Xs), max_exp_sum(Xs,M,Ws,S)).
 
 compile <=> true.
 
@@ -102,4 +97,3 @@ max_exp_sum(Xs,M,Ws,Sum) :-
    maplist(exp_sub(M),Xs,Ws),
    sum_list(Ws, Sum).
 exp_sub(M,X,Y) :- Y is exp(X-M).
-
