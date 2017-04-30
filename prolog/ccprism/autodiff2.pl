@@ -1,4 +1,4 @@
-:- module(ccp_autodiff2, [graph_counts_ad/5, graph_counts_ad/6]).
+:- module(ccp_autodiff2, [graph_counts_ad/6]).
 
 /** <module> Inside-Outside computation using automatic differentiation (variant) */
 
