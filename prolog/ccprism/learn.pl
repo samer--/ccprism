@@ -26,12 +26,12 @@ learn_ad(Method, Graph, Step)     :- learn(Method, graph_counts_ad, 1.0, Graph, 
 :- meta_predicate learn(+,5,+,+,-).
 
 learn(ml, Stats, ITemp, Graph, ccp_learn:unify3(t(P1,P2,LL))) :-
-   call(Stats, lin, Graph, PP, Eta, LL),
+   once(call(Stats, lin, Graph, PP, Eta, LL)),
    map_swc(pow(ITemp), P1, PP),
    map_sw(stoch, Eta, P2).
 
 learn(map(Prior), Stats, ITemp, Graph, ccp_learn:unify3(t(P1,P2,LL+LP))) :-
-   call(Stats, lin, Graph, PP, Eta, LL),
+   once(call(Stats, lin, Graph, PP, Eta, LL)),
    patient(mul(ITemp)*sw_log_prob(Prior), P1, LP),
    sw_posteriors(Prior, Eta, Post),
    map_swc(pow(ITemp), P1, PP),
@@ -42,7 +42,7 @@ learn(vb(Prior), Stats, ITemp, Graph, ccp_learn:unify3(t(A1,A2,LL-Div))) :-
    map_swc(mul_add(ITemp,1.0-ITemp), Prior, EffPrior),
    map_sum_sw(log_partition_dirichlet, Prior, LogZPrior),
    patient(vb_helper(ITemp, LogZPrior, EffPrior), A1, Pi - Div),
-   call(Stats, log, Graph, Pi, Eta, LL),
+   once(call(Stats, log, Graph, Pi, Eta, LL)),
    map_swc(mul_add(ITemp), EffPrior, Eta, A2).
 
 vb_helper(ITemp, LogZPrior, EffPrior, A, Pi - Div) :- 

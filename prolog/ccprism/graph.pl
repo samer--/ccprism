@@ -129,23 +129,23 @@ semiring_graph_fold(SR, Graph, Params, GoalSums) :-
    maplist(pmap_collate(sr_param(SR),true1,Map),SWs,Params).
 
 sr_sum(SR, Goal-Expls, Goal-Sum1) -->
-   pmap(Goal,Proj),
-   {sr_zero(SR,Zero), sr_proj(SR,Goal,Sum,Sum1,Proj)}, !, 
-   run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum).
+   pmap(Goal,Proj), {sr_zero(SR,Zero)}, 
+   run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum),
+   {sr_proj(SR,Goal,Sum,Sum1,Proj)}. 
 
 sr_add_prod(SR, Expl) --> 
-   {sr_unit(SR,Unit)}, !, 
-   run_right(foldr(sr_factor(SR), Expl), Unit, Prod) <\> sr_plus(SR,Prod), !. 
+   {sr_unit(SR,Unit)}, 
+   run_right(foldr(sr_factor(SR), Expl), Unit, Prod) <\> sr_plus(SR,Prod). 
 
-sr_factor(SR, M:Head)  --> pmap(M:Head,X) <\> sr_times(SR,X), !. 
-sr_factor(SR, SW:=Val) --> pmap(SW:=Val,X) <\> sr_times(SR,X), !. 
-sr_factor(SR, @P)      --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X), !.
+sr_factor(SR, M:Head)  --> !, pmap(M:Head,X) <\> sr_times(SR,X). 
+sr_factor(SR, SW:=Val) --> !, pmap(SW:=Val,X) <\> sr_times(SR,X). 
+sr_factor(SR, @P)      --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X).
 
-sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X).
+sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
 
 % --------- semirings ---------
 sr_inj(r(I,_,_,_),  _, P, X)     :- call(I,P,X).
-sr_inj(best(log), F, P, P-F).
+sr_inj(best(log), F, P, P-F) :- !.
 sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
 sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
 sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
@@ -235,7 +235,7 @@ graph_counts(vit, PScaling, Graph, P1, Eta, LP) :-
 
 graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
    i_scaling_info(IScaling, Min, TopBeta, TopAlpha, LP),
-   scaling_info(IScaling/PScaling, SR, MakeCounts),
+   scaling_info(IScaling, PScaling, SR, MakeCounts),
    semiring_graph_fold(ann(SR), Graph, P1, InsideG),
    top_value(InsideG, TopBeta-_), 
    foldl(soln_edges, InsideG, QCs, []), 
@@ -249,10 +249,10 @@ right(_,X,X).
 i_scaling_info(lin, 0.0,  Pin, 1.0/Pin, LP) :- log_e(Pin,LP).
 i_scaling_info(log, -inf, LP, -LP, LP).
 
-scaling_info(lin/lin, r(=,=,mul,add),        math:mul).
-scaling_info(lin/log, r(exp,=,mul,add),      \\X`Y`Z`(Z is exp(X)*Y)).
-scaling_info(log/lin, r(log_e,lse,add,cons), \\X`Y`Z`(Z is X*exp(Y))).
-scaling_info(log/log, r(=,lse,add,cons),     \\X`Y`Z`(Z is exp(X+Y))).
+scaling_info(lin, lin, r(=,=,mul,add),        math:mul).
+scaling_info(lin, log, r(exp,=,mul,add),      \\X`Y`Z`(Z is exp(X)*Y)).
+scaling_info(log, lin, r(log_e,lse,add,cons), \\X`Y`Z`(Z is X*exp(Y))).
+scaling_info(log, log, r(=,lse,add,cons),     \\X`Y`Z`(Z is exp(X+Y))).
 
 opt(Opts, Opt) :- option(Opt, Opts, _).
 soln_edges(P-(_-Expls)) --> foldl(expl_edges(P),Expls).
