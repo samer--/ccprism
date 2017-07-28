@@ -16,7 +16,7 @@
 :- use_module(library(prob/tagged), [discrete//3, uniform//2]).
 :- use_module(library(prob/strand), [pure//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
-:- use_module(library(ccstate),     [run_nb_ref/1, nbr_app/2, nbr_app_or_new/3, nbr_dump/1]).
+:- use_module(library(ccnbenv),     [run_nb_env/1, env_app/2, env_app_or_new/3, env_dump/1]).
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_gen/3]).
 
 :- type table  ---> tab(goal, rbtree(values, list(list(factor))), list(cont)).
@@ -51,7 +51,7 @@ fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 % -------- handlers for tabled explanation graph building -----------
 :- meta_predicate run_with_tables(0,-), run_tab(0,?), run_tab_expl(0,-).
 
-run_with_tables(G, T) :- run_nb_ref((G, nbr_dump(T))).
+run_with_tables(G, T) :- run_nb_env((G, env_dump(T))).
 run_tab_expl(G, Expl) :- term_variables(G,Ans), run_tab(run_prob(expl,G,Expl,[]), Ans-Expl).
 
 expl(tab(G))     --> {term_to_ground(G,F)}, [F].
@@ -65,7 +65,7 @@ cont_tab(done, _).
 cont_tab(susp(tab(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Ans) :-
    term_variables(TableAs, Y), K = \Y^Ans^Cont,
    term_to_ground(TableAs, Variant),
-   nbr_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs)),
+   env_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs)),
    (  Res=solns(Solns) -> rb_gen(Y, _, Solns), run_tab(Cont, Ans)
    ;  Res=new_producer -> run_tab(producer(Variant, \Y^Work, K, Ans), Ans)
    ).
@@ -75,7 +75,7 @@ new_producer(new_producer, V, tab(V,Solns,[])) :- rb_empty(Solns).
 
 producer(Variant, Generate, KP, Ans) :-
    run_prob(expl, call(Generate, Y1), E, []),
-   nbr_app(Variant, new_soln(Y1,E,Res)),
+   env_app(Variant, new_soln(Y1,E,Res)),
    Res=new(Ks), member(K,[KP|Ks]), call(K,Y1,Ans).
 
 new_soln(Y1, E, Res, tab(V,Solns1,Ks), tab(V,Solns2,Ks)) :-
