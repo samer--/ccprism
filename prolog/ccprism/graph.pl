@@ -27,7 +27,7 @@
 :- use_module(library(listutils),   [cons//1, foldr/4, zip/3]).
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
 :- use_module(library(data/pair),   [fst/2, snd/2]).
-:- use_module(library(rbutils),     [rb_gen/3, rb_add//2, rb_app//2, rb_get//2]).
+:- use_module(library(rbutils),     [rb_in/3, rb_add//2, rb_app//2, rb_get//2]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/4]).
 :- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
@@ -69,7 +69,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 % --------- switch-value map -----------
 pmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
-% pmap_sws(Map,SWs) :- setof(SW, Map^V^X^rb_gen(SW:=V,X,Map), SWs) -> true; SWs=[].
+% pmap_sws(Map,SWs) :- setof(SW, Map^V^X^rb_in(SW:=V,X,Map), SWs) -> true; SWs=[].
 pmap_sws(Map,SWs) :- rb_fold(pmap_entry_sw,Map,SWs1,[]), sort(SWs1,SWs).
 pmap_entry_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
 

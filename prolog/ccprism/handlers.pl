@@ -17,7 +17,7 @@
 :- use_module(library(prob/strand), [pure//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
 :- use_module(library(ccnbenv),     [run_nb_env/1, env_app/2, env_app_or_new/3, env_dump/1]).
-:- use_module(library(rbutils),     [rb_app_or_new/5, rb_gen/3]).
+:- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
 
 :- type table  ---> tab(goal, rbtree(values, list(list(factor))), list(cont)).
 :- type factor ---> module:head ; @number ; sw(A):=A.
@@ -66,7 +66,7 @@ cont_tab(susp(tab(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), 
    term_variables(TableAs, Y), K = \Y^Ans^Cont,
    term_to_ground(TableAs, Variant),
    env_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs)),
-   (  Res=solns(Solns) -> rb_gen(Y, _, Solns), run_tab(Cont, Ans)
+   (  Res=solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
    ;  Res=new_producer -> run_tab(producer(Variant, \Y^Work, K, Ans), Ans)
    ).
 
