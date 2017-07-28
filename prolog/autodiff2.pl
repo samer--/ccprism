@@ -2,9 +2,9 @@
 /** <module> Reverse mode automatic differentatin using CHR.
  
  Todo: 
- - check ground constants are handled correctly in places where fixed probabilities might occur.
  - consider sum operator
  - consider neg/sub/div operators
+ - fix constant handling in deriv stoch_exp rule
 */
 
 :- use_module(library(chr)).
@@ -38,6 +38,7 @@ mes(Xs,M1,Ws1,S1) \ mes(Xs,M2,Ws2,S2) <=> M1=M2, Ws1=Ws2, S1=S2.
 % propagate derivatives through unary and binary operators
 deriv(L,X,DX) \ deriv(L,X,DX1) <=> DX=DX1.
 deriv(L,_,DX) <=> ground(L) | DX=0.0.
+deriv(L,L,DL) ==> DL=1.0.
 deriv(_,_,DX) ==> var(DX) | acc(DX).
 deriv(L,Y,DY), pow(K,X,Y)   ==> deriv(L,X,DX), dpow(K,X,Z), mul(DY,Z,T), agg(T,DX).
 deriv(L,Y,DY), exp(X,Y)     ==> deriv(L,X,DX), mul(Y,DY,T), agg(T,DX).
@@ -50,7 +51,7 @@ deriv(L,Y,DY), lse(Xs,Y)    ==> stoch_exp(Xs,Ps), maplist(agg_mul(L,DY),Xs,Ps).
 deriv(L,Y,DY), stoch_exp(Xs,N,Y) ==>
    pow(2,Y,Y2), mul(-1.0,Y2,NY2), 
    mul(DY,NY2,T1), mul(DY,Y,T2),
-   maplist(deriv(L),Xs,DXs),
+   maplist(deriv(L),Xs,DXs), % !!! NB the rest is wrong for any constants in Xs
    maplist(agg(T1),DXs),
    nth1(N,DXs,DXN), 
    agg(T2,DXN). 
