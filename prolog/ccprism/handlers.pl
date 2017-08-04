@@ -16,8 +16,8 @@
 :- use_module(library(prob/tagged), [discrete//3, uniform//2]).
 :- use_module(library(prob/strand), [pure//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
-:- use_module(library(ccnbenv),     [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
+:- use_module(ccnbenv,              [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
 
 :- type table  ---> tab(goal, rbtree(values, list(list(factor))), list(cont)).
 :- type factor ---> module:head ; @number ; sw(A):=A.
