@@ -22,7 +22,7 @@
 
    You can load the test module included in the examples directory like this:
    ```
-   swipl -g 'consult(pack(ccprism/examples/test)), ccp_test:init'
+   swipl -g 'consult(pack(ccprism/examples/test))'
    ```
    More information on how to use the system to follow...
    NB. the test module requires the memo pack to be installed.
