@@ -63,20 +63,20 @@ run_tab(Goal, Ans)    :- p_reset(tab, Goal, Status), cont_tab(Status, Ans).
 
 cont_tab(done, _).
 cont_tab(susp(tab(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Ans) :-
-   term_variables(TableAs, Y), K = \Y^Ans^Cont,
+   term_variables(TableAs, Y), K = k(Y,Ans,Cont),
    term_to_ground(TableAs, Variant),
-   nb_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs)),
+   nb_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs,K)),
    (  Res=solns(Solns) -> rb_in(Y, _, Solns), run_tab(Cont, Ans)
-   ;  Res=new_producer -> run_tab(producer(Variant, \Y^Work, K, Ans), Ans)
+   ;  Res=new_producer -> run_tab(producer(Variant, \Y^Work, Ans), Ans)
    ).
 
-new_consumer(solns(Solns), K, tab(V,Solns,Ks), tab(V,Solns,[K|Ks])).
-new_producer(new_producer, V, tab(V,Solns,[])) :- rb_empty(Solns).
+new_consumer(solns(Solns), K, tab(V,Solns,[K0|Ks]), tab(V,Solns,[K0,K|Ks])).
+new_producer(new_producer, V, K, tab(V,Solns,[K])) :- rb_empty(Solns).
 
-producer(Variant, Generate, KP, Ans) :-
+producer(Variant, Generate, Ans) :-
    run_prob(expl, call(Generate, Y1), E, []),
    nb_app(Variant, new_soln(Y1,E,Res)),
-   Res=new(Ks), member(K,[KP|Ks]), call(K,Y1,Ans).
+   Res=new(Ks), member(k(Y1,Ans,C), Ks), call(C).
 
 new_soln(Y1, E, Res, tab(V,Solns1,Ks), tab(V,Solns2,Ks)) :-
    rb_app_or_new(Y1, old_soln(Res,E), new_soln(Res,Ks,E), Solns1, Solns2).
