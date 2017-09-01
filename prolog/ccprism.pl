@@ -2,7 +2,6 @@
 
 /** <module> Top level tabled explanation graph creation */
 
-:- use_module(library(typedef)).
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
 :- use_module(ccprism/handlers,   [run_with_tables/2, run_prob/4, run_tab/2, expl//1]).
