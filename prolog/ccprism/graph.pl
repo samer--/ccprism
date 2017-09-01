@@ -44,10 +44,15 @@
 %  the results of semiring_graph_fold/4.
 top_value(Pairs, Top) :- memberchk((top:'$top$')-Top, Pairs).
 
-%% prune_graph(+P:pred(+A,-list(_)), +Top:goal, G1:list(pair(goal),A), G2:list(pair(goal),A)) is det.
+%% prune_graph(+P:pred(+F(_,D),-D), +Top:goal, G1:list(pair(goal,F(A,list(F(B,list(F(C,factor))))))), G2:list(pair(goal,F(A,list(F(B,list(F(c,factor)))))))) is det.
+%
 %  Prune a graph or annotated graph to keep only goals reachable from a given top goal.
-%  With apologies, the first argument is so badly typed, I cannot really explain what it does...
-%  @tbd Fix this so it can be explained.
+%  With apologies, the type is quite complicated. The input and output graphs are lists of goals paired
+%  with _annotated_ explanations. The type of an annotation is described by the type constructor
+%  F: =|F(E,D)|= is the type of a =|D|= annotated with an =|E|=. The first argument P knows how to strip
+%  off any type of annotation and return the =|D|=. This is how we dig down into the annotated explanations
+%  to find out which subgoals are references. For example, if =|F = pair|=, then P should be =|snd|=.
+%  If =|F(E,D) = D|= (ie no annotation), then P should be (=).
 prune_graph(Mapper, Top, GL1, GL2) :-
    list_to_rbtree(GL1,G1),
    rb_empty(E), children(Top,Mapper,G1,E,G2),
@@ -68,16 +73,15 @@ graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 % --------- switch-value map -----------
-pmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
-% pmap_sws(Map,SWs) :- setof(SW, Map^V^X^rb_in(SW:=V,X,Map), SWs) -> true; SWs=[].
-pmap_sws(Map,SWs) :- rb_fold(pmap_entry_sw,Map,SWs1,[]), sort(SWs1,SWs).
-pmap_entry_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
+fmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
+fmap_sws(Map,SWs) :- rb_fold(emit_if_sw,Map,SWs1,[]), sort(SWs1,SWs).
+emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
 
-:- meta_predicate pmap_collate(3,1,+,+,?).
-pmap_collate(Conv,Def,Map,SW,SW-XX) :-
-   call(SW,_,Vals,[]), maplist(pmap_get(Conv,Def,Map,SW),Vals,XX).
+:- meta_predicate fmap_collate_sw(3,1,+,+,?).
+fmap_collate_sw(Conv,Def,Map,SW,SW-XX) :-
+   call(SW,_,Vals,[]), maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
 
-pmap_get(Conv,Def,Map,SW,Val,X) :-
+sw_val_or_default(Conv,Def,Map,SW,Val,X) :-
    rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
 
 
@@ -103,7 +107,8 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 %
 %  Available semirings in this module:
 %     * r(pred(+T,-A), pred(+C,-C), pred(+A,+B,-B), pred(+B,+C,-C))
-%     A term containing the 4 restricted operators as callable terms.
+%     A term containing the operators in restricted forms as callable terms.
+%     The unit and zero for the times and plus operators respectively are looked up in m_zero/2.
 %     * best(scaling)
 %     Finds the best single explanation for each goal. If scaling is 'lin', parameters
 %     are assumed to be probabilities; if it's 'log', they are assumed to be log probabilities.
@@ -123,11 +128,11 @@ pmap_get(Conv,Def,Map,SW,Val,X) :-
 semiring_graph_fold(SR, Graph, Params, GoalSums) :-
    rb_empty(E),
    foldl(sr_sum(SR), Graph, GoalSums, E, Map),
-   pmap_sws(Map, SWs),
-   maplist(pmap_collate(sr_param(SR),true1,Map),SWs,Params).
+   fmap_sws(Map, SWs),
+   maplist(fmap_collate_sw(sr_param(SR),true1,Map),SWs,Params).
 
 sr_sum(SR, Goal-Expls, Goal-Sum1) -->
-   pmap(Goal,Proj), {sr_zero(SR,Zero)},
+   fmap(Goal,Proj), {sr_zero(SR,Zero)},
    run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum),
    {sr_proj(SR,Goal,Sum,Sum1,Proj)}.
 
@@ -135,8 +140,8 @@ sr_add_prod(SR, Expl) -->
    {sr_unit(SR,Unit)},
    run_right(foldr(sr_factor(SR), Expl), Unit, Prod) <\> sr_plus(SR,Prod).
 
-sr_factor(SR, M:Head)  --> !, pmap(M:Head,X) <\> sr_times(SR,X).
-sr_factor(SR, SW:=Val) --> !, pmap(SW:=Val,X) <\> sr_times(SR,X).
+sr_factor(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
+sr_factor(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
 sr_factor(SR, @P)      --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X).
 
 sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
@@ -204,7 +209,7 @@ inside_graph_entropy(Scaling, IGraph, GoalEntropies) :-
    rb_visit(Map, GoalEntropies).
 
 goal_entropy(Scaling, Goal-(_ - WeightedExpls), Goal-Entropy) -->
-   pmap(Goal,Entropy),
+   fmap(Goal,Entropy),
    {zip(Ws, Es, WeightedExpls), scaling_stoch(Scaling, Ws, Ps)},
    run_right(foldl(expl_entropy(Scaling),Ps,Es), 0.0, Entropy).
 
@@ -218,7 +223,7 @@ expl_entropy(Scaling, Pe, Expl) -->
 expl_entropy(lin, Pe, HFactors, HE) :- HE is Pe*(HFactors - log(Pe)).
 expl_entropy(log, Pe, HFactors, HE) :- HE is exp(Pe)*(HFactors - Pe).
 
-factor_entropy(M:Head) --> !, pmap(M:Head,H) <\> add(H).
+factor_entropy(M:Head) --> !, fmap(M:Head,H) <\> add(H).
 factor_entropy(_) --> [].
 
 % --------- outside probabilities, ESS ----------------
@@ -238,9 +243,9 @@ graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
    top_value(InsideG, TopBeta-_),
    foldl(soln_edges, InsideG, QCs, []),
    call(group_pairs_by_key * keysort, QCs, InvGraph),
-   rb_empty(Empty), pmap(top:'$top$',TopAlpha, Empty, Map1),
+   rb_empty(Empty), fmap(top:'$top$',TopAlpha, Empty, Map1),
    foldl(q_alpha(IScaling), InvGraph, Map1, Map2),
-   maplist(pmap_collate(right,=(Min),Map2)*fst, P1, Grad),
+   maplist(fmap_collate_sw(right,=(Min),Map2)*fst, P1, Grad),
    map_swc(patient(MakeCounts), P1, Grad, Eta).
 right(_,X,X).
 
@@ -257,29 +262,29 @@ soln_edges(P-(_-Expls)) --> foldl(expl_edges(P),Expls).
 expl_edges(P,Pe-Expl)       --> foldl(factor_edge(Pe,P),Expl).
 factor_edge(Pe,P,BetaQ-Q)   --> [Q-qc(BetaQ,Pe,P)].
 
-q_alpha(lin,Q-QCs) --> pmap(Q, AlphaQ), run_right(foldl(qc_alpha, QCs), 0.0, AlphaQ).
-q_alpha(log,Q-QCs) --> pmap(Q, AlphaQ), run_right(foldl(qc_alpha_log, QCs), [], Alphas),
+q_alpha(lin,Q-QCs) --> fmap(Q, AlphaQ), run_right(foldl(qc_alpha, QCs), 0.0, AlphaQ).
+q_alpha(log,Q-QCs) --> fmap(Q, AlphaQ), run_right(foldl(qc_alpha_log, QCs), [], Alphas),
                        {lse(Alphas,AlphaQ)}.
 
 qc_alpha(qc(BetaQ,Pe,P)) -->
-   pmap(P, AlphaP) <\> add(AlphaQC),
+   fmap(P, AlphaP) <\> add(AlphaQC),
    { when(ground(BetaQ), ( BetaQ =:= 0.0 -> AlphaQC=0.0
                          ; mul(AlphaP,Pe/BetaQ,AlphaQC))) }.
 
 qc_alpha_log(qc(BetaQ,Pe,P)) -->
-   pmap(P, AlphaP) <\> cons(AlphaQC),
+   fmap(P, AlphaP) <\> cons(AlphaQC),
    { when(ground(BetaQ), ( BetaQ =:= -inf -> AlphaQC= -inf
                          ; add(AlphaP,Pe-BetaQ,AlphaQC))) }.
 
 :- meta_predicate accum_stats(//,-), accum_stats(//,+,-).
 accum_stats(Pred,Stats) :-
    rb_empty(C0),
-   call_dcg(Pred,C0,C1), pmap_sws(C1, SWs),
-   maplist(ccp_graph:pmap_collate(right,=(0),C1),SWs,Stats).
+   call_dcg(Pred,C0,C1), fmap_sws(C1, SWs),
+   maplist(ccp_graph:fmap_collate_sw(right,=(0),C1),SWs,Stats).
 accum_stats(Pred,SWs,Stats) :-
    rb_empty(C0),
    call_dcg(Pred,C0,C1),
-   maplist(ccp_graph:pmap_collate(right,=(0),C1),SWs,Stats).
+   maplist(ccp_graph:fmap_collate_sw(right,=(0),C1),SWs,Stats).
 
 tree_stats(Tree,Counts) :- accum_stats(tree_stats(Tree),Counts).
 
