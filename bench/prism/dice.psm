@@ -1,0 +1,7 @@
+values(die,[1,2,3,4]).
+
+dice(0,0).
+dice(N,Z) :-
+   msw(die, X),
+   N>0, M is N-1, dice(M,Y),
+   Z is X+Y.
