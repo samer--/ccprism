@@ -10,7 +10,7 @@
 ccp_graph:m_zero(autodiff2:mul,1.0).
 ccp_graph:m_zero(autodiff2:add,0.0).
 
-%% graph_counts_ad(+Scaling:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
+%% graph_counts_ad(+IScaling:scaling, +PScaling:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
 %
 %  Compute expected switch counts C from explanation graph G with switch parameters
 %  P. Uses automatic differentiation of the expression for the log of the inside 
