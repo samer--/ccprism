@@ -45,7 +45,7 @@ learn(vb(Prior), Stats, ITemp, Graph, ccp_learn:unify3(t(A1,A2,LL-Div))) :-
    once(call(Stats, log, Graph, Pi, Eta, LL)),
    map_swc(mul_add(ITemp), EffPrior, Eta, A2).
 
-vb_helper(ITemp, LogZPrior, EffPrior, A, Pi - Div) :- 
+vb_helper(ITemp, LogZPrior, EffPrior, A, Pi - Div) :-
    map_sw(mean_log_dirichlet, A, PsiA),
    map_swc(sub, EffPrior, A, Delta),
    map_swc(mul(ITemp), PsiA, Pi),
