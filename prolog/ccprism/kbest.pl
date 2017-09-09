@@ -32,29 +32,33 @@ ccp_graph:sr_zero(kbest,  []).
 ccp_graph:sr_unit(kbest,  [0.0-[]]).
 
 k_tag(G,L-X,L-(G-X)). % tag explanaiton with head goal
-k_min([],Y,Y) :- !.
-k_min(X,[],X) :- !.
+
+k_min([],Ys,Ys) :- !.
+k_min(Xs,[],Xs) :- !.
 k_min([X|Xs],[Y|Ys],[Z|Zs]) :-
    (  LX-_=X, LY-_=Y, LX =< LY
    -> Z=X, freeze(Zs, k_min(Xs,[Y|Ys],Zs))
    ;  Z=Y, freeze(Zs, k_min([X|Xs],Ys,Zs))
    ).
 
-k_mul(X,Y,Z) :-
+k_mul(Xs,Ys,Zs) :-
    empty_set(EmptyS), empty_heap(EmptyQ),
-   k_queue(0^X-0^Y, EmptyS-EmptyQ, TQ1),
-   lazy_unfold_finite(k_next, Z, TQ1, _).
+   enqueue(pos(0-0,Xs,Ys), EmptyS-EmptyQ, TQ1),
+   lazy_unfold_finite(k_next, Zs, TQ1, _).
 
 k_next(L-[XF|YFs]) -->
-   \> pq_get(L,P),
-   {P=I^[X0|X]-J^[Y0|Y], _-XF=X0, _-YFs=Y0}, 
-   {succ(J,J1)}, k_queue(I^X-J1^[Y0|Y]),
-   {succ(I,I1)}, k_queue(I1^[X0|X]-J^Y).
+   \> pq_get(L,pos(I-J,[X0|Xs],[Y0|Ys])),
+   {_-XF=X0, _-YFs=Y0, succ(I,I1), succ(J,J1)}, 
+   enqueue(pos(I1-J,Xs,[Y0|Ys])),
+   enqueue(pos(I-J1,[X0|Xs],Ys)).
 
-k_queue(P) --> {P=I^X-J^Y}, \< add_to_set(I-J), {k_cost(X,Y,L)} -> \> pq_add(L,P); [].
-k_cost([X0-_|_],[Y0-_|_], L) :- L is X0+Y0.
+enqueue(P) --> new_position_cost(P,L) -> \> pq_add(L,P); [].
+new_position_cost(pos(IJ,[X0-_|_],[Y0-_|_]),L) --> \< add_to_set(IJ), {L is X0+Y0}.
 
 pq_add(L,P,H1,H2) :- add_to_heap(H1,L,P,H2).
 pq_get(L,P,H1,H2) :- get_from_heap(H1,L,P,H2).
 add_to_set(X,S1,[X|S1]) :- \+memberchk(X,S1).
 empty_set([]).
+% alternative, better for high k
+% add_to_set(X,S1,S2) :- rb_insert_new(S1,X,t,S2).
+% empty_set(S) :- rb_empty(S).
