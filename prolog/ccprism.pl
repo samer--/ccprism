@@ -12,12 +12,12 @@
 %  Finds all solutions to Goal in a delimited context supplying tabling and 
 %  probabilistic choice. Explanations are extracted from the tables and 
 %  returned as a hypergraph, including explanations of Goal itself (which need
-%  not be tabled) under the pseudo-goal =|top:'$top$'|=.
+%  not be tabled) under the pseudo-goal =|'^top':top|=.
 :- meta_predicate goal_graph(0,-).
 goal_graph(Goal, Graph) :- 
    time(run_with_tables(run_tab(findall(E,run_prob(expl,Goal,E,[]),Es), Es), Tables)),
    tables_graph(Tables, Graph0),
-   prune_graph(=, top:'$top$', [(top:'$top$')-Es|Graph0], Graph).
+   prune_graph(=, '^top':top, [('^top':top)-Es|Graph0], Graph).
 
 tables_graph(Tables, Graph) :-
    rb_empty(Empty),

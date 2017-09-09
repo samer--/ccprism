@@ -39,10 +39,10 @@
 :- type scaling ---> lin; log.
 
 %% top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
-%  Extract the value associated with the goal =|top:'$top$'|= from a list
+%  Extract the value associated with the goal =|'^top':top|= from a list
 %  of goal-value pairs. This can be applied to explanation graphs or
 %  the results of semiring_graph_fold/4.
-top_value(Pairs, Top) :- memberchk((top:'$top$')-Top, Pairs).
+top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 
 %% prune_graph(+P:pred(+F(_,D),-D), +Top:goal, G1:list(pair(goal,F(A,list(F(B,list(F(C,factor))))))), G2:list(pair(goal,F(A,list(F(B,list(F(c,factor)))))))) is det.
 %
@@ -148,8 +148,8 @@ sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
 
 % --------- semirings ---------
 sr_inj(r(I,_,_,_),  _, P, X)     :- call(I,P,X).
-sr_inj(best(log), F, P, P-F) :- !.
-sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
+sr_inj(best(lin), F, P, P-F) :- !.
+sr_inj(best(log), F, P, Q-F)   :- log_e(P,Q).
 sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
 sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
 
@@ -192,7 +192,7 @@ graph_viterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
 
 igraph_sample_tree(Graph, Tree, LogProb) :-
-   igraph_sample_tree(Graph, top:'$top$', Tree, LogProb).
+   igraph_sample_tree(Graph, '^top':top, Tree, LogProb).
 igraph_sample_tree(Graph, Head, Head - Subtrees, LogProb) :-
    memberchk(Head-(_-Expls), Graph), % Head should be unique in graph
    zip(Ps,Es,Expls), stoch(Ps,Ps1,_), dist(Ps1,Es,Expl),
@@ -243,7 +243,7 @@ graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
    top_value(InsideG, TopBeta-_),
    foldl(soln_edges, InsideG, QCs, []),
    call(group_pairs_by_key * keysort, QCs, InvGraph),
-   rb_empty(Empty), fmap(top:'$top$',TopAlpha, Empty, Map1),
+   rb_empty(Empty), fmap('^top':top, TopAlpha, Empty, Map1),
    foldl(q_alpha(IScaling), InvGraph, Map1, Map2),
    maplist(fmap_collate_sw(right,=(Min),Map2)*fst, P1, Grad),
    map_swc(patient(MakeCounts), P1, Grad, Eta).
