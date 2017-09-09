@@ -25,6 +25,7 @@
 :- type values == list(ground).
 
 :- meta_predicate run_prob(3,0,?,?).
+% run_prob(Handler,Goal) --> run_state_handler(prob, Handler, Goal).
 run_prob(Handler,Goal) --> {p_reset(prob, Goal, Status)}, cont_prob(Status,Handler).
 cont_prob(susp(Req,Cont),H) --> call(H,Req), run_prob(H,Cont).
 cont_prob(done,_) --> [].
