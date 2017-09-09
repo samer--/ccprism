@@ -20,15 +20,16 @@ iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
 
    This term expansion takes care of the canonical representation part.
 */
-user:term_expansion(Lab | Body, Clause) :-
+:- op(1200,xfx,+->).
+user:term_expansion(Lab +-> Body, Clause) :-
    prolog_load_context(module,Module),
    Lab =.. Args,   append(Args, [Module:Lab], Args1),
    Head =.. Args1, dcg_translate_rule(Head --> Body, Clause).
 
 % some switch declarations
-coin | iota(2).
-die | iota(4).    % tetrahedral die
-die(_) | iota(3). % impossible three sided die
+coin +-> iota(2).
+die  +-> iota(4).    % tetrahedral die
+die(_) +-> iota(3). % impossible three sided die
 
 % models of dice throws
 :- cctable three_dice/1, two_dice/2, two_dice/1, dice/2.
@@ -36,8 +37,15 @@ three_dice(X)   :- length(Xs,3), maplist(:=(die), Xs), sumlist(Xs,X).
 two_dice(X1,X2) :- die := X1, die := X2.
 two_dice(X)     :- die(1) := D1, die(2) := D2, X is D1+D2.
 
+% :- use_module(library(clpfd)).
 dice(0,0).
 dice(N,Z) :- succ(M,N), die := X, dice(M,Y), Z is X+Y.
+% dice(N,Z) :- 
+%    die := X, 
+%    nonneg(Y), Z #= X+Y, 
+%    nonneg(M), N #= M+1, 
+%    dice(M,Y).
+% nonneg(X) :- X #>= 0.
 
 % mode to test handling of variables in answers
 :- cctable ssucc/2.
@@ -81,9 +89,9 @@ expand_alt(K, Goals, J, ({J=K} -> Goals)).
 % --- test grammar ----
 :- cctable s//0, np//0, vp//0, pp//0, nom//0.
 
-np  | iota(3).
-vp  | iota(5).
-nom | iota(2).
+np  +-> iota(3).
+vp  +-> iota(5).
+nom +-> iota(2).
 
 s --> np, vp.
 
@@ -110,15 +118,15 @@ biased_sampler(fallback_sampler(LU,uniform_sampler)) :-
    make_lookup_sampler([(models:nom)-[0.8,0.2], (models:np)-[0.3,0.6,0.1]],LU).
 
 % preterminal switch declarations
-adj | [hot,cold,thin,fat,disgusting,lovely].
-pn  | [alice, bob, cuthbert, delia, edna].
-d   | [the,a,some,my]. % ,every,no].
-mv  | [knew,thought,believed,said].
-dv  | [gave,made,baked].
-tv  | [saw, ate, hated, baked, liked, walked, ran, loved, caught].
-iv  | [lived, worked].
-n   | [dog,telescope,man,cat,mat,cake,box,floor,face,pie,moose,pyjamas,park].
-p   | [with,on,under,in,without,by].
+adj +-> [hot,cold,thin,fat,disgusting,lovely].
+pn  +-> [alice, bob, cuthbert, delia, edna].
+d   +-> [the,a,some,my]. % ,every,no].
+mv  +-> [knew,thought,believed,said].
+dv  +-> [gave,made,baked].
+tv  +-> [saw, ate, hated, baked, liked, walked, ran, loved, caught].
+iv  +-> [lived, worked].
+n   +-> [dog,telescope,man,cat,mat,cake,box,floor,face,pie,moose,pyjamas,park].
+p   +-> [with,on,under,in,without,by].
 
 
 /* This is an alternative grammar system that uses 'pre-stored' tables to avoid
