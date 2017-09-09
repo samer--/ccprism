@@ -1,4 +1,4 @@
-:- module(ccp_handlers, [ run_with_tables/2, run_tab_expl/2, run_tab/2, run_sampling//2, run_prob//2
+:- module(ccp_handlers, [ goal_expls_tables/3, run_tab/2, run_sampling//2, run_prob//2
                         , expl//1, uniform_sampler//2, make_lookup_sampler/2, fallback_sampler//4
                         ]).
 
@@ -50,16 +50,23 @@ make_lookup_sampler(Params,ccp_handlers:lookup_sampler(Map)) :- list_to_rbtree(P
 fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 
 % -------- handlers for tabled explanation graph building -----------
-:- meta_predicate run_with_tables(0,-), run_tab(0,?), run_tab_expl(0,-).
-
-run_with_tables(G, T) :- run_nb_env((G, nb_dump(T))).
-run_tab_expl(G, Expl) :- term_variables(G,Ans), run_tab(run_prob(expl,G,Expl,[]), Ans-Expl).
+% goal_expls_tables(+Goal,-TopExpls:list(list(factor)), -Tables) is det.
+%
+% Runs goal with tabling and explanation building effects to find all explanations 
+% for the top goal, and the tables for everything else, from which the rest of
+% an explanation graph can be built.
+:- meta_predicate goal_expls_tables(0,-,-).
+goal_expls_tables(G,Es,Tables) :- run_nb_env(nb_goal_expls_tables(G,Es,Tabls)).
+nb_goal_expls_tables(G,Es,Tables) :-
+   run_tab(findall(E,run_prob(expl,Goal,E,[]),Es), Es),
+   nb_dump(Tables).
 
 expl(tab(G))     --> {term_to_ground(G,F)}, [F].
 expl(sw(SW,X))   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
 expl(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [@P].
 expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
 
+:- meta_predicate run_tab(0,?).
 run_tab(Goal, Ans)    :- p_reset(tab, Goal, Status), cont_tab(Status, Ans).
 
 cont_tab(done, _).

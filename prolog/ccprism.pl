@@ -4,7 +4,7 @@
 
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
-:- use_module(ccprism/handlers,   [run_with_tables/2, run_prob/4, run_tab/2, expl//1]).
+:- use_module(ccprism/handlers,   [goal_expls_tables/3]).
 :- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2]).
 :- use_module(ccprism/switches,   [sw_init/3]).
 
@@ -15,7 +15,7 @@
 %  not be tabled) under the pseudo-goal =|'^top':top|=.
 :- meta_predicate goal_graph(0,-).
 goal_graph(Goal, Graph) :- 
-   time(run_with_tables(run_tab(findall(E,run_prob(expl,Goal,E,[]),Es), Es), Tables)),
+   time(goal_expls_tables(G,Es,Tables)),
    tables_graph(Tables, Graph0),
    prune_graph(=, '^top':top, [('^top':top)-Es|Graph0], Graph).
 
