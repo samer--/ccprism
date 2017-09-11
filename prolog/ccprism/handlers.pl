@@ -56,10 +56,10 @@ fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 % for the top goal, and the tables for everything else, from which the rest of
 % an explanation graph can be built.
 :- meta_predicate goal_expls_tables(0,-,-).
-goal_expls_tables(G,Es,Tables) :- run_nb_env(nb_goal_expls_tables(G,Es,Tabls)).
-nb_goal_expls_tables(G,Es,Tables) :-
-   run_tab(findall(E,run_prob(expl,Goal,E,[]),Es), Es),
-   nb_dump(Tables).
+goal_expls_tables(G,Es,Tabs) :- run_nb_env(nb_goal_expls_tables(G,Es,Tabs)).
+nb_goal_expls_tables(G,Es,Tabs) :-
+   run_tab(findall(E,run_prob(expl,G,E,[]),Es), Es),
+   nb_dump(Tabs).
 
 expl(tab(G))     --> {term_to_ground(G,F)}, [F].
 expl(sw(SW,X))   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
