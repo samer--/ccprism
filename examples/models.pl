@@ -1,4 +1,5 @@
 :- module(models, [ s//0, np//0, vp//0, biased_sampler/1, parse/2
+                  , repeat_a//1, sm//0, sml//0, smml//0, aux//0
                   , two_dice/1, two_dice/2, three_dice/1, dice/2, die/3]).
 
 /** <module> Example probabilistic models (see code for commentary) */
@@ -6,6 +7,7 @@
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers), [make_lookup_sampler/2]).
+:- use_module(library(dcg_core), [rep//2]).
 
 %% iota(+N:natural, L1:list(natural), L2:list(natural)) is det.
 %  Difference list version of numlist, useful for switch domains.
@@ -127,6 +129,21 @@ tv  +-> [saw, ate, hated, baked, liked, walked, ran, loved, caught].
 iv  +-> [lived, worked].
 n   +-> [dog,telescope,man,cat,mat,cake,box,floor,face,pie,moose,pyjamas,park].
 p   +-> [with,on,under,in,without,by].
+
+
+% --- frost grammars ----
+:- cctable sm//0, sml//0, smml//0, aux//0.
+
+sm  +-> iota(2).
+sml +-> iota(2).
+smml +-> iota(2).
+
+sm --> sm ~> "a", sm, sm; [].
+sml --> sml ~>  sml, sml, "a"; [].
+smml --> smml ~> smml, aux; [].
+aux --> smml, "a".
+
+repeat_a(I) --> rep(I,"a").
 
 
 /* This is an alternative grammar system that uses 'pre-stored' tables to avoid

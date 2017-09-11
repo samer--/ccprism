@@ -55,7 +55,7 @@ rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
 % ---- for examining tables ------
 :- meta_predicate goal_tables(0,-).
 goal_tables(Goal, TableList) :-
-   time(goal_expls_tables(Goal,Es,Tables)),
+   time(goal_expls_tables(Goal,_,Tables)),
    rb_map(Tables, clean_table, Tables1),
    rb_visit(Tables1, TableList).
 
