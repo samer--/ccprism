@@ -148,8 +148,8 @@ sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
 
 % --------- semirings ---------
 sr_inj(r(I,_,_,_),  _, P, X)     :- call(I,P,X).
-sr_inj(best(lin), F, P, P-F) :- !.
-sr_inj(best(log), F, P, Q-F)   :- log_e(P,Q).
+sr_inj(best(log), F, P, P-F)   :- !.
+sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
 sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
 sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
 
