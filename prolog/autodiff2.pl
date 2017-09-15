@@ -57,7 +57,7 @@ deriv(L,Y,DY), stoch_exp(Xs,N,Y) ==>
    agg(T2,DXN). 
 
 dpow(K,X,T) :- K1 is K - 1, KK is float(K), pow(K1,X,XpowK1), mul(KK,XpowK1,T).
-agg_max(L,DY,X1,X2) :- var(X1) -> deriv(L,X1,DX1), ifge(X1,X2,DY,T1), agg(T1,DX1); true.
+agg_max(L,DY,X1,X2) :- var(X1) -> deriv(L,X1,DX1), chi(X1,X2,DY,T1), agg(T1,DX1); true.
 agg_mul(L,DY,X1,X2) :- var(X1) -> deriv(L,X1,DX1), mul(X2,DY,T1), agg(T1,DX1); true.
 agg_add(L,DY,X1)    :- var(X1) -> deriv(L,X1,DX1), agg(DY,DX1); true.
 acc(X) \ acc(X) <=> true.
@@ -90,7 +90,7 @@ compile\ mes(Xs,M,Ws,S)                    <=> when(ground(Xs), max_exp_sum(Xs,M
 compile <=> true.
 
 delay(Expr,Res) :- when(ground(Expr), Res is Expr).
-ifge(X,Y,Z,I)  :- when(ground(X-Y), (X>=Y -> I=Z; I=0.0)).
+chi(X,Y,Z,I)  :- when(ground(X-Y), (X>Y -> I=Z; X<Y -> I=0.0; delay(Z/2.0,I))).
 divby(K,X,Y) :- Y is X/K.
 
 max_exp_sum(Xs,M,Ws,Sum) :-
