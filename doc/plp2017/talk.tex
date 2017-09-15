@@ -1,0 +1,1246 @@
+\documentclass[usenames,dvipsnames]{beamer}
+
+\usepackage{luatex85}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsfonts,amssymb,stmaryrd,units}
+\usepackage{multimedia,hyperref,changepage}
+\usepackage[style=authoryear,natbib=true,backend=bibtex]{biblatex}
+% \usepackage[round]{natbib}
+\usepackage{tikz,tikz-qtree}
+\usepackage{ocaml,prolog,abbrvs,refutils,maths,nicefrac}
+% \let\citep=\cite
+% \def\citepos#1{\citeauthor{#1}'s \citeyearpar{#1}\xspace}
+
+\AtEveryBibitem{\clearfield{note}}
+\AtBeginBibliography{\small}
+
+\bibliography{compsci,all,me}
+% \addbibresource{all}
+% \addbibresource{me}
+% ---------- fonts selection ---------------
+%%% font options:
+% \usepackage{fourier}    	% Maths in serif Utopia
+% \usepackage[sf,l]{opsans}
+% \usepackage[light]{merriweather}
+
+% \usepackage[sf]{frankgth}
+% \usepackage[light,semibold,scaled=0.91]{sourcesanspro}
+% \renewcommand{\mddefault}{l}
+% \renewcommand{\bfdefault}{sb}
+\linespread{1}
+\setlength{\parskip}{0.5em}
+\newcommand{\paragraph}[1]{\textbf{#1}\qquad}
+
+% ------ maths formatting --------------------------------
+% \newcommand{\myRelbar}{%
+%     {\Rightarrow}%
+%     \llap{\textcolor{white}{\rule[-0.2ex]{1.1ex}{2ex}}}%
+%     \kern-1.5ex}
+% \let\saveLongrightarrow\Longrightarrow
+% \makeatletter
+% \renewcommand{\Longrightarrow}{%
+%     \mathrel{\rlap{$\m@th\myRelbar\myRelbar$}%
+%              \phantom{{\saveLongrightarrow}}%
+%              \llap{$\m@th\Rightarrow$}}}
+% \makeatother
+
+% ----------- colours ---------------------------------------
+
+\definecolor{paper}{named}{white}
+% green
+% \definecolor{base}{rgb}{0,0,0}
+% \definecolor{comp}{rgb}{0,0.5,0.6}
+% \definecolor{accent}{rgb}{0,0.8,0.3}
+
+% purple
+\definecolor{base}{rgb}{0,0,0}
+\definecolor{comp}{rgb}{0,0.5,0.6}
+% \definecolor{accent}{rgb}{0.40,0.7,1.00}
+\definecolor{accent}{rgb}{0.5,0.3,0.8}
+\definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+
+% ------------ beamer setup ---------------------------------
+
+\logo{%\includegraphics[height=16pt]{Logo_j_jukedeck_blue}%
+}
+
+\useinnertheme{default}
+\useoutertheme{default}
+% \usefonttheme[onlymath]{serif}
+% \usepackage{sfmath}
+\usefonttheme{serif}
+
+\setbeamercolor{normal text}{bg=paper,fg=base!99!-paper}
+\setbeamercolor{background}{bg=comp!60!paper,fg=comp}
+%\setbeamercolor{structure}{fg=base!75!-paper}
+\setbeamercolor{structure}{fg=accent!70!base}
+\setbeamercolor{palette primary}{bg=yellow!50!paper,fg=yellow}
+\setbeamercolor{palette secondary}{bg=orange!50!paper,fg=orange}
+\setbeamercolor{palette tertiary}{bg=blue!50!paper,fg=blue}
+\setbeamercolor{palette quaternary}{bg=green!50!paper,fg=green}
+\setbeamercolor{block body}{bg=base!20!paper}
+\setbeamercolor{block title}{bg=base!60!paper,fg=paper}
+\setbeamercolor{navigation symbols}{fg=base!90!paper}
+\setbeamercolor{separation line}{bg=blue,fg=yellow}
+\setbeamercolor{fine separation line}{bg=blue,fg=orange}
+
+\setbeamerfont{structure}{series=\bfseries}
+\setbeamerfont{title}{series=\mdseries,size=\Large}
+%\setbeamerfont{title}{series=\ltseries,size=\huge}
+\setbeamerfont{date}{size=\footnotesize}%,series=\mdcseries}
+\setbeamerfont{institute}{size=\footnotesize}%,series=\mdcseries}
+\setbeamerfont{author}{size=\footnotesize,series=\bfseries}
+\setbeamercolor{bibliography item}{parent={normal text}}
+\setbeamercolor{bibliography entry author}{fg=base}
+\setbeamercolor{bibliography entry location}{fg=base!70!paper}
+
+%% Templates
+\setbeamertemplate{bibliography item}[text]
+\setbeamertemplate{bibliography entry title}{ }
+\setbeamertemplate{bibliography entry location}{ }
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{items}[circle]
+\setbeamertemplate{enumerate items}[default]
+
+\setbeamertemplate{sidebar right}{}
+\setbeamertemplate{footline}{
+	\hspace*{0.2cm}
+	\insertlogo
+	\hfill
+	\usebeamertemplate***{navigation symbols}%
+	\hfill
+	\makebox[6ex]{\hfill\insertframenumber/\inserttotalframenumber}%
+	\hspace*{0.2cm}
+
+	\vskip 4pt
+}
+
+\setbeamertemplate{navigation symbols}
+{%
+  \hbox{%
+    \hbox{\insertslidenavigationsymbol}
+    \hbox{\insertframenavigationsymbol}
+%    \hbox{\insertsubsectionnavigationsymbol}
+    \hbox{\insertsectionnavigationsymbol}
+    \hbox{\insertdocnavigationsymbol}
+%    \hbox{\insertbackfindforwardnavigationsymbol}%
+  }%
+}
+
+\AtBeginSection[]{
+	\begin{iframe}[Outline]
+		\tableofcontents[currentsection]
+	\end{iframe}
+}
+
+\newenvironment{bframe}[1][untitled]{\begin{frame}[allowframebreaks]\frametitle{#1}}{\end{frame}}
+\newenvironment{iframe}[1][untitled]{\begin{frame}\frametitle{#1}}{\end{frame}}
+\newenvironment{fframe}[1][untitled]{\begin{frame}[fragile,environment=fframe]\frametitle{{#1}}}{\end{frame}}
+\newenvironment{isframe}[1][untitled]{\begin{frame}[fragile=singleslide,environment=isframe]\frametitle{#1}}{\end{frame}}
+
+% ---- code typesettings  --------------------------------------------
+
+\lstset{
+  basicstyle=\rmfamily,%\small,
+  % basicstyle=\usefont{T1}{cmr}{m}{n},
+  % basicstyle=\sffamily,
+  keywordstyle=\bfseries,
+  keywordstyle=[2]\upshape,
+  identifierstyle=\itshape,
+  emphstyle=\bfseries,
+  commentstyle=\color{accent}
+  }
+\lstMakeShortInline[language={[SWI]Prolog},columns=fullflexible]"
+\def\caml#1{\lstinline[language={[Samer]Caml},columns=fullflexible,keepspaces=true,basicstyle=\rmfamily]{#1}}
+\def\pl#1{\lstinline[language={[SWI]Prolog},columns=fullflexible]{#1}}
+\def\strut{\rule[-0.25em]{0pt}{1em}}
+
+% ----------- tikz -----------------------
+% \usetikzlibrary{patterns}
+\usetikzlibrary{graphs,shapes}
+\usetikzlibrary{graphdrawing}
+\usetikzlibrary{matrix}
+\usegdlibrary{trees,layered}
+
+\tikzset{every picture/.style=semithick}
+
+
+\newenvironment{fig}[1]
+	{%
+		\begin{figure}
+		\def\fglbl{f:#1}
+		\let\ocap=\caption
+		%\renewcommand{\caption}[2][]{\ocap[##1]{\small ##2}}
+		\renewcommand{\caption}[2][]{\par\raggedright ##2}
+		\begin{center} %\small
+	}{%
+		\end{center}
+		\label{\fglbl}
+		\end{figure}
+	}
+
+\newcommand{\colfig}[2][1]{\includegraphics[width=#1\linewidth]{#2}}%
+
+% ------------------- document metadata ---------------------------------------
+
+\title{PRISM Revisited: Declarative implementation of a probabilistic programming language using multi-prompt delimited control and CLP}
+\author{Samer Abdallah}
+\institute{Jukedeck Ltd.}
+
+\date{PLP Workshop, Orleans, France,\\ September 7, 2017}
+
+\begin{document}
+
+\frame{\titlepage}
+\frame{
+  \frametitle{Outline}
+  \tableofcontents
+}
+
+\section{An overview of PRISM}
+
+\begin{iframe}[PRISM: PRogramming In Statistical Models]
+Early versions: \citet{Sato1995,SatoKameya1997}.
+\begin{itemize}
+  \item Prolog-like syntax augmented with `switches' representing parameterised discrete distrubutions; and \pl{msw/2} for probabilistic choice.
+  \item Subsumes Markov models, (discrete) HMMs, pCFGs, graphical models.
+  \item Sampling execution.
+  \item Tabled execution \citep{SatoKameya2000} to get explanation graph (Earley deduction, generalises efficient parsers).
+  \item Efficient algorithms on the graph: Viterbi, inside, inside-outside, EM for parameter learning.
+  \item Further elaborations: variational Bayes \citep{KuriharaSato2006}, MCMC \citep{Sato2011}.
+\end{itemize}
+\end{iframe}
+
+\begin{isframe}[PRISM]
+  \begin{center}
+    \begin{tikzpicture}[every node/.style=draw,data/.style={double,draw=accent}]
+    \matrix[draw=none,column sep=2em] {
+      \node (DB) [cylinder,draw,shape border rotate=90,shape aspect=0.2] at (0,-6em) {\small\shortstack{switch parameters\\flags/settings\\tables}};
+    &
+        \graph[tree layout,
+               level distance=3em, sibling sep=2em,
+               edges=rounded corners]
+        {
+          "model code"[rounded corners] -> "tabled execution" -> "explanation graph"[rounded corners] -> inside/"inside alg.";
+          "explanation graph" -> outside/"outside alg.";
+          inside -> {outside, emvb/"EM, VB alg."};
+          outside -> emvb
+        };
+      \\
+    };
+    \draw (tabled execution.west) edge [data,<-,bend right=10] (DB);
+    \draw (inside.west) edge [data,<-,bend left=10] (DB);
+    \draw (outside.north west) edge [data,<-,bend right=3] (DB);
+    \draw (emvb.west) edge [bend left=20,data,<->] (DB);
+    \end{tikzpicture}
+  \end{center}
+\end{isframe}
+
+
+\begin{isframe}[Explanation graphs]
+  Example model: "dice(N,Z)" means "N" throws of tetrahedral die sum to "Z".
+\begin{prolog}[columns=fullflexible]
+	~values~(die,[1,2,3,4]).
+
+	~dice~(0,0).
+	~dice~(N,Z) :- 
+		msw(die, X),
+		N > 0, M is N-1, dice(M,Y), 
+		Z is X+Y.
+\end{prolog}
+	Enter a top goal "dice(3,4)".
+\end{isframe}
+
+\begin{isframe}[Explanation graphs]
+	PRISM represents the explanation graph textually as:
+  {\small
+  \begin{verbatim}
+    dice(3,4) <=> dice(2,3) & msw(die,1)
+                v dice(2,2) & msw(die,2)
+    dice(2,3) <=> dice(1,2) & msw(die,1)
+                v dice(1,1) & msw(die,2)
+    dice(1,2) <=> dice(0,0) & msw(die,2)
+    dice(2,2) <=> dice(1,1) & msw(die,1)
+    dice(1,1) <=> dice(0,0) & msw(die,1)
+    dice(0,0)
+  \end{verbatim}}%
+	Each subgoal is logically equivalent (\verb&<=>&) to a disjunction
+	(\verb&v&) of conjunctions (\verb;&;). In the rest, we will refer to
+  each conjunct as a \emph{factor} and a conjunction of factors as
+  an \emph{explanation}.
+\end{isframe}
+
+
+\begin{isframe}[Explanation graphs]
+  Can think of as either a heterogenous graph or a \emph{hypergraph} \citep{KleinManning2004}
+  where black circles are hyperedges.
+  \begin{center}%
+    \small
+    \begin{tikzpicture}[and/.style={circle,fill=black,inner sep=2pt},
+                        sw/.style={fill=ForestGreen!25,inner sep=3pt},
+                        every node/.style={draw,fill=accent!25,inner sep=2pt},
+                        rounded corners]%
+    \graph[layered layout,
+           level distance=2em, sibling sep=1.5em, 
+           edges=rounded corners]
+    { 
+			"dice(0,0)" -> {{[fresh nodes] and/""[and]}};
+			"dice(1,1)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,1)"[sw],"dice(0,0)"}};
+			"dice(1,2)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,2)"[sw],"dice(0,0)"}};
+			"dice(2,2)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,1)"[sw],"dice(1,1)"}};
+			"dice(2,3)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,2)"[sw],"dice(1,1)"},{[fresh nodes] and/""[and]} -> {"msw(die,1)"[sw],"dice(1,2)"}};
+			"dice(3,4)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,2)"[sw],"dice(2,2)"},{[fresh nodes] and/""[and]} -> {"msw(die,1)"[sw],"dice(2,3)"}};
+			% "top" -> {"dice(3,4)"}
+    };
+    \end{tikzpicture}
+  \end{center}
+\end{isframe}
+
+\begin{isframe}[Inside algorithm]
+  \begin{center}%
+    \small
+    \begin{tikzpicture}[and/.style={circle,fill=black,inner sep=2pt},
+                        sw/.style={fill=ForestGreen!25,inner sep=3pt},
+                        every node/.style={draw,fill=accent!25,inner sep=2pt},
+                        param/.style={fill=teal!30,draw},
+												every label/.style={draw=none,rectangle,fill=red!20,fill opacity=1,text opacity=1,text=black,font=\tiny,label distance=2pt},
+												every edge/.style={draw,rounded corners=20pt},
+											  rounded corners
+											 ]
+    \graph[layered layout,
+           level distance=2.5em, sibling sep=3em, 
+           edges=rounded corners]
+    { 
+"dice(0,0)"[label=right:$1.00$] -> {{[fresh nodes] and/""[and,label=above:$1.00$]}};
+"dice(1,1)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"msw(die,1)"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
+"dice(1,2)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"msw(die,2)"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
+"dice(2,2)"[label=right:$0.06$] -> {{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"msw(die,1)"[sw,label={[param]right:$0.25$}],"dice(1,1)"[label=right:$0.25$]}};
+"dice(2,3)"[label=right:$0.12$] -> {{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"msw(die,2)"[sw,label={[param]right:$0.25$}],"dice(1,1)"[label=right:$0.25$]},{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"msw(die,1)"[sw,label={[param]right:$0.25$}],"dice(1,2)"[label=right:$0.25$]}};
+"dice(3,4)"[label=right:$0.05$] -> {{[fresh nodes] and/""[and,label=above:$0.02$]} -> {"msw(die,2)"[sw,label={[param]right:$0.25$}],"dice(2,2)"[label=right:$0.06$]},{[fresh nodes] and/""[and,label=above:$0.03$]} -> {"msw(die,1)"[sw,label={[param]right:$0.25$}],"dice(2,3)"[label=right:$0.12$]}};
+% "top"[label=right:$0.05$] -> {"dice(3,4)"[label=right:$0.05$]}
+    };
+    \end{tikzpicture}
+  \end{center}
+\end{isframe}
+
+\begin{isframe}[Implementation size]
+    Comparison between "ccprism" and PRISM version 2.1 (closest in feature set to "ccprism").
+    Some code implementing general purpose services has been
+    excluded in order to compare like with like. 
+
+  \begin{center}
+    \begin{tabular}{l|rr|r}
+            & Prolog & C & Total \\
+      \hline
+      PRISM    & 6,463   & 8,010 & 14,473 \\
+      \emph{ccprism} & 673  & 0 & 673
+    \end{tabular}
+  \end{center}
+
+  Although comparison is far from perfect (both implementations include some features not found in the other)
+  PRISM contains roughly 20 times as much code.
+\end{isframe}
+
+\section{Delimited control in Prolog}
+
+\fboxsep2pt
+\newcommand\focus[1]{\colorbox{white}{\strut#1}}
+\newcommand\delim[1]{\colorbox{accent!40}{\strut#1}}
+\newcommand\undelim[1]{\colorbox{teal!40}{#1}}
+
+\begin{iframe}[Continuations]
+  Why consider continuations?
+
+  \begin{itemize}
+    \item<+->Delimited continuations are really powerful: can implement many kinds of computational
+     effects, including state, nondeterminism, all monads \citep{Filinski1999} and tabling equivalent to OLDT or SLG resolution
+     \citep{DesouterVan-DoorenSchrijvers2015,Abdallah2017a,Abdallah2017b}.
+
+  \item<+->First used for probabilistic programming (in OCaml) by \citet{KiselyovShan2008}: programs
+  yield a lazy search tree over probabilistic choices.
+
+  \item<+->Getting more interest on the functional side \citep{StuhlmullerGoodman2012}
+  and now in Anglican \citep{TolpinMeentWood2015}.
+
+  \item<+->Why should they have all the fun? Delimited control recently introduced into Prolog
+  by \citet{SchrijversDemoenDesouter2013}.
+  \end{itemize}
+\end{iframe}
+
+\begin{iframe}[Continuations]
+
+  A \emph{continuation}, at any point during program execution, is
+  the `rest of the program'. Focus on the expression \caml{3*4} in the
+  small program below:
+  \[
+    \only<1>{\focus{\caml{print (1 +} \focus{\caml{3*4}})}}
+    \only<2->{\undelim{\caml{print (1 +} \focus{\caml{3*4}})}}
+  \]
+  \uncover<2->{The green region is the evaluation \emph{context} for the
+  expression. The continuation represents what happens next---`take the
+  result, add 1 and print it.'
+  }
+
+  \uncover<3->{ 
+  But why stop at the print? Taken to its logical conclusion, the \emph{undelimited}
+  continuation includes the whole OS and only ends when the computer crashes or you
+  switch it off.
+
+  Hence, undelimited continuations don't return anything---they are only used for their
+  side effects; they are not functions.
+  }
+\end{iframe}
+
+\begin{iframe}[Delimited continuations]
+  In order to manipulation continuations, we need a boundary, implicit or explicit,
+  to create a \emph{delimited continuation}, for example.
+  \[
+    \only<1>{\focus{\caml{print} \focus{\caml{(1 +} \focus{\caml{3*4}})}}}
+    \only<2->{\undelim{\caml{print} \delim{\caml{(1 +} \focus{\caml{3*4}})}}}
+  \]
+  \uncover<2->{The purple region is a delimited evaluation context for the
+  focussed expression. Now we can usefully `reify' it (turn it into a thing)
+  as pure function of type \caml{int -> int}. Here, it is the function $\lambda x.1+x$.
+  }
+
+  \uncover<3->{How can we control where the context boundaries are? How can we get 
+  hold of the continuations?}
+\end{iframe}
+
+\begin{iframe}[Delimited control]
+  In functional languages, delimited control often expressed
+  using \caml{reset : (unit -> 'a) -> 'a} and \caml{shift : ('b -> 'a) -> 'b}.
+  Below, \caml{reset} defines the delimited context (or \emph{prompt}) in purple:
+  \begin{adjustwidth}{2em}{0em}
+      $\undelim{\caml{print (reset (fun () ->} \delim{$(1 + \delim{$3*4$})$}))}$
+  \end{adjustwidth}
+  \uncover<2->{\emph{shift} allows us to capture a delimited continuation $k$ and
+  pass it to, \eg, a function $h$:
+  \begin{adjustwidth}{2em}{0em}
+      \only<1-2>{\focus{\strut}\\}
+      \only<3>{\focus{\strut\caml{let h k = k (k 12) in}}\\}
+      \only<4->{\focus{\caml{let k = fun x -> 1 + x in}}\\}
+      \only<1-3>{\undelim{\caml{print (reset (fun () ->} \delim{\caml{(1 +} \focus{\caml{shift h}})}))}}
+      \only<4>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{k}}\caml{(k 12)}}))}}
+      \only<5>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{k 13}}}))}}
+      \only<6>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{14}}}))}}
+  \end{adjustwidth}
+  This \emph{replaces} the entire delimited context with the return value from $h$.
+  }
+  \uncover<3->{$h$ can do whatever it likes with the continuation.}
+
+  \uncover<4->{Finally, delimited contexts can be \emph{nested}; then \caml{shift} captures the continuation out
+  to the innermost \caml{reset}.}
+\end{iframe}
+
+\begin{iframe}[Delimited control (nondeterminism)]
+  One more example---you should be able smell Prolog on the horizon\ldots
+  \begin{adjustwidth}{2em}{0em}
+      \only<1-2>{\focus{\caml{let choose xs = shift (fun k -> concat (map k xs)) in}}\\}
+      \only<3->{\focus{\caml{let k : int -> int list = fun x -> [1 + x] in}}\\}
+      \only<1>{\undelim{\caml{print (reset (fun () ->} \delim{\caml{[1 +} \delim{\caml{choose [1;2;3]}}\caml{]}}))}}
+      \only<2>{\undelim{\caml{print (reset (fun () ->} \delim{\caml{[1 +} \focus{\caml{choose [1;2;3]}}\caml{]}}))}}
+      \only<3>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{concat (map k [1;2;3])}}}))}}
+      \only<4>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{concat [[2];[3];[4]]}}}))}}
+      \only<5>{\undelim{\caml{print (reset (fun () ->} \delim{\delim{\caml{[2;3;4]}}}))}}
+  \end{adjustwidth}
+  \uncover<5->{The result is a \emph{list} of alternatives introduced by the \caml{choose} operator, which
+  has type \caml{'a list -> 'a}. This is one way to introduce nondeterminism into a functional language.}
+\end{iframe}
+
+\begin{iframe}[Delimited control in Prolog]
+  That's great for functional languages. What about Prolog?
+  \begin{adjustwidth}{2em}{0em}\small
+    \only<1>{\focus{\focus{\focus{\pl{X=1}}, \pl{Y is 3*4}, \pl{Z is X+Y}}, \pl{writeln(Z)}}}
+    \only<2>{\undelim{\delim{\focus{\pl{X=1}}, \pl{Y is 3*4}, \pl{Z is X+Y}}, \pl{writeln(Z)}} $\{\}$}
+    \only<3>{\undelim{\delim{\focus{\pl{Y is 3*4}}, \pl{Z is X+Y}}, \pl{writeln(Z)}} $\{X=1\}$}
+    \only<4>{\undelim{\delim{\focus{\pl{Z is X+Y}}}, \pl{writeln(Z)}} $\{X=1, Y=12\}$}
+    \only<5->{\undelim{\undelim{\undelim{\pl{writeln(Z)}}}} $\{X=1, Y=12, Z=13\}$}
+  \end{adjustwidth}
+  \uncover<3->{Can put evaluation contexts around a subgoal in a similar way.}
+  \uncover<6->{\citet{SchrijversDemoenDesouter2013} use \pl{reset/3} and \pl{shift/1} to provide control.
+  I'm going to use \pl{p_reset/3} and \pl{p_shift/2}, a very thin wrapper providing a better API and named prompts.}
+  \begin{adjustwidth}{2em}{0em}\small
+    \only<1-5>{\focus{\focus{\focus{}}}}
+    \only<6>{\undelim{\pl{p_reset(nd,}\delim{(\focus{\pl{X=1}}, \pl{p_shift(nd, get(Y))}, \pl{Z is X+Y)}}, \pl{Status})} $\{\}$}
+    \only<7>{\undelim{\pl{p_reset(nd,}\delim{(\focus{\pl{p_shift(nd, get(Y))}}, \pl{Z is X+Y)}}, \pl{Status})} $\{X=1\}$}
+    \only<8->{\undelim{\undelim{\undelim{\strut\pl{true}}}} \pl{\{X = 1, Status = susp(get(Y), Z is X+Y)\}}}
+  \end{adjustwidth}
+  \uncover<8->{Unlike functional \caml{reset/shift}, Prolog \pl{shift/1} doesn't
+  decide what to do with continuation---it just sends a `signal' \pl{get(Y)} along with continuation
+  for later code to deal with. This is more like the \emph{algebraic effect handlers} of \citet{PlotkinPretnar2013}.
+  }
+
+  \uncover<9->{N.B. real continuation is a bit more complex, but still an ordinary term.}
+\end{iframe}
+
+\begin{fframe}[Effect handlers in Prolog]
+Let's write a simple effect handler which responds to \pl{get(Y)} by consuming values from a list.
+\begin{prolog}[frame=lines,belowskip=0em,xleftmargin=0em,basicstyle=\small]
+  ~get~(Y) :- p_shift(rdr, get(Y)).
+
+  ~run_reader~(Goal, Values) :- 
+    p_reset(rdr, Goal, Status), handle(Status, Values).
+
+  ~handle~(susp(get(Y), Cont), [Y|Ys]) :- run_reader(Cont, Ys).
+  ~handle~(done, _).
+\end{prolog}
+% \vspace*{-1em}
+% \rule{\linewidth}{0.4pt}\\
+\begin{itemize}
+  \item<2-> Unifying \pl{Y} with head of list sends data into \pl{Cont}.
+  \item<3-> \pl{handle/2} invokes continuation using \pl{run_reader/2}.
+  \item<4-> Though \pl{Goal} may look `impure', with \pl{get/1} as a computational effect, 
+  \pl{run_reader/2} is pure. Effect is `reified' using extra parameter \pl{Values}.
+\end{itemize}
+\end{fframe}
+
+
+\section{Core implementation}
+
+\subsection{Sampling, explanation and tabling effects}
+
+\begin{fframe}[Effects for a probabilistic program]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  :- meta_predicate :=(3,-), cctabled(:,0), sample(3,-).
+
+  ~dist~(Ps,Xs,X) :- p_shift(prob, dist(Ps,Xs,X)).
+  ~uniform~(Xs,X) :- p_shift(prob, uniform(Xs,X)).
+  ~sample~(P,X)   :- p_shift(prob, sample(P,X)). 
+  SW ~@:=@~ X       :- p_shift(prob, sw(SW,X)).
+
+  ~cctabled~(Head,Work) :- p_shift(tab, tcall(Head,Work,Inj)), call(Inj).
+\end{prolog}%
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+\begin{itemize}
+  \item<1-> Effects are addressed to two different prompts "prob" and "tab", which handle
+probabilistic choice and tabling respectively.
+
+  \item<2-> "SW" identifies (it's actually a predicate) a parameterised distribution over terms, equivalent
+to PRISM switches.
+
+  \item<3-> Tabling effect allows effect handler to inject and arbitrary goal just after tabled call.
+\end{itemize}
+
+\end{fframe}
+
+\begin{isframe}[Effects handlers]
+Handler for a prompt named "prob", implemented as a DCG to handle
+state threading, and delegating the actual handling to an arbitrary
+predicate "H".
+
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  :- meta_predicate run_prob(3,0,?,?).
+  ~run_prob~(H,Goal) --> {p_reset(prob, Goal, Stat)}, cont_prob(Stat,H).
+
+  ~cont_prob~(susp(Req,Cont),H) --> call(H,Req), run_prob(H,Cont).
+  ~cont_prob~(done,_) --> [].
+\end{prolog}
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+This is a very general handler---we could have called it "run_state_handler"
+and put it in a general purpose library.
+\end{isframe}
+
+\begin{fframe}[Sampling execution without tabling]
+% Sampling handler uses "run_prob//2" with "sample//2", which uses and
+% updates an explicit pseudorandom generator state. "run_notab"/1 handler
+% just injects tabled goals back into the program for normal execution.
+  % :- use_module(library(prob/tagged), [discrete//3, uniform//2]).
+  % :- use_module(library(prob/strand), [pure//2]).
+
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sample~(P, sw(SW,X))      --> !, call(P,SW,X).
+  ~sample~(_, dist(Ps,Xs,X)) --> !, pure(discrete(Xs,Ps),X).
+  ~sample~(_, uniform(Xs,X)) --> !, pure(uniform(Xs),X).
+  ~sample~(_, sample(P,X))   --> call(Q,X).
+
+  ~run_notab~(Goal) :- p_reset(tab, Goal, Stat), cont_notab(Stat).
+  ~cont_notab~(susp(tcall(_,Work,Work), Cont)) :- run_notab(Cont).
+  ~cont_notab~(done).
+
+  :- meta_predicate run_sampling(4,0,+,-).
+  ~run_sampling~(Sampler,Goal,S1,S2) :-
+     run_notab(run_prob(sample(Sampler),Goal,S1,S2)).
+\end{prolog}
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+\uncover<1->{Threaded state includes state of pseudorandom generator.}
+\uncover<2->{\pl{Sampler} encapsulates the distribution parameters for each switch---there is
+no global mutable state.}
+\uncover<3->{No tabling is done: worker goal merely injected into continuation.}
+\end{fframe}
+
+\begin{fframe}[Tabled explanation search (types)]
+  \begin{prolog}[xleftmargin=0em,deletekeywords={ground,module},basicstyle=\small]
+  :- @@type@@ ~vc~ == ground.
+  :- @@type@@ ~swid(A)~ == ground.
+  :- @@type@@ ~factor~ ---> @number; swid(A):=A; module:vc.
+  :- @@type@@ ~sw(A)~ == pred(-swid(A), -list(A), list(A)).
+  \end{prolog}
+\uncover<1->{
+A \pl{vc} (variant class) represents all calls to a tabled goal with the same
+pattern of arguments and variables as a ground term (using \pl{numbervars/3}):
+}
+
+\uncover<2->{
+A \pl{swid(A)} is a ground term uniqely identifiying a switch whose value are of type $A$.
+A \pl{sw(A)} is predicate which `returns' a switch id and a difference list of the values the switch can take.
+}
+
+\uncover<3->{
+A \emph{factor} explains a probabilistic deduction step---it is either
+the probability of a choice from a fixed distribution, a switch with one of its values, or a 
+module-qualified variant class representing a tabled subgoal.
+}
+\end{fframe}
+
+\begin{isframe}[Tabled explanation search (explanations)]
+  \begin{prolog}[xleftmargin=0em,deletekeywords={module},basicstyle=\small]
+  ~expl~(M:VC)  --> [M:VC].
+  ~expl~(SW:=X)   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
+  ~expl~(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [@P].
+  ~expl~(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
+
+  ~term_to_variant_class~(T1, T2) :- 
+    copy_term_nat(T1,T2), 
+    numbervars(T2,0,_).
+
+  ~member2~(X,Y,[X|_],[Y|_]).
+  ~member2~(X,Y,[_|Xs],[_|Ys]) :- member2(X,Y,Xs,Ys).
+\end{prolog}
+\end{isframe}
+
+\begin{fframe}[Tabled explanation search (tabling types)]
+  \begin{prolog}[xleftmargin=0em,deletekeywords={ground,module,var},basicstyle=\small]
+  :- @@type@@ ~soln~ == list(term).
+  :- @@type@@ ~kont~ ---> k(list(var),term,pred). 
+  :- @@type@@ ~table~ ---> tab(goal,rbtree(soln,list(list(factor))),list(cont)).
+  \end{prolog}
+\uncover<1->{
+A \pl{soln} (solution) is a list of values taken by variables in a tabled call.}
+
+\uncover<2->{A \pl{kont} (continuation with context variables) is a continuation
+along with the variables to `communicate' with it.}
+
+\uncover<3->{
+A \pl{table} contains the tabled goal itself (with variables), a 
+map associating each solution with a list of explanations (each of which is a list of factors),
+and a list of continuations waiting for results from a tabled call.
+}
+\end{fframe}
+
+\begin{isframe}[Tabled explanation search (tabling)]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  :- use_module(library(rbutils)).
+  :- use_module(ccnbenv).
+
+  :- meta_predicate run_tab(0,?)
+  ~run_tab~(Goal, Ans) :- p_reset(tab, Goal, Stat), cont_tab(Stat, Ans).
+
+  ~cont_tab~(done, _).
+  ~cont_tab~(susp(tcall(M:H,Work,p_shift(prob,M:VC)), Cont), Ans) :-
+     term_to_variant_class(H, VC),
+     term_variables(Work, Y), K = k(Y,Ans,Cont),
+     nb_app_or_new(M:VC, old_vc(R,K), new_vc(R,M:H,K)),
+     (  R =solns(Ys) -> rb_in(Y, _, Ys), run_tab(Cont, Ans)
+     ;  R =new -> run_tab(producer(M:VC, \Y^Work, Ans), Ans)
+     ).
+
+  ~old_vc~(solns(Ys), K, tab(H,Ys,[K0|Ks]), tab(H,Ys,[K0,K|Ks])).
+  ~new_vc~(new, H, K, tab(H,Ys,[K])) :- rb_empty(Ys).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Tabled explanation search (tabling)]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~producer~(VC, Generate, Ans) :-
+     run_prob(expl, call(Generate, Y), E, []),
+     nb_app(VC, new_soln(Y,E,Res)),
+     Res=new(Ks), member(k(Y,Ans,C), Ks), call(C).
+
+  ~new_soln~(Y, E, Res, tab(V,Ys1,Ks), tab(V,Ys2,Ks)) :-
+     rb_app_or_new(Y, old_soln(Res,E), new_soln(Res,Ks,E), Ys1, Ys2).
+
+  ~new_soln~(new(Ks),Ks,E,[E]).
+  ~old_soln~(old,E,Es,[E|Es]).
+\end{prolog}
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+This is basically the same as the tabling algorithm in \citep{Abdallah2017b}, slightly
+modified to collect explanations for each solution, instead of just collecting 
+solutions in a set.
+\end{isframe}
+
+\begin{fframe}[Dice model again]
+\begin{onlyenv}<1>%
+Before shallow program transformations:
+\begin{prolog}[columns=fullflexible,morekeywords={[2]{cctable}}]
+  :- module(eg, [die//1, dice/2]).
+
+	~die~ +-> [1,2,3,4].
+
+  :- cctable dice/2.
+	~dice~(0,0).
+	~dice~(N,Z) :- 
+		die := X,
+		succ(M,N), dice(M,Y), 
+		Z is X+Y.
+\end{prolog}
+\end{onlyenv}
+\begin{onlyenv}<2>%
+After program transformations (but before DCG expansion):
+\begin{prolog}[columns=fullflexible,morekeywords={[2]{cctable}}]
+  :- module(eg, [die//1, dice/2]).
+
+	~die~(eg:die) --> [1,2,3,4].
+
+  ~dice~(N,Z) :- cctabled(dice(N,Z),`dice#'(N,Z)).
+	`~dice#~'(0,0).
+	`~dice#~'(N,Z) :- 
+		die := X,
+		succ(M,N), dice(M,Y), 
+		Z is X+Y.
+\end{prolog}
+\end{onlyenv}
+NB. Probabilistic predicates \emph{and} switches are module scoped.
+\end{fframe}
+
+\subsection{Explanation graph}
+
+\begin{isframe}[Building the explanation graph]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	:- use_module(library(rbutils)).
+	:- use_module(ccprism/handlers)).
+	:- use_module(ccprism/graph).
+	:- use_module(ccnbenv).
+
+	:- meta_predicate goal_graph(0,-).
+	~goal_graph~(Goal, G1) :-
+     run_nb_env(goal_expls_tables(Goal, Es, Ts)),
+		 tables_graph(Ts, G0),
+		 prune_graph(=, `#top':top, [(`#top':top)-Es|G0], G1).
+
+  ~goal_expls_tables~(Goal, Es, Ts) :- 
+    run_tab(findall(E, run_prob(expl,Goal,E,[]), Es)), 
+    nb_dump(Ts).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Building the explanation graph]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	~tables_graph~(Ts, Graph) :-
+		 rb_empty(Empty),
+		 rb_fold(table_expls, Ts, Empty, GMap),
+		 rb_visit(GMap, Graph).
+
+	~table_expls~(_-tab(Goal,Solns,_)) -->
+		 {term_variables(Goal,Vars)},
+		 rb_fold(soln_expls(Goal,Vars), Solns).
+
+	~soln_expls~(G,Y,Y1-Es) -->
+		 {copy_term(G-Y,G1-Y1), numbervars(G1-Y1, 0, _)},
+		 (rb_add(G1,Es) -> []; []).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Explanation graph (again)]
+  \begin{center}%
+    \small
+    \begin{tikzpicture}[and/.style={circle,fill=black,inner sep=2pt},
+                        sw/.style={fill=ForestGreen!25,inner sep=3pt},
+                        every node/.style={draw,fill=accent!25,inner sep=2pt},
+                        param/.style={fill=teal!30,draw},
+												every label/.style={draw=none,rectangle,fill=red!20,fill opacity=1,text opacity=1,text=black,font=\tiny,label distance=2pt},
+												every edge/.style={draw,rounded corners=20pt},
+											  rounded corners
+											 ]
+    \graph[layered layout,
+           level distance=2.5em, sibling sep=3em, 
+           edges=rounded corners]
+    { 
+"dice(0,0)"[label=right:$1.00$] -> {{[fresh nodes] and/""[and,label=above:$1.00$]}};
+"dice(1,1)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"die:=1"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
+"dice(1,2)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"die:=2"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
+"dice(2,2)"[label=right:$0.06$] -> {{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"die:=1"[sw,label={[param]right:$0.25$}],"dice(1,1)"[label=right:$0.25$]}};
+"dice(2,3)"[label=right:$0.12$] -> {{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"die:=2"[sw,label={[param]right:$0.25$}],"dice(1,1)"[label=right:$0.25$]},{[fresh nodes] and/""[and,label=above:$0.06$]} -> {"die:=1"[sw,label={[param]right:$0.25$}],"dice(1,2)"[label=right:$0.25$]}};
+"dice(3,4)"[label=right:$0.05$] -> {{[fresh nodes] and/""[and,label=above:$0.02$]} -> {"die:=2"[sw,label={[param]right:$0.25$}],"dice(2,2)"[label=right:$0.06$]},{[fresh nodes] and/""[and,label=above:$0.03$]} -> {"die:=1"[sw,label={[param]right:$0.25$}],"dice(2,3)"[label=right:$0.12$]}};
+"top"[label=right:$0.05$] -> {"dice(3,4)"[label=right:$0.05$]}
+    };
+    \end{tikzpicture}
+  \end{center}
+\end{isframe}
+
+\subsection{Semiring processing}
+
+\begin{isframe}[Semiring graph processing]
+Generalised processing over parse forests \citep{Goodman1998,Goodman1999}.
+Idea is to replace `OR' and `AND' nodes of graph with 
+`plus' and `times' operators from a semiring.
+
+A semiring is an algebra with a set of values and two binary operators
+$\oplus$ and $\otimes$, both monoidal (having identity elements $\mathbf{0}$ and $\mathbf{1}$ respectively),
+and with some additional conditions. Goodman shows how many useful parsing 
+algorithms can be defined using the same computation with different semirings,
+including $(+,0,\times,1)$ over reals for inside algorithm, $(\mathrm{max},-\infty,\times,1)$
+for Viterbi algorithm, and operations over sets of lists for parse tree extraction.
+\end{isframe}
+
+\begin{isframe}[Generalised semiring]
+More convenient to generalise types:
+\begin{align*}
+  \otimes &: \alpha \times \beta \to \beta \\
+  \oplus &: \beta \times \gamma \to \gamma \\
+  \mathbf{1} &: \beta,\\
+  \mathbf{0} &: \gamma\\
+  \mathit{inj} &: \mathit{factor} \times \theta \to \alpha\\
+  \mathit{proj} &: \gamma \to \alpha
+\end{align*}
+Idea is to build a dataflow graph on the explanation graph, replacing 
+factor nodes with semiring operations, using $\mathit{inj}$ to get initial
+values from switch nodes and parameters and $\mathit{proj}$ to feed output of goal nodes
+back into product nodes.
+\end{isframe}
+
+\begin{isframe}[Semiring graph processing]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  :- use_module(library(dcg_pair)).
+  :- use_module(library(rbutils)).
+
+  :- type sr(A,B,C,T). % open union type
+  ~semiring_graph_fold~(SR, Graph, Params, GoalSums) :-
+     rb_empty(E),
+     foldl(sr_sum(SR), Graph, GoalSums, E, FMap),
+     fmap_sws(FMap, SWs),
+     maplist(fmap_sw_vals(sr_param(SR),true1,FMap),SWs,Params).
+
+  ~sr_param~(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
+  ~true1~(_).
+\end{prolog}
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+NB. order of graph traversal is not important because we can use constraint based arithmetic
+predicates, \eg $\mathit{CLP}(R)$, to delay numerics until variables are instantiated. Hence
+\pl{Params} can contain variables for switch value probabilities.
+\end{isframe}
+
+\begin{isframe}[Semiring graph processing]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sr_sum~(SR, Goal-Expls, Goal-Sum1) -->
+     fmap(Goal,Proj), {sr_zero(SR,Zero)},
+     run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum),
+     {sr_proj(SR,Goal,Sum,Sum1,Proj)}.
+
+  ~sr_add_prod~(SR, Expl) -->
+     {sr_unit(SR,Unit)},
+     run_right(foldr(sr_factor(SR), Expl), Unit, Prod) <\> sr_plus(SR,Prod).
+
+  ~sr_factor~(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
+  ~sr_factor~(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
+  ~sr_factor~(SR, @P)  --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X).
+\end{prolog}
+\vspace{-1.5em}
+\rule{\linewidth}{0.4pt}\\
+By providing clauses of the \pl{sr_} predicates, this \emph{one} piece of code
+handles the inside and Viterbi algorithms with linear or log scaled probabilities,
+best and $k$-best explanation tree extraction, graph annotation, and any combination
+of these by semiring \emph{composition}.
+\end{isframe}
+
+\begin{isframe}[Factor-value map]
+Associative map from factors to $\alpha$ values in generalised semiring.
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~fmap~(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
+  ~fmap_sws~(Map,SWs) :- 
+    rb_fold(emit_if_sw,Map,SWs1,[]), 
+    sort(SWs1,SWs).
+  ~emit_if_sw~(F-_) --> {F=(SW:=_)} -> [SW]; [].
+
+  :- meta_predicate fmap_sw_vals(3,1,+,+,?).
+  ~fmap_sw_vals~(Conv,Def,Map,SW,SW-XX) :-
+     call(SW,_,Vals,[]), 
+     maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
+
+  ~sw_val_or_default~(Conv,Def,Map,SW,Val,X) :-
+     (  rb_lookup(SW:=Val, P, Map) 
+     ->call(Conv,SW:=Val,P,X)
+     ;  call(Def,X)
+     ).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Semiring definitions]
+Numeric and list based semirings: \pl{r(pred(T,A), pred(C,A), pred(A,B,B), pred(B,C,C)) : sr(A,B,C,T)}.
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sr_inj~(r(I,_,_,_),  _, P, X)     :- call(I,P,X).
+  ~sr_proj~(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
+  ~sr_plus~(r(_,_,_,O), X) --> call(O,X).
+  ~sr_times~(r(_,_,O,_), X) --> call(O,X).
+  ~sr_zero~(r(_,_,_,O), I) :- m_zero(O,I).
+  ~sr_unit~(r(_,_,O,_), I) :- m_zero(O,I).
+
+  ~m_zero~(add,0.0).
+  ~m_zero~(mul,1.0).
+  ~m_zero~(max,-inf).
+  ~m_zero~(cons,[]).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Semiring definitions (Viterbi)]
+  Much like $r(=,=,mul,max)$, but keeping the most likely exlanation
+  subtree along.
+  \rule{\linewidth}{0.4pt}\\
+  \begin{prolog}[xleftmargin=0em,deletekeywords={ground},basicstyle=\small]
+  ~sr_inj~(best(log), F, P, P-F) :- !.
+  ~sr_inj~(best(lin), F, P, Q-F)   :- log_e(P,Q).
+  ~sr_proj~(best(_),  G, X-E, X-E, X-(G-E)).
+  ~sr_plus~(best(_),  X) --> max_by_fst(X).
+  ~sr_times~(best(_),  X-F) --> add(X) <\> cons(F).
+  ~sr_zero~(best(_),  Z-_)   :- m_zero(max,Z).
+  ~sr_unit~(best(_),  0.0-[]).
+
+  ~max_by_fst~(LX-X,LY-Y,Z) :- 
+    when(ground(LX-LY),(LX>= LY -> Z = LX-X; Z = LY-Y)).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Semiring definitions (annotation)]
+Use any semiring to annotate explanation graph.
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sr_inj~(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
+  ~sr_proj~(ann(SR),  G, X-Z, W-Z, Y-G)     :- sr_proj(SR,G,X,W,Y).
+  ~sr_plus~(ann(SR),  X-Expl) --> sr_plus(SR,X) <\> cons(X-Expl).
+  ~sr_times~(ann(SR),  X-F) --> sr_times(SR,X) <\> cons(X-F).
+  ~sr_zero~(ann(SR),  Z-[])  :- sr_zero(SR,Z).
+  ~sr_unit~(ann(SR),  U-[])  :- sr_unit(SR,U).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Semiring definitions (pair)]
+Combine results from any two semirings.
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sr_inj~(R1-R2, F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
+  ~sr_proj~(R1-R2, G, X1-X2, Z1-Z2, Y1-Y2) :- 
+    sr_proj(R1,G,X1,Z1,Y1), sr_proj(R2,G,X2,Z2,Y2).
+  ~sr_plus~(R1-R2, X1-X2) --> sr_plus(R1,X1) <\> sr_plus(R2,X2).
+  ~sr_times~(R1-R2, X1-X2) --> sr_times(R1,X1) <\> sr_times(R2,X2).
+  ~sr_zero~(R1-R2, Z1-Z2) :- sr_zero(R1,Z1), sr_zero(R2,Z2).
+  ~sr_unit~(R1-R2, U1-U2) :- sr_unit(R1,U1), sr_unit(R2,U2).
+\end{prolog}
+\end{isframe}
+
+
+\begin{isframe}[Semiring definitions (lazy best first)]
+Lazy, unbounded version of \citet{HuangChiang2005}
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	~sr_inj~(kbest,   F, P, [Q-F]) :- surp(P,Q).
+	~sr_proj~(kbest,  G, X, X, Y)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
+	~sr_plus~(kbest,  X) --> lazy(k_min,X).
+	~sr_times~(kbest, X) --> lazy(k_mul,X).
+	~sr_zero~(kbest,  []).
+	~sr_unit~(kbest,  [0.0-[]]).
+
+	~k_tag~(G,L-X,L-(G-X)).
+	~k_min~([],Ys,Ys) :- !.
+	~k_min~(Xs,[],Xs) :- !.
+	~k_min~([X|Xs],[Y|Ys],[Z|Zs]) :-
+		 (  LX-_=X, LY-_=Y, LX =< LY
+		 -> Z=X, freeze(Zs, k_min(Xs,[Y|Ys],Zs))
+		 ;  Z=Y, freeze(Zs, k_min([X|Xs],Ys,Zs))
+		 ).
+\end{prolog}
+\end{isframe}
+
+\begin{isframe}[Semiring definitions (lazy best first)]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	~k_mul~(Xs,Ys,Zs) :-
+		 empty_set(EmptyS), empty_heap(EmptyQ),
+		 enqueue(pos(0-0,Xs,Ys), EmptyS-EmptyQ, TQ1),
+		 lazy_unfold_finite(k_next, Zs, TQ1, _).
+
+	~k_next~(L-[XF|YFs]) -->
+		 \> pq_get(L,pos(I-J,[X0|Xs],[Y0|Ys])),
+		 {_-XF=X0, _-YFs=Y0, succ(I,I1), succ(J,J1)},
+		 enqueue(pos(I1-J,Xs,[Y0|Ys])),
+		 enqueue(pos(I-J1,[X0|Xs],Ys)).
+
+	~enqueue~(P) --> new_position_cost(P,L) -> \> pq_add(L,P); [].
+	~new_position_cost~(pos(IJ,[X0|_],[Y0|_]),L) --> 
+    \< add_to_set(IJ), {L is X0+Y0}.
+
+	~pq_add~(L,P,H1,H2) :- add_to_heap(H1,L,P,H2).
+	~pq_get~(L,P,H1,H2) :- get_from_heap(H1,L,P,H2).
+\end{prolog}
+\end{isframe}
+	% ~add_to_set~(X,S1,[X|S1]) :- \+memberchk(X,S1).
+	% ~empty_set~([]).
+
+\subsection{Outside algorithm by automatic differentiation}
+
+\begin{isframe}[Outside algorithm in PRISM]
+	\def\sw#1{#1_{s,i}}
+	Learning switch parameters requires expected sufficient statistics
+	(pseudocounts representing how often each switch value is used in explanation graph).
+
+	Possibly \citet{SatoKameya2001} were the first to notice that this can be done by partial differentiation of
+	probability of top goal wrt switch parameters, then multiplying by inside probabilities: 
+	\[ 
+		\sw\eta = \frac{\sw\theta}{P_t} \pd{P_t}{\sw\theta}
+	\]
+	where $\sw\theta$ is the probability of switch $s$ taking value $i$,
+	$\sw\eta$ is the corresponding statistic, and $P_t$ is the inside probability 
+	of the top goal. 
+
+	In PRISM, this computation is expanded by hand into an explicit traversal of explanation graph annoted
+  with inside probabilities.
+\end{isframe}
+
+\begin{isframe}[ESS via automatic differentiation]
+	\def\sw#1{#1_{s,i}}
+	Using CLP-based automatic differentiation in CHR/Prolog \citep{Abdallah2017} we can
+	do away with all this code: simply compute the log (inside) probability of the top
+	goal wrt to the \emph{log} scaled switch value probabilities using a semiring
+  composed of \emph{differentiable} operators to get
+	\[ 
+		\sw\eta = \pd{\log P_t}{\log \sw\theta}.
+	\]
+	I suspect (not confirmed) that this will generalise to Viterbi training simply by using
+  differentiable \pl{max} instead of \pl{add} in semiring.
+
+	Also expected to be useful in implementing new classes of switch distributions (\eg exponential 
+  families) and gradient based learning (\cf deep learning).
+\end{isframe}
+
+\begin{isframe}[ESS via automatic differentiation]
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	:- use_module(library(autodiff2),  [llog/2, log/2, exp/2, add/3, mul/3, 
+                                      back/1, deriv/3, compile/0]).
+	~m_zero~(autodiff2:mul,1.0).
+	~m_zero~(autodiff2:add,0.0).
+
+	~graph_counts~(PSc, Graph, Params, Eta, LogProb) :-
+		 SR = r(=,=,autodiff2:mul,autodiff2:add),
+		 semiring_graph_fold(SR, Graph, P0, IG),
+		 top_value(IG, Prob), log(Prob, LogProb),
+		 scaling_log_params(PSc, P0, Params0, LogP0),
+		 map_swc(deriv(LogProb), LogP0, Eta),
+		 back(LogProb), compile, Params=Params0.
+
+	~scaling_log_params~(lin, P0, P0,  LP0) :- map_swc(llog, P0, LP0).
+	~scaling_log_params~(log, P0, LP0, LP0) :- map_swc(exp, LP0, P0).
+\end{prolog}
+\end{isframe}
+
+\subsection{Parameter learning}
+
+\begin{isframe}[Learning via expectation-maximisation (EM)]
+We can now do EM learning (with
+inverse temperature for deterministic annealing) as follows:
+"learn/4" returns in its fourth argument a predicate to do one
+step of learning.
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	~learn~(ml, ITemp, Graph, unify3(t(P1,P2,LP))) :-
+		 once(graph_counts(lin, Graph, PP, Eta, LP)),
+		 map_swc(pow(ITemp), P1, PP),
+		 map_sw(stoch, Eta, P2).
+
+	~unify3~(CVars,LP,P1,P2) :- copy_term(CVars, t(P1,P2,LP)).
+\end{prolog}
+This works because using \pl{CLP(R)} or similar, we can build the entire numerical dataflow graph 
+\emph{once} with \emph{uninstantiated} variables. We can then use the graph
+multiple times by copying all the variables (including constraints), unifying the inputs with
+numerical values, and reading off the outputs.
+\end{isframe}
+
+\begin{isframe}[Convergence of learning steps]
+General tool for running single step repeatedly to convergence:
+\rule{\linewidth}{0.4pt}\\
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+	:- meta_predicate converge(+,1,-,+,-).
+	~converge~(Test, Setup, [X0|History], S0, SFinal) :-
+		 time(call(Setup, Step)),
+		 call(Step, X0, S0, S1),
+		 converge_x(Test, Step, X0, History, S1, SFinal).
+
+	~converge_x~(Test, Step, X0, [X1|History], S1, SFinal) :-
+		 call(Step, X1, S1, S2),
+		 (  converged(Test, X0, X1) -> History=[], SFinal=S2
+		 ;  converge_x(Test, Step, X1, History, S2, SFinal)
+		 ).
+
+	~converged~(abs(Eps), X1, X2) :- abs(X1-X2) =< Eps.
+	~converged~(rel(Del), X1, X2) :- abs((X1-X2)/(X1+X2)) =< Del.
+\end{prolog}
+\end{isframe}
+
+\begin{iframe}[Declarative learning]
+	\uncover<1->{Both maximum \emph{a posteriori} learning (where there is a Dirichlet prior over
+	switch probability parameters) and variational Bayes (where we learn a distribution
+  over switch parameters, not point estimates) can be implemented in another 22 lines,
+  reusing the same convergence tool.}
+
+  \uncover<2->{All learning is pure declarative Prolog: parameters are input and output via arguments
+  and there are no global variables.}
+
+  \uncover<3->{All variations on learning (linear or log scaled variants, temperatures, priors \etc) are 
+  controlled by explicit parameters, not implicit global settings.}
+
+  \uncover<4->{Gibbs and Metropolis-Hastings samplers implemented purely (using sampling effect handler)
+  in another $\sim90$ lines.}
+\end{iframe}
+
+\section{Usage examples}
+
+    % \item Outside, ESS
+    % \item Learning
+
+\begin{isframe}[Examples: Sampling]
+  The dice model given earlier can be sampled using "run_sampling//2". We must
+provide a predicate to act as a database of switch distributions, \eg, using "uniform_sampler//2"
+to assume a uniform distribution for all switches.
+\begin{prolog-barred}
+  ?- length(Xs,3), 
+     strand(run_sampling(uniform_sampler,maplist(dice(3),Xs))).
+  Xs = [10, 7, 6] .
+\end{prolog-barred}
+Here "strand/1" is a utility from an independent package
+"plrand" providing a random generator
+and various sampling distributions. "strand(G)" runs "G" as a DCG goal with the initial 
+state set to a random RNG state.
+\end{isframe}
+
+\begin{isframe}[Examples: Sampling]
+If instead we want a particular distribution for switch "die", we can provide it using
+a `lookup sampler':
+\begin{prolog-barred}
+  ?- make_lookup_sampler([(eg:die)-[0.5,0.1,0.3,0.1]], S), 
+     strand(run_sampling(S,maplist(dice(3),Xs))),
+     length(Xs,3). 
+  Xs = [8, 5, 5],
+  S = ccp_handlers:lookup_sampler(<rbtree>).
+\end{prolog-barred}
+\end{isframe}
+
+\begin{isframe}[Examples: graph building]
+To build and pretty-print an explanation graph:
+\begin{prolog-barred}
+  ?- goal_graph(dice(3,4),G), print_term(G,[]).
+
+  [ ('^top' : top) - [[eg:dice(3,4)]],
+    (eg : dice(0,0)) - [[]],
+    (eg : dice(1,1)) - [[eg:die:=1,eg:dice(0,0)]],
+    (eg : dice(1,2)) - [[eg:die:=2,eg:dice(0,0)]],
+    (eg : dice(2,2)) - [[eg:die:=1,eg:dice(1,1)]],
+    (eg : dice(2,3)) - [[eg:die:=2,eg:dice(1,1)],
+                        [eg:die:=1,eg:dice(1,2)]],
+    (eg : dice(3,4)) - [[eg:die:=2,eg:dice(2,2)],
+                        [eg:die:=1,eg:dice(2,3)]]
+  ]
+\end{prolog-barred}
+\end{isframe}
+
+\begin{isframe}[Examples: inside probabilities]
+Note that parameters "P" get numerical values \emph{after}
+running the inside aglorithm on the graph.
+\begin{prolog-barred}
+	?- goal_graph(dice(3,4),G), 
+		 semiring_graph_fold(r(=,=,mul,add),G,P,IG), 
+		 graph_params(uniform,G,P), 
+		 print_term(IG,[]).
+
+	[ ('^top' : top) - 0.046875,
+		(eg : dice(0,0)) - 1,
+		(eg : dice(1,1)) - 0.25,
+		(eg : dice(1,2)) - 0.25,
+		(eg : dice(2,2)) - 0.0625,
+		(eg : dice(2,3)) - 0.125,
+		(eg : dice(3,4)) - 0.046875
+	]
+\end{prolog-barred}
+\end{isframe}
+
+\begin{isframe}[Examples: more semirings]
+Showing only the calls and not the output, first an explanation
+graph annotated with inside probabilities:
+\begin{prolog-barred}
+	?- goal_graph(dice(3,4),G), 
+		 semiring_graph_fold(ann(r(=,=,mul,add)),G,P,IG), 
+		 graph_params(uniform,G,P), 
+		 print_term(IG,[]).
+\end{prolog-barred}
+Now each subgoal with log probability of most likely explanation,
+using log scaled probabilities:
+\begin{prolog-barred}
+  ?- goal_graph(dice(3,4),G), 
+     semiring_graph_fold(r(log_e,=,add,max),G,P,VG), 
+     graph_params(uniform,G,P), 
+     print_term(VG,[]).
+\end{prolog-barred}
+\end{isframe}
+
+\begin{isframe}[Examples: expected switch-value counts]
+Compute expected sufficient statistics given log-scaled switch parameters
+and using log-scaled inside algorithm:
+\begin{prolog-barred}
+  ?- goal_graph(dice(3,4),G), 
+     graph_counts(log,log,G,P,Eta,LP), 
+     graph_params(log(uniform),G,P).
+
+  G = [...],
+  P = [(eg:die)-[-1.3863, -1.3863, -1.3863, -1.3863]],
+  Eta = [(eg:die)-[2, 1, 0, 0]],
+  LP = -3.0603.
+\end{prolog-barred}
+In this case, all explanations use "die:=1" twice and "die:=2" once.
+\end{isframe}
+
+\begin{isframe}[Examples: sampling and learning]
+This is a longer example combining sampling a dataset of 
+length "N" and trying to learn the die distribution from it. 
+The learned parameters are returned in "P1" and the history
+of likelihood values in "H".
+\begin{prolog}[xleftmargin=0em,basicstyle=\small]
+  ~sample_and_learn_dice~(N,H,P1,R1,R2) :-
+    length(Xs,N),
+    make_lookup_sampler([(eg:die)-[0.2,0.4,0.3,0.1]],S),
+    strand(run_sampling(S,maplist(dice(3),Xs)),R1,R2),
+    goal_graph(maplist(dice(3),Xs), G),
+    graph_params(uniform,G,P0),
+    converge(abs(1e-7), learn(ml,io(log),G), H, P0, P1).
+\end{prolog}
+This predicate has no side effects and no mutable
+global state is modified or referenced. The state of the
+random generator is passed in and out in "R1" and "R2".
+\end{isframe}
+
+\section{Conclusions}
+	\begin{iframe}[Conclusions]
+    \begin{itemize}
+      \item<+->It was possible to implement the main features of PRISM using an order of magnitude less code.
+
+      \item<+->Code is mostly pure, declarative Prolog, with a few metalinguistic constructs required to implement tabling.
+
+      \item<+->Both these aspects are intended to encourage reading, understanding, modification and extension of the code.
+
+      \item<+->Performance: tabling is bit slow, but can be much improved using methods of \citet{Abdallah2017b}. EM learning 
+        is slower than PRISM, but faster than equivalent computation graph implemented using Theano or TensorFlow.
+
+      \item<+->Future work: switches distributions from exponential families. Bayesian non-parametetrics.
+
+      \item<+->Please check out the code!\\\url{https://github.com/samer--/ccprism}
+\end{itemize}
+\end{iframe}
+
+	\begin{bframe}[Bibliography]
+		% \bibliographystyle{abbrvnat}
+		% {\small \bibliography{all,me,compsci}}
+    \printbibliography
+	\end{bframe}
+\end{document}

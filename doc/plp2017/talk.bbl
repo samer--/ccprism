@@ -1,0 +1,642 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.8 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\sortlist[entry]{nyt/global/}
+\preamble{%
+\newcommand{\postscriptref}[1] {(\emph{see} \textbf{#1})}
+  \providecommand{\url}[1] {\texttt{#1}}
+}
+
+  \entry{Abdallah2017}{article}{}
+    \name{author}{1}{}{%
+      {{hash=AS}{%
+         family={Abdallah},
+         familyi={A\bibinitperiod},
+         given={Samer},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AS1}
+    \strng{fullhash}{AS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2017}
+    \field{extrayear}{1}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{Automatic Differentiation using {C}onstraint {H}andling
+  {R}ules in {P}rolog}
+    \field{journaltitle}{arXiv preprint arXiv:1706.00231}
+    \field{year}{2017}
+  \endentry
+
+  \entry{Abdallah2017a}{article}{}
+    \name{author}{1}{}{%
+      {{hash=AS}{%
+         family={Abdallah},
+         familyi={A\bibinitperiod},
+         given={Samer},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AS1}
+    \strng{fullhash}{AS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2017}
+    \field{extrayear}{2}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{Memoisation: Purely, Left-recursively, and with (Continuation
+  Passing) Style}
+    \field{journaltitle}{arXiv preprint arXiv:1707.04724}
+    \field{year}{2017}
+  \endentry
+
+  \entry{Abdallah2017b}{article}{}
+    \name{author}{1}{}{%
+      {{hash=AS}{%
+         family={Abdallah},
+         familyi={A\bibinitperiod},
+         given={Samer},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \keyw{tabling}
+    \strng{namehash}{AS1}
+    \strng{fullhash}{AS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2017}
+    \field{extrayear}{3}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{More declarative tabling in {P}rolog using multi-prompt
+  delimited control}
+    \field{journaltitle}{arXiv preprint arXiv:1708.07081v2}
+    \field{year}{2017}
+  \endentry
+
+  \entry{DesouterVan-DoorenSchrijvers2015}{article}{}
+    \name{author}{3}{}{%
+      {{hash=DB}{%
+         family={Desouter},
+         familyi={D\bibinitperiod},
+         given={Benoit},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=VDM}{%
+         family={Van\bibnamedelima Dooren},
+         familyi={V\bibinitperiod\bibinitdelim D\bibinitperiod},
+         given={Marko},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=ST}{%
+         family={Schrijvers},
+         familyi={S\bibinitperiod},
+         given={Tom},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Cambridge Univ Press}%
+    }
+    \keyw{tabling}
+    \strng{namehash}{DBVDMST1}
+    \strng{fullhash}{DBVDMST1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2015}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{number}{4-5}
+    \field{pages}{419\bibrangedash 433}
+    \field{title}{Tabling as a library with delimited control}
+    \field{volume}{15}
+    \field{journaltitle}{Theory and Practice of Logic Programming}
+    \field{year}{2015}
+  \endentry
+
+  \entry{Filinski1999}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=FA}{%
+         family={Filinski},
+         familyi={F\bibinitperiod},
+         given={Andrzej},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {ACM}%
+    }
+    \strng{namehash}{FA1}
+    \strng{fullhash}{FA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{1999}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{booktitle}{Proceedings of the 26th ACM SIGPLAN-SIGACT symposium on
+  Principles of programming languages}
+    \field{pages}{175\bibrangedash 188}
+    \field{title}{Representing layered monads}
+    \field{year}{1999}
+  \endentry
+
+  \entry{Goodman1998}{thesis}{}
+    \name{author}{1}{}{%
+      {{hash=GJ}{%
+         family={Goodman},
+         familyi={G\bibinitperiod},
+         given={Joshua},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic grammars, parsing}
+    \strng{namehash}{GJ1}
+    \strng{fullhash}{GJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{1998}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{title}{Parsing inside-out}
+    \list{institution}{2}{%
+      {Division of Engineering}%
+      {Applied Sciences, Harvard University}%
+    }
+    \field{type}{phdthesis}
+    \field{year}{1998}
+  \endentry
+
+  \entry{Goodman1999}{article}{}
+    \name{author}{1}{}{%
+      {{hash=GJ}{%
+         family={Goodman},
+         familyi={G\bibinitperiod},
+         given={Joshua},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {MIT Press}%
+    }
+    \keyw{parsing}
+    \strng{namehash}{GJ1}
+    \strng{fullhash}{GJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{1999}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{number}{4}
+    \field{pages}{573\bibrangedash 605}
+    \field{title}{Semiring parsing}
+    \field{volume}{25}
+    \field{journaltitle}{Computational Linguistics}
+    \field{year}{1999}
+  \endentry
+
+  \entry{HuangChiang2005}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=HL}{%
+         family={Huang},
+         familyi={H\bibinitperiod},
+         given={Liang},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=CD}{%
+         family={Chiang},
+         familyi={C\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {Association for Computational Linguistics}%
+    }
+    \keyw{parsing}
+    \strng{namehash}{HLCD1}
+    \strng{fullhash}{HLCD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2005}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{booktitle}{Proceedings of the Ninth International Workshop on
+  Parsing Technology}
+    \field{note}{Combines the k-best parses of each factor in an explanation to
+  get the k-best parses of an explantion, then combines the k-best parses of
+  alternative explanations to get the k-best parses of a goal.}
+    \field{pages}{53\bibrangedash 64}
+    \field{title}{Better k-best parsing}
+    \field{year}{2005}
+  \endentry
+
+  \entry{KiselyovShan2008}{misc}{}
+    \name{author}{2}{}{%
+      {{hash=KO}{%
+         family={Kiselyov},
+         familyi={K\bibinitperiod},
+         given={Oleg},
+         giveni={O\bibinitperiod},
+      }}%
+      {{hash=cSC}{%
+         prefix={chieh},
+         prefixi={c\bibinitperiod},
+         family={Shan},
+         familyi={S\bibinitperiod},
+         given={Chung},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic programming}
+    \strng{namehash}{KOSCc1}
+    \strng{fullhash}{KOSCc1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2008}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{howpublished}{Abstract of poster NIPS2008 workshop on Probabilistic
+  Programming: Universal Languages, Systems and Applications}
+    \field{title}{Embedded Probabilistic Programming}
+    \field{year}{2008}
+  \endentry
+
+  \entry{KleinManning2004}{incollection}{}
+    \name{author}{2}{}{%
+      {{hash=KD}{%
+         family={Klein},
+         familyi={K\bibinitperiod},
+         given={Dan},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=MCD}{%
+         family={Manning},
+         familyi={M\bibinitperiod},
+         given={Christopher\bibnamedelima D},
+         giveni={C\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \keyw{parsing}
+    \strng{namehash}{KDMCD1}
+    \strng{fullhash}{KDMCD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2004}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{booktitle}{New developments in parsing technology}
+    \field{pages}{351\bibrangedash 372}
+    \field{title}{Parsing and hypergraphs}
+    \field{year}{2004}
+  \endentry
+
+  \entry{KuriharaSato2006}{incollection}{}
+    \name{author}{2}{}{%
+      {{hash=KK}{%
+         family={Kurihara},
+         familyi={K\bibinitperiod},
+         given={Kenichi},
+         giveni={K\bibinitperiod},
+      }}%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \keyw{probabilistic programming, PRISM}
+    \strng{namehash}{KKST1}
+    \strng{fullhash}{KKST1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2006}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{booktitle}{Grammatical Inference: Algorithms and Applications}
+    \field{pages}{84\bibrangedash 96}
+    \field{title}{Variational {B}ayesian grammar induction for natural
+  language}
+    \field{year}{2006}
+  \endentry
+
+  \entry{PlotkinPretnar2013}{article}{}
+    \name{author}{2}{}{%
+      {{hash=PGD}{%
+         family={Plotkin},
+         familyi={P\bibinitperiod},
+         given={Gordon\bibnamedelima D},
+         giveni={G\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+      {{hash=PM}{%
+         family={Pretnar},
+         familyi={P\bibinitperiod},
+         given={Matija},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Episciences. org}%
+    }
+    \keyw{delimited continuations}
+    \strng{namehash}{PGDPM1}
+    \strng{fullhash}{PGDPM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2013}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{Handling Algebraic Effects}
+    \field{volume}{9}
+    \field{journaltitle}{Logical Methods in Computer Science}
+    \field{year}{2013}
+  \endentry
+
+  \entry{Sato1995}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic programming, PRISM}
+    \strng{namehash}{ST1}
+    \strng{fullhash}{ST1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{1995}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{booktitle}{Proceedings of the 12th International Conference on Logic
+  Programming (ICLP'95)}
+    \field{pages}{715\bibrangedash 729}
+    \field{title}{A statistical learning method for logic programs with
+  distribution semantics}
+    \list{location}{1}{%
+      {Tokyo}%
+    }
+    \field{year}{1995}
+  \endentry
+
+  \entry{Sato2011}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {AAAI Press}%
+    }
+    \keyw{probabilistic programming, PRISM}
+    \strng{namehash}{ST1}
+    \strng{fullhash}{ST1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2011}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{booktitle}{Proceedings of the Twenty-Second international joint
+  conference on Artificial Intelligence-Volume Volume Two}
+    \field{pages}{1472\bibrangedash 1477}
+    \field{title}{A general {MCMC} method for {B}ayesian inference in
+  logic-based probabilistic modeling}
+    \field{year}{2011}
+  \endentry
+
+  \entry{SatoKameya1997}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=KY}{%
+         family={Kameya},
+         familyi={K\bibinitperiod},
+         given={Yoshitaka},
+         giveni={Y\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic programming, PRISM}
+    \strng{namehash}{STKY1}
+    \strng{fullhash}{STKY1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{1997}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{booktitle}{Proc. 15th Intl. Joint Conf. on Artifical Intelligence
+  (IJCAI)}
+    \field{note}{Includes explanation search and EM learning, but explanation
+  search is not tabled. The result of explanation search is more like Poole's
+  PHA -- each explanation is a list of assignments to random variables, each of
+  which has a unique identifier.}
+    \field{pages}{1330\bibrangedash 1335}
+    \field{title}{{PRISM}: a language for symbolic-statistical modeling}
+    \field{volume}{2}
+    \field{year}{1997}
+  \endentry
+
+  \entry{SatoKameya2000}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=KY}{%
+         family={Kameya},
+         familyi={K\bibinitperiod},
+         given={Yoshitaka},
+         giveni={Y\bibinitperiod},
+      }}%
+    }
+    \keyw{PRISM}
+    \strng{namehash}{STKY1}
+    \strng{fullhash}{STKY1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2000}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{booktitle}{Proceedings of UAI2000 Workshop on Fusion of Domain
+  Knowledge with Data for Decision Support}
+    \field{title}{A {V}iterbi-like algorithm and {EM} learning for statistical
+  abduction}
+    \field{year}{2000}
+  \endentry
+
+  \entry{SatoKameya2001}{article}{}
+    \name{author}{2}{}{%
+      {{hash=ST}{%
+         family={Sato},
+         familyi={S\bibinitperiod},
+         given={Taisuke},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=KY}{%
+         family={Kameya},
+         familyi={K\bibinitperiod},
+         given={Yoshitaka},
+         giveni={Y\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic programming, PRISM}
+    \strng{namehash}{STKY1}
+    \strng{fullhash}{STKY1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2001}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{note}{First journal paper describing tabling for efficient
+  explanation search.}
+    \field{pages}{391\bibrangedash 454}
+    \field{title}{Parameter Learning of Logic Programs for Symbolic-statistical
+  Modeling}
+    \field{volume}{15}
+    \field{journaltitle}{Journal of Artificial Intelligence Research}
+    \field{year}{2001}
+  \endentry
+
+  \entry{SchrijversDemoenDesouter2013}{article}{}
+    \name{author}{4}{}{%
+      {{hash=ST}{%
+         family={Schrijvers},
+         familyi={S\bibinitperiod},
+         given={Tom},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=DB}{%
+         family={Demoen},
+         familyi={D\bibinitperiod},
+         given={Bart},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=DB}{%
+         family={Desouter},
+         familyi={D\bibinitperiod},
+         given={Benoit},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=WJ}{%
+         family={Wielemaker},
+         familyi={W\bibinitperiod},
+         given={Jan},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \keyw{continuations, Prolog}
+    \strng{namehash}{ST+1}
+    \strng{fullhash}{STDBDBWJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2013}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{Delimited continuations for {P}rolog}
+    \field{journaltitle}{Theory and Practice of Logic Programming}
+    \field{year}{2013}
+  \endentry
+
+  \entry{StuhlmullerGoodman2012}{article}{}
+    \name{author}{2}{}{%
+      {{hash=SA}{%
+         family={Stuhlm{\"u}ller},
+         familyi={S\bibinitperiod},
+         given={Andreas},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=GND}{%
+         family={Goodman},
+         familyi={G\bibinitperiod},
+         given={Noah\bibnamedelima D},
+         giveni={N\bibinitperiod\bibinitdelim D\bibinitperiod},
+      }}%
+    }
+    \keyw{probabilistic programming, Church}
+    \strng{namehash}{SAGND1}
+    \strng{fullhash}{SAGND1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2012}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{A dynamic programming algorithm for inference in recursive
+  probabilistic programs}
+    \field{journaltitle}{arXiv preprint arXiv:1206.3555}
+    \field{year}{2012}
+  \endentry
+
+  \entry{TolpinMeentWood2015}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=TD}{%
+         family={Tolpin},
+         familyi={T\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=vdMJW}{%
+         prefix={van\bibnamedelima de},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Meent},
+         familyi={M\bibinitperiod},
+         given={Jan-Willem},
+         giveni={J\bibinitperiod-W\bibinitperiod},
+      }}%
+      {{hash=WF}{%
+         family={Wood},
+         familyi={W\bibinitperiod},
+         given={Frank},
+         giveni={F\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {Springer}%
+    }
+    \strng{namehash}{TDMJWvdWF1}
+    \strng{fullhash}{TDMJWvdWF1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2015}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{booktitle}{Joint European Conference on Machine Learning and
+  Knowledge Discovery in Databases}
+    \field{pages}{308\bibrangedash 311}
+    \field{title}{Probabilistic programming in Anglican}
+    \field{year}{2015}
+  \endentry
+\endsortlist
+\endinput
