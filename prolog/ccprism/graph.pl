@@ -28,8 +28,9 @@
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
 :- use_module(library(data/pair),   [fst/2, snd/2]).
 :- use_module(library(rbutils),     [rb_in/3, rb_add//2, rb_app//2, rb_get//2]).
+:- use_module(library(autodiff2),   [back/1, deriv/3, compile/0]).
 :- use_module(effects,   [dist/3]).
-:- use_module(switches,  [map_swc/4]).
+:- use_module(switches,  [map_swc/3, map_swc/4]).
 :- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
 
 :- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2, m_zero/2.
@@ -182,6 +183,9 @@ m_zero(add,0.0).
 m_zero(mul,1.0).
 m_zero(max,-inf).
 m_zero(cons,[]).
+m_zero(autodiff2:mul,1.0).
+m_zero(autodiff2:add,0.0).
+m_zero(autodiff2:max,-inf).
 
 v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 
@@ -226,55 +230,32 @@ expl_entropy(log, Pe, HFactors, HE) :- HE is exp(Pe)*(HFactors - Pe).
 factor_entropy(M:Head) --> !, fmap(M:Head,H) <\> add(H).
 factor_entropy(_) --> [].
 
-% --------- outside probabilities, ESS ----------------
 
-%% graph_counts(+M:counts_method, +Sc:scaling, +G:graph, P:sw_params, C:sw_params, LP:number) is det.
-%  Compute expected switch counts C from graph G with switch parameters P. Also
-%  returns log probability of the graph in LP. Can do either inside-outside inference or
-%  Viterbi inference, depending on M.
-graph_counts(vit, PScaling, Graph, P1, Eta, LP) :-
-   call(top_value * semiring_graph_fold(best(PScaling),Graph), P1, LP-Tree),
-   when(ground(LP), tree_stats(_-Tree, Eta)).
+%% graph_counts(+Meth:counts_method, +PSc:scaling, +G:graph, P:sw_params, C:sw_params, LP:float) is det.
+%
+%  Compute expected switch counts C from explanation graph G with switch parameters
+%  P. Uses automatic differentiation of the expression for the log of the inside 
+%  probability LP of the graph. Params can be unbound - binding them later triggers
+%  the computations required to yield numerical values in the result.
+%  ==
+%  counts_method ---> io(scaling); vit.
+%  ==
+graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :- 
+   method_scaling_semiring(Method, ISc, SR, ToLogProb),
+   semiring_graph_fold(SR, Graph, P0, IG),
+   call(ToLogProb*top_value, IG, LogProb),
+   scaling_log_params(ISc, PSc, P0, Params0, LogP0),
+   map_swc(deriv(LogProb), LogP0, Eta),
+   back(LogProb), compile, Params=Params0.
 
-graph_counts(io(IScaling), PScaling, Graph, P1, Eta, LP) :-
-   i_scaling_info(IScaling, Min, TopBeta, TopAlpha, LP),
-   scaling_info(IScaling, PScaling, SR, MakeCounts),
-   semiring_graph_fold(ann(SR), Graph, P1, InsideG),
-   top_value(InsideG, TopBeta-_),
-   foldl(soln_edges, InsideG, QCs, []),
-   call(group_pairs_by_key * keysort, QCs, InvGraph),
-   rb_empty(Empty), fmap('^top':top, TopAlpha, Empty, Map1),
-   foldl(q_alpha(IScaling), InvGraph, Map1, Map2),
-   maplist(fmap_collate_sw(right,=(Min),Map2)*fst, P1, Grad),
-   map_swc(patient(MakeCounts), P1, Grad, Eta).
-right(_,X,X).
+method_scaling_semiring(vit,     log, r(=,=,autodiff2:add,autodiff2:max), =).
+method_scaling_semiring(io(lin), lin, r(=,=,autodiff2:mul,autodiff2:add), autodiff2:log).
+method_scaling_semiring(io(log), log, r(=,autodiff2:lse, autodiff2:add,cons), =).
 
-i_scaling_info(lin, 0.0,  Pin, 1.0/Pin, LP) :- log_e(Pin,LP).
-i_scaling_info(log, -inf, LP, -LP, LP).
-
-scaling_info(lin, lin, r(=,=,mul,add),        math:mul).
-scaling_info(lin, log, r(exp,=,mul,add),      \X^Y^Z^(Z is exp(X)*Y)).
-scaling_info(log, lin, r(log_e,lse,add,cons), \X^Y^Z^(Z is X*exp(Y))).
-scaling_info(log, log, r(=,lse,add,cons),     \X^Y^Z^(Z is exp(X+Y))).
-
-opt(Opts, Opt) :- option(Opt, Opts, _).
-soln_edges(P-(_-Expls)) --> foldl(expl_edges(P),Expls).
-expl_edges(P,Pe-Expl)       --> foldl(factor_edge(Pe,P),Expl).
-factor_edge(Pe,P,BetaQ-Q)   --> [Q-qc(BetaQ,Pe,P)].
-
-q_alpha(lin,Q-QCs) --> fmap(Q, AlphaQ), run_right(foldl(qc_alpha, QCs), 0.0, AlphaQ).
-q_alpha(log,Q-QCs) --> fmap(Q, AlphaQ), run_right(foldl(qc_alpha_log, QCs), [], Alphas),
-                       {lse(Alphas,AlphaQ)}.
-
-qc_alpha(qc(BetaQ,Pe,P)) -->
-   fmap(P, AlphaP) <\> add(AlphaQC),
-   { when(ground(BetaQ), ( BetaQ =:= 0.0 -> AlphaQC=0.0
-                         ; mul(AlphaP,Pe/BetaQ,AlphaQC))) }.
-
-qc_alpha_log(qc(BetaQ,Pe,P)) -->
-   fmap(P, AlphaP) <\> cons(AlphaQC),
-   { when(ground(BetaQ), ( BetaQ =:= -inf -> AlphaQC= -inf
-                         ; add(AlphaP,Pe-BetaQ,AlphaQC))) }.
+scaling_log_params(lin, lin, P0,    P0,    LogP0) :- map_swc(autodiff2:llog, P0, LogP0).
+scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(autodiff2:exp, LogP0, P0).
+scaling_log_params(log, lin, LogP0, P0,    LogP0) :- map_swc(autodiff2:log, P0, LogP0).
+scaling_log_params(log, log, LogP0, LogP0, LogP0). 
 
 :- meta_predicate accum_stats(//,-), accum_stats(//,+,-).
 accum_stats(Pred,Stats) :-
