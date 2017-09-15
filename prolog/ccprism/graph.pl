@@ -273,3 +273,4 @@ tree_stats(_-Subtrees) --> foldl(subtree_stats,Subtrees).
 subtree_stats(_-Trees) --> foldl(subtree_stats,Trees).
 subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1).
 subtree_stats(const) --> [].
+right(_,X,X).
