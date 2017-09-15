@@ -1,0 +1,92 @@
+\usepackage{listings}
+% \usepackage{stmaryrd}
+
+\definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+
+\lstdefinelanguage[Samer]{Caml}[Objective]{Caml}{%
+  deletekeywords={with},
+	literate={'a}{{$\alpha$}}1{'b}{{$\beta$}}1{'w}{{$\omega$}}1{'s}{{$\sigma$}}1
+               {+}{{$+$}}1 {/}{{$/$}}1 
+% 							 {\}}{]}1 {\{}{[}1
+% 							 {\}\}}{\}}1 {\{\{}{\{}1
+% 							 {\{\}}{[\,]}2
+               {\ *\ }{{ $\times$ }}3
+               {**}{{$\circ$}}1
+               {=}{{$=$}}1 
+               {<>}{{$\neq$}}1 
+               {>}{{$>$}}1 
+               {<}{{$<$}}1 
+               {++}{{$+\!\!\!+$}}1 {::}{{$::$}}1
+               % {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2
+               {>=}{{$\geq$}}2 
+               {<-}{{$\leftarrow$}}2
+               {-->}{{$\longrightarrow$}}3
+               {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2
+               {<<}{{$\ll$}}2 {>>}{{$\gg$}}2 {>>=}{{$\gg\!\!=$}}2
+               {*>}{{$*\!\!\!>$}}2 {<|>}{{$<\!\!\!|\!\!\!>$}}3
+               % {<|>}{{$\obar$}}2
+               % {<*>}{{$\varoast$}}2 
+               % {<+>}{{$\varoplus$}}2
+               {<*>}{{$<\!\!\!*\!\!\!>$}}2 
+               {<+>}{{$<\!\!\!\!+\!\!\!\!>$}}2
+               % {|}{{$\mid$}}1
+               {undef}{{$\bot$}}1
+               {not\ }{{$\neg$}}1 {epsilon}{{$\epsilon$}}1
+               % {`elem`}{{$\in$}}1
+               % {forall}{{$\forall$}}1
+  }
+
+\lstnewenvironment{ocaml-framed}[1][]{\lstset{%
+  language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  frame=lines,
+  columns=spaceflexible,
+  aboveskip=0.5em,
+  belowskip=0.5em,
+  #1}} {}
+\lstnewenvironment{ocaml}[1][]{\lstset{%
+  language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  columns=spaceflexible,
+  aboveskip=0.5em,
+  belowskip=0.5em,
+  xleftmargin=1.5em
+  #1}} {}
+\lstnewenvironment{ocamlet} {\lstset{language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  columns=spaceflexible,xleftmargin=2.0em}} {}
+\lstnewenvironment{badocaml} {\lstset{
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+	frame=leftline,
+	framesep=0.9em,
+	framerule=0.3em,
+	xleftmargin=1.2em,
+	columns=spaceflexible,
+	rulecolor=\color{ListingBar},
+	language=[Samer]Caml
+	}} {}
+\lstnewenvironment{ocaml-tt} {\lstset{language=[Samer]Caml,
+  gobble=2,
+  tabsize=2,
+  keepspaces=true,
+  basicstyle=\ttfamily\small,
+	emphstyle=\mdseries,
+	keywordstyle=\bfseries,
+  identifierstyle=\upshape, 
+	columns=spaceflexible,
+	% framesep=0.5em,
+	% xleftmargin=0.1em,
+	% xleftmargin=1.2em,
+	frame=single,
+	aboveskip=0.75em,
+	belowskip=0.75em}} {}
+

@@ -1,0 +1,19 @@
+
+\let\oldint\int 		\def\int#1\dd{\oldint#1\;\dd}
+\let\oldiint\iint		\def\iint#1\dd#2\dd{\oldiint#1\;\dd#2\;\dd}
+\let\oldiiint\iiint	\def\iiint#1\dd#2\dd#3\dd{\oldiiint#1\;\dd#2\;\dd#3\;\dd}
+\newcommand{\infint}[2] 		{\int_{-\infty}^\infty#2\dd#1}
+\newcommand{\partiald}[2]		{\frac{\partial#1}{\partial#2}}
+\newcommand{\hpdbyd}[2][]	{\partial{#1}/\partial{#2}}
+\newcommand{\pd}[2]			{\dfrac{\partial#1}{\partial#2}}
+\newcommand{\dd}				{\mathrm{d}}
+\newcommand{\hdbyd}[2][]	{\dd{#1}/\dd{#2}}
+\newcommand{\dbyd}[2][]		{\frac{\dd#1}{\dd#2}}
+\newcommand{\dbydt}[1]		{\frac{\dd#1}{\dd t}}
+\newcommand{\hpd}[2]		{{\partial#1}/{\partial#2}}
+\newcommand{\grad}			{\boldsymbol{\nabla}}
+\newcommand{\hfrac}[2] {#1/#2}
+\newcommand{\hpfrac}[2] {(#1/#2)}
+
+\newcommand*{\reals} 		{\mathbb{R}}
+\newcommand{\define}		{\overset{\text{\tiny def}}{=}}

@@ -1,0 +1,166 @@
+\usepackage{listings}
+\definecolor{ListingBar}{rgb}{0.8,0.8,0.8}
+\definecolor{ListingBG}{rgb}{0.95,0.95,0.95}
+\definecolor{Pale}{rgb}{0.6,0.6,0.6}
+
+\lstdefinelanguage[SWI]{Prolog}{
+  mathescape=true,
+  morecomment=[l]\%,
+  morecomment=[s]{/*}{*/},
+  morestring=[bd]``,
+  % alternatively, typeset variables in upright Roman.
+  % emph={X,Y,Z,M,N,N1,N2,I1,I2,P,P1,P2,L},
+  moredelim=[is][]{@@}{@@},
+  moredelim=[is][\itshape\bfseries]{~}{~},
+  moredelim=[is][\bfseries]{~@}{@~},
+  morekeywords={op,repeat,var,nonvar,ground,module},
+  morekeywords=[2]{meta_predicate,is,table,true,false},
+  keepspaces=true,
+  literate={+}{{$+$}}1 
+           {-}{{$-$}}1 
+           {<>}{{$\neq$}}1 
+           {>}{{$>$}}1 
+           {<}{{$<$}}1 
+           {>=}{{$\geq$}}2 
+           {=}{{$=$}}1%
+           {=..}{{$=\!..$}}2%
+           {=<}{{$\leq$}}2 
+           {==}{{$=\!=$}}1%
+           {==>}{{$\Rightarrow$}}2
+           {<=>}{{$\Leftrightarrow$}}2%
+           {->}{{$\rightarrow$}}2%
+           {:-}{{$\leftarrow$}}2%
+           {-->}{{$\longrightarrow$}}3%
+           {--->}{{$\xrightarrow{\hspace*{4ex}}$}}4%
+           {+->}{$\rlap{\ \,\mapstochar}\longrightarrow$}{3}
+           % {~}{{$\sim$}}1%
+           {\\+}{{$\neg$}}1%
+           {]}{{$\,$]}}1%  space before list end
+           {|}{{$\,|$}}2
+           % {|}{{$\mid$}}1
+           {&}{{\$}}1%     dollar sign: use ampersand
+           % lambdas?
+           {\\}{{$\lambda$}}1
+           {\\>}{{$\setminus\rangle$}}{2}
+           {\\<}{{$\setminus\langle$}}{2}
+           {<\\>}{{$\langle\setminus\rangle$}}{2}
+           {^}{{$.$}}1
+           % variables with numerical subscripts
+           {K0}{{$K_0$}}2
+           {K1}{{$K_1$}}2
+           {KP}{{$K_p$}}2
+           {Ys1}{{$\mathit{Ys}_1$}}3
+           {Ys2}{{$\mathit{Ys}_2$}}3
+           {R0}{{$R_0$}}1
+           {A1}{{$A_1$}}1
+           {A2}{{$A_2$}}1
+           {A3}{{$A_3$}}1
+           {G0}{{$G_0$}}1
+           {G1}{{$G_1$}}1
+           {G2}{{$G_2$}}1
+           {H1}{{$H_1$}}1
+           {H2}{{$H_2$}}1
+           {I1}{{$I_1$}}1
+           {I2}{{$I_2$}}1
+           {J1}{{$J_1$}}1
+           {J2}{{$J_2$}}1
+           {M1}{{$M_1$}}1
+           {M2}{{$M_2$}}1
+           {N1}{{$N_1$}}1
+           {N2}{{$N_2$}}1
+           {N3}{{$N_3$}}1
+           {P1}{{$P_1$}}1
+           {P2}{{$P_2$}}1
+           {Q1}{{$Q_1$}}1
+           {Q2}{{$Q_2$}}1
+           {S1}{{$S_1$}}1
+           {S2}{{$S_2$}}1
+           {S3}{{$S_3$}}1
+           {T1}{{$T_1$}}1
+           {T2}{{$T_2$}}1
+           {V1}{{$V_1$}}1
+           {V2}{{$V_2$}}1
+           {R1}{{$R_1$}}1
+           {R2}{{$R_2$}}1
+           {X1}{{$X_1$}}1
+           {X2}{{$X_2$}}1
+           {Y1}{{$Y_1$}}1
+           {Y2}{{$Y_2$}}1
+           {Ky}{{$K_y$}}1
+           {U1}{{$U_1$}}1
+           {U2}{{$U_2$}}1
+           {Z1}{{$Z_1$}}1
+           {Z2}{{$Z_2$}}1
+  }[keywords,comments,strings]%
+
+\lstnewenvironment{prolog-tt} {\lstset{%
+   basicstyle=\ttfamily\small,
+   identifierstyle=\upshape, 
+   emphstyle=\mdseries,
+   % backgroundcolor=\color{ListingBG},
+   commentstyle=\mdseries,
+   framerule=0em,
+   rulecolor=\color{ListingBar},
+   framesep=0em,
+   framexleftmargin=0em,
+   mathescape=true,
+   language=[SWI]Prolog,
+   columns=spaceflexible,
+   xleftmargin=0.2em,
+   xrightmargin=0.2em,
+   tabsize=2,
+   gobble=2
+  }} {}
+
+\lstnewenvironment{prolog-barred} {\lstset{%
+   basicstyle=\ttfamily\small,
+   identifierstyle=\upshape, 
+   emphstyle=\mdseries,
+   commentstyle=\mdseries,
+   frame=leftline,
+   framerule=0.3em,
+   rulecolor=\color{ListingBar},
+   framesep=0.8em,
+   framexleftmargin=0em,
+   mathescape=true,
+   language=[SWI]Prolog,
+   columns=spaceflexible,
+   xleftmargin=0.9em,
+   xrightmargin=0.9em,
+   tabsize=2,
+   gobble=2
+  }} {}
+
+\lstnewenvironment{prolog}[1][]{\lstset{%
+  language=[SWI]Prolog,
+  columns=spaceflexible,
+  aboveskip=1.00em,
+  belowskip=1.00em,
+  xleftmargin=2.0em,
+  tabsize=2,
+  gobble=2,
+  #1
+  }} {}
+
+\lstnewenvironment{prolog-framed}[1][]{\lstset{%
+  language=[SWI]Prolog,
+  columns=flexible,
+ % \\ keywordstyle=\bfseries,
+  frame=lines,
+  aboveskip=1.1em,
+  belowskip=1.1em,
+  framexleftmargin=1.8em,
+  xleftmargin=1.8em,
+  framexrightmargin=0em,
+  xrightmargin=0em,
+  framesep=0.4em,
+  tabsize=2,
+  gobble=2,
+  numbersep=1em,
+  % numbers=right,
+  stepnumber=4,
+  firstnumber=auto,
+  numberstyle=\small\color{Pale},
+  #1
+  }} {}
+
