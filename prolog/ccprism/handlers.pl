@@ -1,4 +1,4 @@
-:- module(ccp_handlers, [ goal_expls_tables/3, run_tab/2, run_sampling//2, run_prob//2
+:- module(ccp_handlers, [ goal_expls_tables/3, run_incr/1, run_tab/2, run_sampling//2, run_prob//2
                         , expl//1, uniform_sampler//2, make_lookup_sampler/2, fallback_sampler//4
                         ]).
 
@@ -60,6 +60,14 @@ goal_expls_tables(G,Es,Tabs) :- run_nb_env(nb_goal_expls_tables(G,Es,Tabs)).
 nb_goal_expls_tables(G,Es,Tabs) :-
    run_tab(findall(E,run_prob(expl,G,E,[]),Es), Es),
    nb_dump(Tabs).
+
+%% run_incr(+Goal) is nondet.
+%  Runs goal in explanation search mode but produces solutions incrementally, 
+%  discarding top explanation and not retrieving tables.
+:- meta_predicate run_incr(0).
+run_incr(Goal) :-
+   term_variables(Goal, Ans),
+   run_nb_env(run_tab(run_prob(expl, Goal, _, []), Ans)).
 
 expl(tab(G))     --> {term_to_ground(G,F)}, [F].
 expl(sw(SW,X))   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
