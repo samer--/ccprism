@@ -63,8 +63,9 @@ clean_table(tab(H,Solns,_), tab(H,SolnsList)) :- rb_visit(Solns, SolnsList).
 % for getting solutions and explanations incrementally...
 :- meta_predicate run_tab_expl(0,-).
 run_tab_expl(G, Expl) :- 
+   trie_new(Trie),
    term_variables(G,Ans), 
-   run_tab(run_prob(expl,G,Expl,[]), Ans-Expl).
+   run_tab(run_prob(expl,G,Expl,[]), Trie, Ans-Expl).
 
 % ---- Testing small fragment of English grammar -----
 

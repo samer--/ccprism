@@ -21,12 +21,12 @@ goal_graph(Goal, Graph) :-
 
 tables_graph(Tables, Graph) :-
    rb_empty(Empty),
-   rb_fold(goal_expls, Tables, Empty, GMap),
+   foldl(goal_expls, Tables, Empty, GMap),
    rb_visit(GMap, Graph).
 
-goal_expls(_-tab(Goal,Solns,_)) -->
+goal_expls(Goal-Solns) -->
    {term_variables(Goal,Vars)},
-   rb_fold(soln_expls(Goal,Vars), Solns).
+   foldl(soln_expls(Goal,Vars), Solns).
 
 soln_expls(G,Y,Y1-Es) -->
    {copy_term(G-Y,G1-Y1), numbervars(G1-Y1, 0, _)}, % NB Es is already ground
