@@ -36,7 +36,7 @@ SW := X       :- p_shift(prob,sw(SW,X)).
 %  Execute Work using tabled execution and storing the result under Head.
 %  See ccprism/macros.pl for an automatic program transformation to
 %  manage tabled predicates.
-cctabled(Head,Work) :- p_shift(tab, tab(Head,Work,Inj)), call(Inj).
+cctabled(Head,Work) :- p_shift(tab, tcall(Head,Work,Inj)), call(Inj).
 
 %% ccstore(:Head, +Work:callable) is det.
 %  Stores a pre-computed 'pseudo-goal' in the tables, similar to Prolog's
