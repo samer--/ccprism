@@ -16,8 +16,7 @@
 :- use_module(library(prob/tagless),[discrete//3, uniform//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
-:- use_module(ccnbenv,              [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
-:- use_module(ccnbref,              [run_nb_ref/1, nbref_new/2]).
+:- use_module(library(ccnbref),     [run_nb_ref/1, nbref_new/2, nbref_add_with/3]).
 
 :- type table  ---> tab(rbtree(values, list(list(factor))), list(cont)).
 :- type factor ---> module:head ; @number ; sw(A):=A.
@@ -81,43 +80,37 @@ run_tab(Goal, Trie, Ans) :- p_reset(tab, Goal, Status), cont_tab(Status, Trie, A
 cont_tab(done, _, _).
 cont_tab(susp(tcall(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Trie, Ans) :-
    term_variables(TableAs, Y), K = k(Y,Ans,Cont),
-   (  trie_lookup(Trie, TableAs, tab(Solns,Conts))
-   -> lref_add(Conts, K), solns_gen(Solns, Y, _), 
+   (  trie_lookup(Trie, TableAs, tab(SolnTrie,KsRef))
+   -> nbref_add_with(KsRef, post_prepend, K), 
+      trie_gen(SolnTrie, Y, _), 
       run_tab(Cont, Trie, Ans)
-   ;  lref_new(K, Conts), solns_new(Solns),
-      trie_insert(Trie, TableAs, tab(Solns,Conts)),
-      run_tab(producer(\Y^Work, Conts, Solns, Ans), Trie, Ans)
+   ;  nbref_new([K], KsRef), trie_new(SolnTrie),
+      trie_insert(Trie, TableAs, tab(SolnTrie,KsRef)),
+      run_tab(producer(\Y^Work, KsRef, SolnTrie, Ans), Trie, Ans)
    ).
 
-producer(Generate, Conts, Solns, Ans) :-
+producer(Generate, KsRef, SolnTrie, Ans) :-
    run_prob(expl, call(Generate, Y), E, []),
-   solns_add(Solns, Y, E, Res),
-   Res=new, lref_get(Conts, Ks), 
-   member(k(Y,Ans,C), Ks), call(C).
-
-solns_new(Ref) :- nbref_new([],Ref).
-solns_gen(Ref, Y, Ex) :- nb_getval(Ref,YExs), member(Y1-Ex,YExs), copy_term(Y1,Y). 
-solns_add(Ref, Y, E, Res) :- 
-   nb_getval(Ref, YExs), 
-   (  member(Y-Ex, YExs) 
-   -> Res=old, nb_getval(Ex, Es),  duplicate_term(E,E1), nb_linkval(Ex, [E1|Es])
-   ;  Res=new, nbref_new([E], Ex), duplicate_term(Y,Y1), nb_linkval(Ref, [Y1-Ex|YExs])
+   (  trie_lookup(SolnTrie,Y,EsRef)
+   -> nbref_add_with(EsRef, prepend, E), fail
+   ;  nbref_new([E], EsRef), trie_insert(SolnTrie,Y,EsRef),
+      nb_getval(KsRef, Ks0), copy_term(Ks0,Ks),
+      member(k(Y,Ans,C), Ks), call(C)
    ).
 
-lref_new(K0, Ref) :- nbref_new([K0], Ref).
-lref_get(Ref, Xs) :- nb_getval(Ref, Ys), copy_term(Ys,Xs).
-lref_add(Ref, K) :- duplicate_term(K,K1), nb_getval(Ref, [K0|Ks]), nb_linkval(Ref, [K0,K1|Ks]).
+trie_tables(Trie, TList) :- 
+   findall(Table, trie_table(Trie,Table), TList).
+
+trie_table(Trie, Head-Solns) :-
+   trie_gen(Trie, Head, tab(SolnTrie,_)),
+   findall(Soln, soln_trie_solns(SolnTrie,Soln), Solns).
+
+soln_trie_solns(SolnTrie,Y-Es) :- 
+   trie_gen(SolnTrie, Y, EsRef), nb_getval(EsRef, Es).
 
 term_to_ground(T1, T2) :- copy_term_nat(T1,T2), numbervars(T2,0,_).
 member2(X,Y,[X|_],[Y|_]).
 member2(X,Y,[_|XX],[_|YY]) :- member2(X,Y,XX,YY).
+post_prepend(X1,[X0|Xs],[X0,X1|Xs]).
+prepend(X1,Xs,[X1|Xs]).
 
-trie_tables(Trie, TList) :- 
-   findall(H-SL, trie_head_solns(Trie,H,SL), TList).
-trie_head_solns(Trie, Head, YY) :-
-   trie_gen(Trie, Head, tab(Solns,_)),
-   findall(Y-Es, solns_soln_expls(Solns,Y,Es), YY).
-solns_soln_expls(Solns,Y,Es) :-
-   nb_getval(Solns, YExs),
-   member(Y-Ex, YExs),
-   nb_getval(Ex, Es).
