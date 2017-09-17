@@ -14,20 +14,6 @@
 iota(0,L,L) :- !.
 iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
 
-/* Switches are represented by callable terms which must have type
-   =|switch(A) == pred(-switch(A), -list(A), +list(A))|=, where =|A|= is the
-   type of the switch's possible values. The predicate must return a canonical
-   representation of the switch predicate (eg with a its source module specifier),
-   along with a difference list representation of the switch domain.
-
-   This term expansion takes care of the canonical representation part.
-*/
-:- op(1200,xfx,+->).
-user:term_expansion(Lab +-> Body, Clause) :-
-   prolog_load_context(module,Module),
-   Lab =.. Args,   append(Args, [Module:Lab], Args1),
-   Head =.. Args1, dcg_translate_rule(Head --> Body, Clause).
-
 % some switch declarations
 coin +-> iota(2).
 die  +-> iota(4).    % tetrahedral die
