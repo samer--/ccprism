@@ -98,6 +98,25 @@ nom --> nom ~> +n
 
 pp --> +p, np.
 
+term_expansion(H ~> Alts, [ (H +-> iota(N)), (:- cctable F//A) | Rules]) :-
+   functor(H,F,A), 
+   alts_list(Alts, Bodies), length(Bodies, N),
+   head_worker(H,W),
+   worker_case(W,I,Caller),
+   iota(N, Is, []),
+   maplist(mkrule(W), Is, Bodies, Clauses),
+   maplist(dcg_translate_rule, [(W --> {H := I}, Caller) | Clauses], Rules).
+
+mkrule(W,I,B,H-->B) :- worker_case(W,I,H).
+worker_case(Head, I, Case) :-
+   Head =.. [F|Args], atom_concat(F,'?',FC),
+   Case =.. [FC,I|Args].
+
+alts_list(A;As, [A|Bs]) :- !, alts_list(As,Bs).
+alts_list(A, [A]).
+
+ss ~> np; vp; s.
+
 %% biased_sampler(-S:switch_sampler) is det.
 %  Creates a switch parameter sampler for the grammar which avoids placing
 %  too much probability on the recursive branches of the nom//0 and np//0

@@ -1,11 +1,11 @@
-:- module(ccprism, [ goal_graph/2, graph_params/3]).
+:- module(ccprism, [ goal_graph/2, goal_prob/3, graph_params/3]).
 
 /** <module> Top level tabled explanation graph creation */
 
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
 :- use_module(ccprism/handlers,   [goal_expls_tables/3]).
-:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2]).
+:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2, semiring_graph_fold/4, top_value/2]).
 :- use_module(ccprism/switches,   [sw_init/3]).
 
 %% goal_graph(+Goal:callable, -Graph:graph) is det.
@@ -36,3 +36,10 @@ soln_expls(G,Y,Y1-Es) -->
 %  Initialise parameters for all switches referenced in graph G.
 %  See sw_init/2 for more information.
 graph_params(Spec,G,Params) :- call(maplist(sw_init(Spec))*graph_switches, G, Params).
+
+:- meta_predicate goal_prob(0,+,-).
+goal_prob(Goal,ParamSpec,Prob) :-
+   goal_graph(Goal, Graph),
+   graph_params(ParamSpec, Graph, Params),
+   semiring_graph_fold(r(=,=,mul,add), Graph, Params, IG),
+   top_value(IG, Prob).
