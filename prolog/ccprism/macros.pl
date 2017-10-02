@@ -53,7 +53,7 @@ system:term_expansion(T1, T2) :- expand(T1, T2).
    This term expansion takes care of the canonical representation part.
 */
 :- op(1200,xfx,+->).
-system:term_expansion(Lab +-> Body, (Head --> Body)) :-
+system:term_expansion(Lab +-> Body, Clause) :-
    prolog_load_context(module,Module),
    Lab =.. Args,   append(Args, [Module:Lab], Args1),
-   Head =.. Args1.
+   Head =.. Args1, dcg_translate_rule(Head --> Body, Clause).
