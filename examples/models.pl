@@ -45,77 +45,69 @@ test(Y,Z) :- (X=1;X=2;X=3), ssucc(A,Y), A=X, ssucc(_,Z).
 
    Grammars are encoded here in a couple of ways. The first here is mostly like a
    normal Prolog DCG, except that disjunctions need to be controlled by a 
-   probabilistic choice. The goal expansion =|SW ~> Alternatives|= uses the
-   natural valued switch =|SW|= to select one of the disjuncts in =|Alternatives|=,
-   each of which can be a normal DCG body. It's a bit annoying having to manually
-   declare the switch for each set of alternatives, but I couldn't find a way
-   to do it automatically and still work with the cctable declaration system.
+   probabilistic choice. The term expansion =|Head :-> Alternatives|= introduces an
+   integer valued switch =|Head|= to select one of the disjuncts in =|Alternatives|=,
+   each of which can be a normal DCG body.
 
    Terminals can be generated the usual way using =|[T]|=, but the process is
    simplified here, where calling =|+SW|= samples a value from SW and outputs it
    directly as a terminal. Hence, =|SW|= is used like a 'pre-terminal' symbol.
 */
 
-:- op(1150,xfx,~>).
+:- op(1150,xfx,:->).
+
+term_expansion(H :-> Alts, Exp) :-
+   (already_defined(H) -> throw(already_defined(H)); true),
+   alts_list(Alts, Bodies),
+   length(Bodies, N),
+   (  N=1 -> dcg_translate_rule(H --> Alts, Exp)
+   ;  iota(N, Is, []),
+      head_case(H, I, Case),
+      head_switch(H, SW),
+      maplist(mkrule(H), Is, Bodies, Clauses),
+      maplist(dcg_translate_rule, [(H --> {SW := I}, Case) | Clauses], Rules),
+      Exp = [ (SW +-> iota(N)) | Rules]
+   ).
+
+already_defined(H) :-
+   functor(H,F,A), atom_concat(F,'?',F2), A2 is A+3,
+   current_predicate(F2/A2).
+
+mkrule(H,I,B,C-->B) :- head_case(H,I,C).
+head_case(Head, I, Case) :-
+   Head =.. [F|Args], atom_concat(F,'?',FC),
+   Case =.. [FC,I|Args].
+head_switch(T, T).
+% head_switch(T1, T2) :-
+%    T1 =.. [F1|Args], atom_concat(':',F1,F2),
+%    T2 =.. [F2|Args].
+
+alts_list(A;As, [A|Bs]) :- !, alts_list(As,Bs).
+alts_list(A, [A]).
 
 %% +(PT:switch(A), L1:list(A), L2:list(A)) is nondet.
 %  Use switch PT as a preterminal, sampling a value from it to use as a terminal.
 :- meta_predicate +(3,?,?).
 +Lab --> [T], {Lab := T}.
 
-%% ((SW:switch(natural)) ~> Alternatives)// is nondet. 
-%  Use a value 1..N from SW to select one of the N disjuncts in Alternatives.
-%  Implemented only as a goal expansion.
-user:goal_expansion(~>(S,Alts,L1,L2), Goals) :- 
-   expand_alts(I,Alts,0,DCGGoals),
-   dcg_translate_rule((h --> {S:=I}, DCGGoals), (h(L1,L2) :- Goals)).
-
-expand_alts(K, (B; Bs), I, (G; Goals)) :- !, succ(I,J), expand_alt(K,B,J,G), expand_alts(K,Bs,J,Goals).
-expand_alts(K, B, I, G) :- succ(I,J), expand_alt(K,B,J,G).
-expand_alt(K, Goals, J, ({J=K} -> Goals)).
-
 % --- test grammar ----
 :- cctable s//0, np//0, vp//0, pp//0, nom//0.
 
-np  +-> iota(3).
-vp  +-> iota(5).
-nom +-> iota(2).
-
 s --> np, vp.
 
-np --> np ~> +d, nom
-           ; +pn
-           ; np, pp.
+np :-> +d, nom
+     ; +pn
+     ; np, pp.
 
-vp --> vp ~> +iv
-           ; +tv, np
-           ; +dv, np, np
-           ; vp, pp
-           ; +mv, s.
+vp :-> +iv
+     ; +tv, np
+     ; +dv, np, np
+     ; vp, pp
+     ; +mv, s.
 
-nom --> nom ~> +n
-             ; +adj, nom.
-
+nom :-> +n; +adj, nom.
 pp --> +p, np.
 
-term_expansion(H ~> Alts, [ (H +-> iota(N)), (:- cctable F//A) | Rules]) :-
-   functor(H,F,A), 
-   alts_list(Alts, Bodies), length(Bodies, N),
-   head_worker(H,W),
-   worker_case(W,I,Caller),
-   iota(N, Is, []),
-   maplist(mkrule(W), Is, Bodies, Clauses),
-   maplist(dcg_translate_rule, [(W --> {H := I}, Caller) | Clauses], Rules).
-
-mkrule(W,I,B,H-->B) :- worker_case(W,I,H).
-worker_case(Head, I, Case) :-
-   Head =.. [F|Args], atom_concat(F,'?',FC),
-   Case =.. [FC,I|Args].
-
-alts_list(A;As, [A|Bs]) :- !, alts_list(As,Bs).
-alts_list(A, [A]).
-
-ss ~> np; vp; s.
 
 %% biased_sampler(-S:switch_sampler) is det.
 %  Creates a switch parameter sampler for the grammar which avoids placing
@@ -139,13 +131,9 @@ p   +-> [with,on,under,in,without,by].
 % --- frost grammars ----
 :- cctable sm//0, sml//0, smml//0, aux//0.
 
-sm  +-> iota(2).
-sml +-> iota(2).
-smml +-> iota(2).
-
-sm --> sm ~> "a", sm, sm; [].
-sml --> sml ~>  sml, sml, "a"; [].
-smml --> smml ~> smml, aux; [].
+sm --> "a", sm, sm; [].
+sml :-> sml, sml, "a"; [].
+smml :-> smml, aux; [].
 aux --> smml, "a".
 
 repeat_a(I) --> rep(I,"a").
@@ -168,8 +156,8 @@ parse(NT,Words) :-
    length(Words,N), call_dcg(NT,S-0,S-N).
 
 :- cctable np2//0, nom2//0.
-np2 --> coin ~> c(the), nom2; c(a), nom2.
-nom2 --> die ~> c(cat); c(mat); c(dog); c(frog).
+np2 :-> c(the), nom2; c(a), nom2.
+nom2 :-> c(cat); c(mat); c(dog); c(frog).
 
 % ----------- thread local memoisation for random world semantics ----------
 :- use_module(library(delimcc), [p_shift/2]).
