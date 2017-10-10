@@ -39,7 +39,7 @@
 :- type counts_method ---> vit; io(scaling).
 :- type scaling ---> lin; log.
 
-%% top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
+%! top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
 %  Extract the value associated with the goal =|'^top':top|= from a list
 %  of goal-value pairs. This can be applied to explanation graphs or
 %  the results of semiring_graph_fold/4.
@@ -143,37 +143,43 @@ sr_add_prod(SR, Expl) -->
 
 sr_factor(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
 sr_factor(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
-sr_factor(SR, @P)      --> {sr_inj(SR,const,P,X)}, \> sr_times(SR,X).
+sr_factor(SR, @P)      --> {sr_inj(SR,@P,P,X)}, \> sr_times(SR,X).
 
 sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
 
 % --------- semirings ---------
+sr_inj(id,        F, _, F).
 sr_inj(r(I,_,_,_),  _, P, X)   :- call(I,P,X).
 sr_inj(best(log), F, P, P-F)   :- !.
 sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
 sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
 sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
 
+sr_proj(id,       G, Z,   Z, G).
 sr_proj(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
 sr_proj(best(_),  G, X-E, X-E, X-(G-E)).
 sr_proj(ann(SR),  G, X-Z, W-Z, Y-G)     :- sr_proj(SR,G,X,W,Y).
 sr_proj(R1-R2,    G, X1-X2, Z1-Z2, Y1-Y2) :- sr_proj(R1,G,X1,Z1,Y1), sr_proj(R2,G,X2,Z2,Y2).
 
+sr_plus(id,       Expl) --> cons(Expl).
 sr_plus(r(_,_,_,O), X) --> call(O,X).
 sr_plus(best(_),  X) --> v_max(X).
 sr_plus(ann(SR),  X-Expl) --> sr_plus(SR,X) <\> cons(X-Expl).
 sr_plus(R1-R2,    X1-X2) --> sr_plus(R1,X1) <\> sr_plus(R2,X2).
 
+sr_times(id,       F)   --> cons(F).
 sr_times(r(_,_,O,_), X) --> call(O,X).
 sr_times(best(_),  X-F) --> add(X) <\> cons(F).
 sr_times(ann(SR),  X-F) --> sr_times(SR,X) <\> cons(X-F).
 sr_times(R1-R2,    X1-X2) --> sr_times(R1,X1) <\> sr_times(R2,X2).
 
+sr_zero(id,       []).
 sr_zero(r(_,_,_,O), I) :- m_zero(O,I).
 sr_zero(best(_),  Z-_)   :- m_zero(max,Z).
 sr_zero(ann(SR),  Z-[])  :- sr_zero(SR,Z).
 sr_zero(R1-R2,    Z1-Z2) :- sr_zero(R1,Z1), sr_zero(R2,Z2).
 
+sr_unit(id,       []).
 sr_unit(r(_,_,O,_), I) :- m_zero(O,I).
 sr_unit(best(_),  0.0-[]).
 sr_unit(ann(SR),  U-[])  :- sr_unit(SR,U).
@@ -279,5 +285,5 @@ tree_stats(Tree,Counts) :- accum_stats(tree_stats(Tree),Counts).
 tree_stats(_-Subtrees) --> foldl(subtree_stats,Subtrees).
 subtree_stats(_-Trees) --> foldl(subtree_stats,Trees).
 subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1).
-subtree_stats(const) --> [].
+subtree_stats(@_)      --> [].
 right(_,X,X).
