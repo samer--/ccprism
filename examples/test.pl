@@ -4,12 +4,16 @@
 
 :- use_module(library(memo)).
 :- use_module(library(data/pair)).
-:- use_module(library(callutils)).
-:- use_module(library(listutils), [rep/3, take/3]).
+:- use_module(library(callutils), [(*)/4]).
+:- use_module(library(listutils), [cons/3, rep/3, take/3]).
 :- use_module(library(math)).
 :- use_module(library(delimcc)).
+:- use_module(library(ccstate)).
+:- use_module(library(ccref)).
+
 :- use_module(library(rbutils)).
-:- use_module(library(prob/strand)).
+:- use_module(library(plrand)).
+:- use_module(library(prob/tagless)).
 :- use_module(library(ccprism/machines)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers)).
@@ -21,12 +25,31 @@
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
 :- use_module(models).
+:- use_module(lazy).
+:- use_module(crp).
 
 % ---- general purpose utilities ----
 
-:- meta_predicate samp(0), samp(0,+,-).
-samp(G) :- strand(run_sampling(uniform_sampler,G)).
+:- op(600,xfy,>:).
+:- op(600,yfx,:>).
+:- op(600,xfy,>>).
+:- op(700,xfy,:-:).
+:- meta_predicate >>(2,2,?,?), >:(2,1,?), :>(1,2,?).
+>:(P,Q,X) :- call(P,X,Y), call(Q,Y).
+:>(P,Q,Y) :- call(P,X), call(Q,X,Y).
+>>(P,Q,X,Z) :- call(P,X,Y), call(Q,Y,Z).
+
+:-:(P1,P2,X1-X2) --> call(P1,X1), call(P2,X2).
+:-:(P1,P2,X1-X2) :- call(P1,X1), call(P2,X2).
+
+lift(P,X) --> {call(P,X)}.
+
+
+:- meta_predicate samp(0), samp(4,0), samp(0,+,-).
+samp(G) :- samp(uniform_sampler,G).
+samp(S,G) :- with_rnd_state(run_sampling(S,G)).
 samp(G) --> run_sampling(uniform_sampler,G).
+
 unfold(N0,M,S) :- succ(N0,N), time(samp(call(take(N)*unfold, M, [_|S]))).
 
 histof(Xs,Hist) :- setof(X-N, aggregate(count,member(X,Xs),N), Hist).
@@ -60,13 +83,6 @@ goal_tables(Goal, TableList) :-
 
 clean_table(tab(H,Solns,_), tab(H,SolnsList)) :- rb_visit(Solns, SolnsList).
 
-% for getting solutions and explanations incrementally...
-:- meta_predicate run_tab_expl(0,-).
-run_tab_expl(G, Expl) :- 
-   trie_new(Trie),
-   term_variables(G,Ans), 
-   run_tab(run_prob(expl,G,Expl,[]), Trie, Ans-Expl).
-
 % ---- Testing small fragment of English grammar -----
 
 :- initialization memo_attach('datasets',[]).
@@ -75,7 +91,7 @@ run_tab_expl(G, Expl) :-
 dataset(_,N,XX) :-
    length(XX,N),
    biased_sampler(SS),
-   strand(run_sampling(SS, maplist(phrase(s), XX))).
+   samp(SS, maplist(phrase(s), XX)).
 
 dataset(ID,XX) :- browse(dataset(ID,_,XX)).
 
