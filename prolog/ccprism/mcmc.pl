@@ -1,11 +1,12 @@
-:- module(ccp_mcmc, [ mc_perplexity/4, mc_machine/5, gibbs_posterior_machine/5]).
+:- module(ccp_mcmc, [mc_perplexity/4, mc_machine/5, gibbs_posterior_machine/5]).
 
 /** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
 :- use_module(library(insist)).
 :- use_module(library(callutils),   [(*)/4]).
+:- use_module(library(listutils),   [enumerate/2]).
 :- use_module(library(math),        [add/3, sub/3, exp/2]).
-:- use_module(library(data/pair),   [pair/3, fst/2, fsnd/3, snd/2]).
+:- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_partition_dirichlet/2]).
 
 :- use_module(machines,   [unfold/2, unfolder/3, mapper/3, scan0/4, (>>)/3, mean/2]).
@@ -15,7 +16,7 @@
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
-:- use_module(graph,      [ top_value/2, tree_stats/2, tree_stats//1, accum_stats/3
+:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, tree_stats//1, accum_stats/3
                           , graph_inside/3, graph_viterbi/4 , prune_graph/4
                           , igraph_sample_tree/3, igraph_sample_tree/4
                           ]).
@@ -53,12 +54,19 @@ gstep(P0,IG,P1,Counts) :-
    tree_stats(Tree, Counts).
 
 mc_machine(Method, Graph, Prior, Probs0, M) :-
-   insist(top_value(Graph, [_])), % must be a single conjunction
-   graph_viterbi(Graph, Probs0, VTree, _),
+   graph_as_conjunction(Graph, Graph1),
+   graph_viterbi(Graph1, Probs0, VTrees, _),
    maplist(fst,Prior,SWs),
-   mcs_init(SWs, VTree, Info, State),
-   make_tree_sampler(Graph, SampleGoal),
-   unfolder(scan0(mc_step(Method, Info, SampleGoal, SWs, Prior)), State, M).
+   mcs_init(SWs, VTrees, Keys, State),
+   (  Keys=[] -> unfolder(scan0(=), State, M)
+   ;  make_tree_sampler(Graph1, SampleGoal),
+      unfolder(scan0(mc_step(Method, Keys, SampleGoal, SWs, Prior)), State, M)
+   ).
+
+graph_as_conjunction(Graph, Graph) :- top_value(Graph, [_]), !.
+graph_as_conjunction(Graph, [Top-[[Dummy]], Dummy-Expls | Graph0]) :-
+   top_goal(Top), Dummy = '^mcmc':dummy,
+   select(Top-Expls, Graph, Graph0).
 
 mc_sample(SampleGoal, SWs, Probs, T1, T2) :-
    mct_goal(T1, Goal), call(SampleGoal, Probs, Goal, Tree),
@@ -70,8 +78,8 @@ sample_goal(P0, IGraph0, P1, Goal, Tree) :-
    copy_term(P0-ISubGraph0, P1-ISubGraph),
    igraph_sample_tree(ISubGraph, Goal, Tree, _).
 
-mc_step(mh, Info, SampleGoal, SWs, Prior, State1, State2) :-
-   mcs_random_select(Info, TK_O, State1, StateExK),
+mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
+   mcs_random_select(Keys, TK_O, State1, StateExK),
    mcs_dcounts(StateExK, CountsExK),
    sw_posteriors(Prior, CountsExK, PostExK),
    sw_expectations(PostExK, ProbsExK),
@@ -88,14 +96,11 @@ tree_acceptance_weight(Prior, Params, Tree, W) :-
    W is LZ - LP.
 log_mul(Prob, N, X) :- X is N*log(Prob).
 
-sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),SWs,Stats).
-
 % MCS: Monte Carlo state: rbtree to map K to tree, stash counts
-mcs_init(SWs, VTree, Ks, Totals-Map) :-
-   length(VTree,N), numlist(1,N,Ks),
-   accum_stats(tree_stats(_-VTree), SWs, Totals),
-   maplist(fsnd(sw_trees_stats(SWs)), VTree, GoalsCounts),
-   call(list_to_rbtree * maplist(pair,Ks), GoalsCounts, Map).
+mcs_init(SWs, VTrees, Ks, Totals-Map) :-
+   sw_trees_stats(SWs, VTrees, Totals),
+   call(list_to_rbtree * enumerate * map_stats(SWs) * include(is_pair), VTrees, Map),
+   rb_keys(Map, Ks).
 
 mcs_random_select(Ks, G-C, Totals-Map, dmhs(K,CountsExK,MapExK)) :-
    uniform(Ks,K),
@@ -112,3 +117,5 @@ mct_goal(Goal-_, Goal).
 mct_make(SWs, Goal, T, Goal-C) :- sw_trees_stats(SWs,T,C).
 mct_counts(_-C,C).
 
+sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),SWs,Stats).
+map_stats(SWs, Trees, Stats) :- maplist(fsnd(sw_trees_stats(SWs)), Trees, Stats).
