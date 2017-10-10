@@ -18,8 +18,8 @@ dist(Ps,Xs,X) :- p_shift(prob,dist(Ps,Xs,X)).
 %  Probabilistic choice from uniform distribution over list of values.
 uniform(Xs,X) :- p_shift(prob,uniform(Xs,X)).
 
-%% sample(+P:pred(-A,+strand,-strand), -A) is det.
-%  Do arbitrary random sampling using capabilities of prob/strand.pl.
+%% sample(+P:pred(-A,+rndstate,-rndstate), -A) is det.
+%  Do arbitrary random sampling using capabilities of pack plrand.
 %  NB. only works during sampling execution, not explanation search.
 sample(P,X)   :- p_shift(prob,sample(P,X)). 
 

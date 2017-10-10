@@ -13,8 +13,7 @@
 */
 :- use_module(library(typedef)).
 :- use_module(library(lambdaki)).
-:- use_module(library(prob/tagged), [discrete//3, uniform//2]).
-:- use_module(library(prob/strand), [pure//2]).
+:- use_module(library(prob/tagless),[discrete//3, uniform//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
 :- use_module(ccnbenv,              [run_nb_env/1, nb_app/2, nb_app_or_new/3, nb_dump/1]).
@@ -32,8 +31,8 @@ cont_prob(done,_) --> [].
 
 % ------------- handlers for sampling without tabling ------------------
 sample(P,sw(SW,X))      --> !, call(P,SW,X).
-sample(_,dist(Ps,Xs,X)) --> !, pure(discrete(Xs,Ps),X).
-sample(_,uniform(Xs,X)) --> !, pure(uniform(Xs),X).
+sample(_,dist(Ps,Xs,X)) --> !, discrete(Xs,Ps,X).
+sample(_,uniform(Xs,X)) --> !, uniform(Xs,X).
 sample(_,sample(P,X))   --> call(P,X).
 
 run_notab(Goal) :- p_reset(tab, Goal, Status), cont_notab(Status).
@@ -44,8 +43,8 @@ cont_notab(done).
 run_sampling(Sampler,Goal,S1,S2) :-
    run_notab(run_prob(sample(Sampler),Goal,S1,S2)).
 
-uniform_sampler(SW,X) --> {call(SW,_,Xs,[])}, pure(uniform(Xs),X).
-lookup_sampler(Map,SW,X) --> {call(SW,ID,Xs,[]), rb_lookup(ID,Ps,Map)}, pure(discrete(Xs,Ps),X).
+uniform_sampler(SW,X) --> {call(SW,_,Xs,[])}, uniform(Xs,X).
+lookup_sampler(Map,SW,X) --> {call(SW,ID,Xs,[]), rb_lookup(ID,Ps,Map)}, discrete(Xs,Ps,X).
 make_lookup_sampler(Params,ccp_handlers:lookup_sampler(Map)) :- list_to_rbtree(Params, Map).
 fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 

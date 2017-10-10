@@ -18,12 +18,11 @@
 :- use_module(library(callutils),   [(*)/4, const/3]).
 :- use_module(library(data/pair),   [fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_prob_dirichlet/3, log_partition_dirichlet/2]).
-:- use_module(library(prob/strand), [pure//2]).
-:- use_module(library(prob/tagged), [dirichlet//2]).
+:- use_module(library(prob/tagless),[dirichlet//2]).
 :- use_module(effects,  [sample/2]).
 :- use_module(lazymath, [add/3, mul/3, stoch/2, map_sum/3, map_sum/4]). 
 
-dirichlet(As,Ps) :- sample(pure(dirichlet(As)),Ps).
+dirichlet(As,Ps) :- sample(dirichlet(As),Ps).
 
 % manipulating parameter lists
 :- meta_predicate map_sw(2,?,?), map_swc(2,?,?), map_swc(3,?,?,?), map_sum_sw(2,+,-), map_sum_sw(3,+,+,-).
