@@ -1,4 +1,4 @@
-:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, compile/0]).
+:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1, compile/0]).
 /** <module> Reverse mode automatic differentatin using CHR.
  
  Todo: 
@@ -63,7 +63,9 @@ agg_add(L,DY,X1)    :- var(X1) -> deriv(L,X1,DX1), agg(DY,DX1); true.
 acc(X) \ acc(X) <=> true.
 
 % initiatiate back-propagation starting from Y
-back(Y) :- var(Y) -> deriv(Y,Y,1.0), go; true.
+back(Y) :- var(Y) -> diff(Y), go; true.
+diff(Y) :- deriv(Y,Y,1.0).
+grad(Ys) :- maplist(diff,Ys), go.
 
 acc(X,S1), agg(Z,X) <=> add(Z,S1,S2), acc(X,S2).
 acc(X,S) <=> S=X.
