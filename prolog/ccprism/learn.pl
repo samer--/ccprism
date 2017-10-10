@@ -1,6 +1,6 @@
 :- module(ccp_learn, [converge/5, learn/4, learn/5]).
 
-/** <module> Expectation-maximisation, variational Bayes and deterministic annealling
+/** <module> Expectation-maximisation, variational Bayes and deterministic annealing.
 */
 
 :- use_module(library(math),       [sub/3]).
@@ -12,13 +12,14 @@
                         , sw_log_prob/3, sw_posteriors/3]).
 
 
-%% learn(+Method:learn_method, +Stats:stats_method, +ITemp:number, +G:graph, -U:learner) is det.
-%% learn(+Method:learn_method, +Stats:stats_method, +G:graph, -U:learner) is det.
+%! learn(+Method:learn_method, +Stats:stats_method, +ITemp:number, +G:graph, -U:learner) is det.
+%! learn(+Method:learn_method, +Stats:stats_method, +G:graph, -U:learner) is det.
 %  Get update predicate for several EM-based parameter learning methods. learn/4 invokes
 %  learn/5 with ITemp=1.0.
 %  ==
 %  learn_method ---> ml; map(sw_params); vb(sw_params).
 %  stats_method ---> io(scaling); vit.
+%  scaling      ---> lin; log.
 %  learner == pred(-float, +sw_params, -sw_params).
 %  ==
 learn(Method, StatsMethod, Graph, Step) :- learn(Method, StatsMethod, 1.0, Graph, Step).
@@ -55,7 +56,13 @@ mul_add(1.0,X,Y,Z) :- !, when(ground(Y), Z is X+Y).
 mul_add(K,X,Y,Z) :- when(ground(Y), Z is X+K*Y).
 unify3(PStats,LP,P1,P2) :- copy_term(PStats, t(P1,P2,LP)).
 
-% --- convergence ---
+%! converge(+C:convergence, +L:pred(-learner), -LL:list(float), +P1:sw_params, -P2:sw_params) is det.
+%  Use L to create a predicate to do one step of learning, and then iterate
+%  this until convergence, starting from P1 and ending with P2. History of
+%  objective function values is returned in LL. Convergence C is of type:
+%  ==
+%  convergence ---> abs(float); rel(float).
+%  ==
 :- meta_predicate converge(+,1,-,+,-).
 converge(Test, Setup, [X0|History], S0, SFinal) :-
    time(call(Setup, Step)),
