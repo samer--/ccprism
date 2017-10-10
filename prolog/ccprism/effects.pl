@@ -36,7 +36,7 @@ SW := X       :- p_shift(prob,sw(SW,X)).
 %  Execute Work using tabled execution and storing the result under Head.
 %  See ccprism/macros.pl for an automatic program transformation to
 %  manage tabled predicates.
-cctabled(Head,Work) :- p_shift(tab, tab(Head,Work,Inj)), call(Inj).
+cctabled(Head,Work) :- p_shift(tab, tcall(Head,Work,Inj)), call(Inj).
 
 %% ccstore(:Head, +Work:callable) is det.
 %  Stores a pre-computed 'pseudo-goal' in the tables, similar to Prolog's
@@ -44,11 +44,11 @@ cctabled(Head,Work) :- p_shift(tab, tab(Head,Work,Inj)), call(Inj).
 %  Thus, Work is expected to bind the variables in Head which represent the
 %  result of the tabled computation. Stored results should be retrieved using
 %  ccstored/1, not cctabled/2.
-ccstore(Head,Work)  :- copy_term(Head-Work,H-W), p_shift(tab, tab(H,once(W),_)).
+ccstore(Head,Work)  :- copy_term(Head-Work,H-W), p_shift(tab, tcall(H,once(W),_)).
 
 %% ccstored(:Head) is det.
 %  Look up tabled fact previously stored using ccstore/2. Throws an exception
 %  if no such fact is found. 
-ccstored(Head)      :- p_shift(tab, tab(Head,throw(not_stored(Head)),_)).
+ccstored(Head)      :- p_shift(tab, tcall(Head,throw(not_stored(Head)),_)).
 
 

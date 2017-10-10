@@ -77,7 +77,7 @@ expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
 run_tab(Goal, Ans)    :- p_reset(tab, Goal, Status), cont_tab(Status, Ans).
 
 cont_tab(done, _).
-cont_tab(susp(tab(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Ans) :-
+cont_tab(susp(tcall(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Ans) :-
    term_variables(TableAs, Y), K = k(Y,Ans,Cont),
    term_to_ground(TableAs, Variant),
    nb_app_or_new(Variant, new_consumer(Res,K), new_producer(Res,TableAs,K)),
