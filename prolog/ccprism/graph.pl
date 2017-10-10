@@ -45,15 +45,18 @@
 %  the results of semiring_graph_fold/4.
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 
-%! prune_graph(+P:pred(+F(_,D),-D), +Top:goal, G1:list(pair(goal,F(A,list(F(B,list(F(C,factor))))))), G2:list(pair(goal,F(A,list(F(B,list(F(c,factor)))))))) is det.
-%
+%! prune_graph(+P:pred(+tcall(F,_,D),-D), +Top:goal, +G1:f_graph(F,A,B,C), -G2:f_graph(F,A,B,C)) is det. 
+%  ==
+%  f_graph(F,A,B,C) == list(pair(goal,tcall(F,A,list(tcall(F,B,list(tcall(F,C,factor)))))))
+%  ==
 %  Prune a graph or annotated graph to keep only goals reachable from a given top goal.
 %  With apologies, the type is quite complicated. The input and output graphs are lists of goals paired
 %  with _annotated_ explanations. The type of an annotation is described by the type constructor
 %  F: =|F(E,D)|= is the type of a =|D|= annotated with an =|E|=. The first argument P knows how to strip
 %  off any type of annotation and return the =|D|=. This is how we dig down into the annotated explanations
 %  to find out which subgoals are references. For example, if =|F = pair|=, then P should be =|snd|=.
-%  If =|F(E,D) = D|= (ie no annotation), then P should be (=).
+%  If =|F(E,D) = D|= (ie no annotation), then P should be (=). Since PlDoc won't accept high-order
+%  type terms, we write =|F(E,D)|= as =|tcall(F,E,D)|=, where =|tcall|= is like =|call|= for types.
 prune_graph(Mapper, Top, GL1, GL2) :-
    list_to_rbtree(GL1,G1),
    rb_empty(E), children(Top,Mapper,G1,E,G2),
@@ -216,8 +219,7 @@ igraph_sample_tree(Graph, Head, Head - Subtrees, LogProb) :-
    map_sum(sample_subexpl_tree(Graph), Expl, Subtrees, LogProb).
 
 sample_subexpl_tree(G, _-(M:Goal),  Tree,    LP) :- !, igraph_sample_tree(G, M:Goal, Tree, LP).
-sample_subexpl_tree(_, P-(SW:=Val), SW:=Val, LP) :- !, LP is log(P).
-sample_subexpl_tree(_, P-const,     const,   LP) :- LP is log(P).
+sample_subexpl_tree(_, P-Factor,   Factor, LP) :- LP is log(P).
 
 % ---- explanation entropy ----
 inside_graph_entropy(Scaling, IGraph, GoalEntropies) :-
