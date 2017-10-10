@@ -1,4 +1,4 @@
-:- module(ccp_handlers, [ goal_expls_tables/3, run_incr/1, run_tab/3, run_sampling//2, run_prob//2
+:- module(ccp_handlers, [ goal_expls_tables/3, tables_graph/2, run_incr/1, run_tab/3, run_sampling//2, run_prob//2
                         , expl//1, uniform_sampler//2, make_lookup_sampler/2, fallback_sampler//4
                         ]).
 
@@ -113,4 +113,18 @@ member2(X,Y,[X|_],[Y|_]).
 member2(X,Y,[_|XX],[_|YY]) :- member2(X,Y,XX,YY).
 post_prepend(X1,[X0|Xs],[X0,X1|Xs]).
 prepend(X1,Xs,[X1|Xs]).
+
+%! tables_graph(+Tables, -Graph:list(_)) is det.
+tables_graph(Tables, Graph) :-
+   rb_empty(Empty),
+   foldl(goal_expls, Tables, Empty, GMap),
+   rb_visit(GMap, Graph).
+
+goal_expls(Goal-Solns) -->
+   {term_variables(Goal,Vars)},
+   foldl(soln_expls(Goal,Vars), Solns).
+
+soln_expls(G,Y,Y1-Es) -->
+   {copy_term(G-Y,G1-Y1), numbervars(G1-Y1, 0, _)}, % NB Es is already ground
+   (rb_add(G1,Es) -> []; []). % NB duplicate goals should have the same explanations!
 
