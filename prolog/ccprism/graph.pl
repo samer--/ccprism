@@ -45,7 +45,7 @@
 %  the results of semiring_graph_fold/4.
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 
-%% prune_graph(+P:pred(+F(_,D),-D), +Top:goal, G1:list(pair(goal,F(A,list(F(B,list(F(C,factor))))))), G2:list(pair(goal,F(A,list(F(B,list(F(c,factor)))))))) is det.
+%! prune_graph(+P:pred(+F(_,D),-D), +Top:goal, G1:list(pair(goal,F(A,list(F(B,list(F(C,factor))))))), G2:list(pair(goal,F(A,list(F(B,list(F(c,factor)))))))) is det.
 %
 %  Prune a graph or annotated graph to keep only goals reachable from a given top goal.
 %  With apologies, the type is quite complicated. The input and output graphs are lists of goals paired
@@ -68,7 +68,7 @@ children(Top,  M, G) -->
 new_children(M, G, F) -->
    rb_get(F,_) -> []; children(F,M,G).
 
-%% graph_switches(+G:graph, -SWs:list(switch(_))) is det.
+%! graph_switches(+G:graph, -SWs:list(switch(_))) is det.
 %  Extract list of switches referenced in an explanation graph.
 graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
@@ -86,7 +86,7 @@ sw_val_or_default(Conv,Def,Map,SW,Val,X) :-
    rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
 
 
-%% semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
+%! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
 %
 %  Folds the semiring SR over the explanation graph G. Produces R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
@@ -189,12 +189,19 @@ m_zero(autodiff2:max,-inf).
 
 v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 
-% ---------- inside and viterbi probs, explanation trees -----------
+%! graph_inside(+G:graph, ?P:sw_params, -IG:igraph) is det.
 graph_inside(Graph, Params, IGraph)  :-
    semiring_graph_fold(ann(r(=,=,mul,add)), Graph, Params, IGraph).
+
+%! graph_viterbi(+G:graph, ?P:sw_params, -T:tree, -LP:float) is det.
 graph_viterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
 
+%! igraph_sample_tree(+IG:igraph, -T:tree, -LP:float) is det.
+%! igraph_sample_tree(+IG:igraph, -H:goal, -T:tree, -LP:float) is det.
+%
+%  Uses prob effect to sample a tree from a graph annotated with inside 
+%  probabilities, as produced by graph_inside/3/
 igraph_sample_tree(Graph, Tree, LogProb) :-
    igraph_sample_tree(Graph, '^top':top, Tree, LogProb).
 igraph_sample_tree(Graph, Head, Head - Subtrees, LogProb) :-
@@ -231,7 +238,7 @@ factor_entropy(M:Head) --> !, fmap(M:Head,H) <\> add(H).
 factor_entropy(_) --> [].
 
 
-%% graph_counts(+Meth:counts_method, +PSc:scaling, +G:graph, P:sw_params, C:sw_params, LP:float) is det.
+%! graph_counts(+Meth:counts_method, +PSc:scaling, +G:graph, P:sw_params, C:sw_params, LP:float) is det.
 %
 %  Compute expected switch counts C from explanation graph G with switch parameters
 %  P. Uses automatic differentiation of the expression for the log of the inside 
