@@ -24,11 +24,11 @@ bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
 
 mc_perplexity(Method, Graph, Prior, Stream) :-
    converge(rel(1e-6), learn(vb(Prior), io(lin), Graph), _, Prior, VBPost),
-   sw_expectations(VBPost, VBProbs), 
+   sw_expectations(VBPost, VBProbs),
    call(log*fst*top_value*graph_inside(Graph), VBProbs, LogPDataGivenVBProbs),
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
    method_machine_mapper(Method, Prior, Machine, Mapper),
-   unfold(call(Machine, Graph, Prior, VBProbs) 
+   unfold(call(Machine, Graph, Prior, VBProbs)
           >> mapper(p_params_given_post(VBProbs)*Mapper) >> mean
           >> mapper(sub(LogPDataVBProbs)*log), Stream).
 
@@ -54,21 +54,21 @@ gstep(P0,IG,P1,Counts) :-
 
 mc_machine(Method, Graph, Prior, Probs0, M) :-
    insist(top_value(Graph, [_])), % must be a single conjunction
-   graph_viterbi(Graph, Probs0, VTree, _), 
+   graph_viterbi(Graph, Probs0, VTree, _),
    maplist(fst,Prior,SWs),
    mcs_init(SWs, VTree, Info, State),
    make_tree_sampler(Graph, SampleGoal),
    unfolder(scan0(mc_step(Method, Info, SampleGoal, SWs, Prior)), State, M).
 
-mc_sample(SampleGoal, SWs, Probs, T1, T2) :- 
+mc_sample(SampleGoal, SWs, Probs, T1, T2) :-
    mct_goal(T1, Goal), call(SampleGoal, Probs, Goal, Tree),
    mct_make(SWs, Goal, Tree, T2).
 
 make_tree_sampler(G, ccp_mcmc:sample_goal(P,IG)) :- graph_inside(G, P, IG).
 sample_goal(P0, IGraph0, P1, Goal, Tree) :-
    prune_graph(snd, Goal, IGraph0, ISubGraph0),
-   copy_term(P0-ISubGraph0, P1-ISubGraph), 
-   igraph_sample_tree(ISubGraph, Goal, _-Tree, _).
+   copy_term(P0-ISubGraph0, P1-ISubGraph),
+   igraph_sample_tree(ISubGraph, Goal, Tree, _).
 
 mc_step(mh, Info, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Info, TK_O, State1, StateExK),
@@ -80,8 +80,8 @@ mc_step(mh, Info, SampleGoal, SWs, Prior, State1, State2) :-
    (W_P>=W_O -> Accept=1; call(bernoulli*exp, W_P-W_O, Accept)),
    (Accept=0 -> State2=State1; mcs_rebuild(TK_P, StateExK, State2)).
 
-tree_acceptance_weight(Prior, Params, Tree, W) :- 
-   mct_counts(Tree, Counts), 
+tree_acceptance_weight(Prior, Params, Tree, W) :-
+   mct_counts(Tree, Counts),
    sw_posteriors(Prior, Counts, Post),
    map_sum_sw(log_partition_dirichlet, Post, LZ),
    map_sum_sw(map_sum(log_mul), Params, Counts, LP),
@@ -96,13 +96,13 @@ mcs_init(SWs, VTree, Ks, Totals-Map) :-
    accum_stats(tree_stats(_-VTree), SWs, Totals),
    maplist(fsnd(sw_trees_stats(SWs)), VTree, GoalsCounts),
    call(list_to_rbtree * maplist(pair,Ks), GoalsCounts, Map).
-   
+
 mcs_random_select(Ks, G-C, Totals-Map, dmhs(K,CountsExK,MapExK)) :-
    uniform(Ks,K),
    rb_delete(Map, K, G-C, MapExK),
    map_swc(sub, C, Totals, CountsExK).
 
-mcs_rebuild(G-C, dmhs(K,CountsExK,MapExK), Totals-Map) :- 
+mcs_rebuild(G-C, dmhs(K,CountsExK,MapExK), Totals-Map) :-
    sw_posteriors(C, CountsExK, Totals),
    rb_insert_new(MapExK, K, G-C, Map).
 
