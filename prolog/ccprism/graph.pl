@@ -1,7 +1,7 @@
-:- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2
+:- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
                      , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
                      , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/6
-                     , igraph_sample_tree/4, igraph_sample_tree/3
+                     , igraph_sample_tree/2, igraph_sample_tree/4, igraph_sample_tree/3
                      ]).
 
 /** <module> Inference and statistics on explanation hypergraphs
@@ -44,8 +44,9 @@
 %  of goal-value pairs. This can be applied to explanation graphs or
 %  the results of semiring_graph_fold/4.
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
+top_goal('^top':top).
 
-%! prune_graph(+P:pred(+tcall(F,_,D),-D), +Top:goal, +G1:f_graph(F,A,B,C), -G2:f_graph(F,A,B,C)) is det. 
+%! prune_graph(+P:pred(+tcall(F,_,D),-D), +Top:goal, +G1:f_graph(F,A,B,C), -G2:f_graph(F,A,B,C)) is det.
 %  ==
 %  f_graph(F,A,B,C) == list(pair(goal,tcall(F,A,list(tcall(F,B,list(tcall(F,C,factor)))))))
 %  ==
@@ -206,19 +207,22 @@ graph_inside(Graph, Params, IGraph)  :-
 graph_viterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
 
+%! igraph_sample_tree(+IG:igraph, -LPT:pair(float,tree)) is det.
 %! igraph_sample_tree(+IG:igraph, -T:tree, -LP:float) is det.
-%! igraph_sample_tree(+IG:igraph, -H:goal, -T:tree, -LP:float) is det.
+%! igraph_sample_tree(+IG:igraph, -H:goal, -Ts:list(tree), -LP:float) is det.
 %
-%  Uses prob effect to sample a tree from a graph annotated with inside 
+%  Uses prob effect to sample a tree from a graph annotated with inside
 %  probabilities, as produced by graph_inside/3/
-igraph_sample_tree(Graph, Tree, LogProb) :-
-   igraph_sample_tree(Graph, '^top':top, Tree, LogProb).
-igraph_sample_tree(Graph, Head, Head - Subtrees, LogProb) :-
+igraph_sample_tree(Graph, LogProb-Tree) :-
+   igraph_sample_tree(Graph, Tree, LogProb).
+igraph_sample_tree(Graph, ('^top':top)-Subtrees, LogProb) :-
+   igraph_sample_tree(Graph, '^top':top, Subtrees, LogProb).
+igraph_sample_tree(Graph, Head, Subtrees, LogProb) :-
    memberchk(Head-(_-Expls), Graph), % Head should be unique in graph
    zip(Ps,Es,Expls), stoch(Ps,Ps1,_), dist(Ps1,Es,Expl),
    map_sum(sample_subexpl_tree(Graph), Expl, Subtrees, LogProb).
 
-sample_subexpl_tree(G, _-(M:Goal),  Tree,    LP) :- !, igraph_sample_tree(G, M:Goal, Tree, LP).
+sample_subexpl_tree(G, _-(M:Goal), (M:Goal)-Tree, LP) :- !, igraph_sample_tree(G, M:Goal, Tree, LP).
 sample_subexpl_tree(_, P-Factor,   Factor, LP) :- LP is log(P).
 
 % ---- explanation entropy ----
@@ -249,13 +253,13 @@ factor_entropy(_) --> [].
 %! graph_counts(+Meth:counts_method, +PSc:scaling, +G:graph, P:sw_params, C:sw_params, LP:float) is det.
 %
 %  Compute expected switch counts C from explanation graph G with switch parameters
-%  P. Uses automatic differentiation of the expression for the log of the inside 
+%  P. Uses automatic differentiation of the expression for the log of the inside
 %  probability LP of the graph. Params can be unbound - binding them later triggers
 %  the computations required to yield numerical values in the result.
 %  ==
 %  counts_method ---> io(scaling); vit.
 %  ==
-graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :- 
+graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
    method_scaling_semiring(Method, ISc, SR, ToLogProb),
    semiring_graph_fold(SR, Graph, P0, IG),
    call(ToLogProb*top_value, IG, LogProb),
@@ -270,7 +274,7 @@ method_scaling_semiring(io(log), log, r(=,autodiff2:lse, autodiff2:add,cons), =)
 scaling_log_params(lin, lin, P0,    P0,    LogP0) :- map_swc(autodiff2:llog, P0, LogP0).
 scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(autodiff2:exp, LogP0, P0).
 scaling_log_params(log, lin, LogP0, P0,    LogP0) :- map_swc(autodiff2:log, P0, LogP0).
-scaling_log_params(log, log, LogP0, LogP0, LogP0). 
+scaling_log_params(log, log, LogP0, LogP0, LogP0).
 
 :- meta_predicate accum_stats(//,-), accum_stats(//,+,-).
 accum_stats(Pred,Stats) :-
