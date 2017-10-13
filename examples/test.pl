@@ -25,9 +25,9 @@
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
 :- use_module(models).
-:- use_module(lazy).
 :- use_module(crp).
 
+:- set_prolog_flag(toplevel_mode, recursive).
 % ---- general purpose utilities ----
 
 :- op(600,xfy,>:).
@@ -44,10 +44,11 @@
 
 lift(P,X) --> {call(P,X)}.
 
+:- initialization((init_rnd_state(S), nb_setval(rs,S)), program).
 
 :- meta_predicate samp(0), samp(4,0), samp(0,+,-).
 samp(G) :- samp(uniform_sampler,G).
-samp(S,G) :- with_rnd_state(run_sampling(S,G)).
+samp(S,G) :- with_brs(rs, run_sampling(S,G)).
 samp(G) --> run_sampling(uniform_sampler,G).
 
 unfold(N0,M,S) :- succ(N0,N), time(samp(call(take(N)*unfold, M, [_|S]))).
