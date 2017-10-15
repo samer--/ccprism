@@ -24,25 +24,12 @@
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
+:- use_module(callops).
 :- use_module(models).
 :- use_module(crp).
 
 :- set_prolog_flag(toplevel_mode, recursive).
 % ---- general purpose utilities ----
-
-:- op(600,xfy,>:).
-:- op(600,yfx,:>).
-:- op(600,xfy,>>).
-:- op(700,xfy,:-:).
-:- meta_predicate >>(2,2,?,?), >:(2,1,?), :>(1,2,?).
->:(P,Q,X) :- call(P,X,Y), call(Q,Y).
-:>(P,Q,Y) :- call(P,X), call(Q,X,Y).
->>(P,Q,X,Z) :- call(P,X,Y), call(Q,Y,Z).
-
-:-:(P1,P2,X1-X2) --> call(P1,X1), call(P2,X2).
-:-:(P1,P2,X1-X2) :- call(P1,X1), call(P2,X2).
-
-lift(P,X) --> {call(P,X)}.
 
 :- initialization((init_rnd_state(S), nb_setval(rs,S)), program).
 
@@ -70,10 +57,6 @@ seq_dist(S,CC) :-
    maplist(fsnd(divby(NumSamples-1)),HH,CC).
 
 user:portray(X) :- float(X), !, format('~5g',[X]).
-
-**(G,N) --> {var(N)} -> rep_var(N,G); rep_nonvar(N,G).
-rep_nonvar(N,G) --> {N=<0} -> []; {M is N-1}, call_dcg(G), rep_nonvar(M,G).
-rep_var(N,G) --> {N=0}; rep_var(M,G), call_dcg(G), {N is M+1}.
 
 % ---- for examining tables ------
 :- meta_predicate goal_tables(0,-).
