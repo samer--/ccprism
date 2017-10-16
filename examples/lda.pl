@@ -4,7 +4,7 @@
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(math), [mul/3, add/3, stoch/3]).
-:- use_module(library(listutils), [zip/3]).
+:- use_module(library(listutils), [zip/3, enumerate/2]).
 :- use_module(library(data/pair), [pair/3, fst/2]).
 :- use_module(library(callutils)).
 :- use_module(library(prob/tagless)).
@@ -16,6 +16,7 @@ term_expansion(Head := G, Heads) :- findall(Head, call(G), Heads).
 places(Xs) := findall(X,place(_,X),Xs).
 nouns(Xs) := findall(X,noun(_,_,X,_),Xs).
 names(Xs) := findall(X,pname(_,X),Xs).
+
 
 unif(G,X,S,S) :- call(G,Xs), uniform(Xs,X).
 unif(G,X) :- call(G,Xs), uniform(Xs,X).
@@ -66,4 +67,20 @@ doc2(Nouns, Alpha, Topics, TopicProbs, L, Doc) :-
 topic_dist_word2(Nouns, Topics, TopicDist, Word) :-
    dist(TopicDist, Topics, Topic),
    dist(Topic, Nouns, Word).
+
+% plain ccprism
+nouns(H,T) := (findall(X,noun(_,_,X,_),Xs), append(Xs,T,H)).
+
+topic_word(_) +-> nouns.
+doc_topic(K,_) +-> models:iota(K).
+
+docs(K,Docs) :-
+   enumerate(Docs,NumDocs),
+   maplist(doc3(K),NumDocs).
+doc3(K, I-Doc) :- maplist(doc_word(K,I), Doc).
+
+:- cctable doc_word/3.
+doc_word(K,I,Word) :-
+   doc_topic(K,I) := Topic,
+   topic_word(Topic) := Word.
 
