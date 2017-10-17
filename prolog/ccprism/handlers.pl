@@ -51,7 +51,7 @@ fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 % -------- handlers for tabled explanation graph building -----------
 % goal_expls_tables(+Goal,-TopExpls:list(list(factor)), -Tables) is det.
 %
-% Runs goal with tabling and explanation building effects to find all explanations 
+% Runs goal with tabling and explanation building effects to find all explanations
 % for the top goal, and the tables for everything else, from which the rest of
 % an explanation graph can be built.
 :- meta_predicate goal_expls_tables(0,-,-).
@@ -62,7 +62,7 @@ nb_goal_expls_tables(G,Es,Tabs) :-
    trie_tables(Trie, Tabs).
 
 %% run_incr(+Goal) is nondet.
-%  Runs goal in explanation search mode but produces solutions incrementally, 
+%  Runs goal in explanation search mode but produces solutions incrementally,
 %  discarding top explanation and not retrieving tables.
 :- meta_predicate run_incr(0).
 run_incr(Goal) :-
@@ -73,6 +73,7 @@ expl(tab(G))     --> {term_to_ground(G,F)}, [F].
 expl(sw(SW,X))   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
 expl(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [@P].
 expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
+expl(factor(F)) --> [F].
 
 :- meta_predicate run_tab(0,+,?).
 run_tab(Goal, Trie, Ans) :- p_reset(tab, Goal, Status), cont_tab(Status, Trie, Ans).
@@ -81,8 +82,8 @@ cont_tab(done, _, _).
 cont_tab(susp(tcall(TableAs,Work,ccp_handlers:p_shift(prob,tab(TableAs))), Cont), Trie, Ans) :-
    term_variables(TableAs, Y), K = k(Y,Ans,Cont),
    (  trie_lookup(Trie, TableAs, tab(SolnTrie,KsRef))
-   -> nbref_add_with(KsRef, post_prepend, K), 
-      trie_gen(SolnTrie, Y, _), 
+   -> nbref_add_with(KsRef, post_prepend, K),
+      trie_gen(SolnTrie, Y, _),
       run_tab(Cont, Trie, Ans)
    ;  nbref_new([K], KsRef), trie_new(SolnTrie),
       trie_insert(Trie, TableAs, tab(SolnTrie,KsRef)),
@@ -98,14 +99,14 @@ producer(Generate, KsRef, SolnTrie, Ans) :-
       member(k(Y,Ans,C), Ks), call(C)
    ).
 
-trie_tables(Trie, TList) :- 
+trie_tables(Trie, TList) :-
    findall(Table, trie_table(Trie,Table), TList).
 
 trie_table(Trie, Head-Solns) :-
    trie_gen(Trie, Head, tab(SolnTrie,_)),
    findall(Soln, soln_trie_solns(SolnTrie,Soln), Solns).
 
-soln_trie_solns(SolnTrie,Y-Es) :- 
+soln_trie_solns(SolnTrie,Y-Es) :-
    trie_gen(SolnTrie, Y, EsRef), nb_getval(EsRef, Es).
 
 term_to_ground(T1, T2) :- copy_term_nat(T1,T2), numbervars(T2,0,_).
