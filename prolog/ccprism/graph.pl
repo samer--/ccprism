@@ -1,7 +1,7 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
                      , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
-                     , tree_stats//1, tree_stats/2, accum_stats/3, graph_counts/6
-                     , igraph_sample_tree/2, igraph_sample_tree/4, igraph_sample_tree/3
+                     , tree_stats/2, sw_trees_stats/3, accum_stats/3, graph_counts/6
+                     , igraph_sample_tree/4, igraph_entropy/3
                      ]).
 
 /** <module> Inference and statistics on explanation hypergraphs
@@ -17,6 +17,12 @@
 
    [2] J. Goodman. Parsing inside-out. PhD thesis,
        Division of Engineering and Applied Sciences, Harvard University, 1998.
+   ==
+   tree ---> goal - list(tree).
+   igraph == f_graph(pair,float,float,float)
+          == list(pair(goal,weighted(list(weighted(list(weighted(factor)))))))
+   weighted(X) == pair(float,X).
+   ==
 */
 
 :- use_module(library(dcg_pair)).
@@ -46,6 +52,7 @@
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 top_goal('^top':top).
 
+
 %! prune_graph(+P:pred(+tcall(F,_,D),-D), +Top:goal, +G1:f_graph(F,A,B,C), -G2:f_graph(F,A,B,C)) is det.
 %  ==
 %  f_graph(F,A,B,C) == list(pair(goal,tcall(F,A,list(tcall(F,B,list(tcall(F,C,factor)))))))
@@ -63,12 +70,15 @@ prune_graph(Mapper, Top, GL1, GL2) :-
    rb_empty(E), children(Top,Mapper,G1,E,G2),
    rb_visit(G2,GL2).
 
-children(_:=_, _, _) --> !.
-children(@_,   _, _) --> !.
-children(Top,  M, G) -->
-   {rb_lookup(Top,Entry,G)}, rb_add(Top,Entry),
+% SA 2017/10 - Temporarily weaken pattern matching to handle arbitrary factors
+% children(_:=_, _, _) --> !.
+% children(@_,   _, _) --> !.
+children(Mod:Goal,  M, G) --> !,
+   {rb_lookup(Mod:Goal,Entry,G)}, rb_add(Mod:Goal,Entry),
    {call(M, Entry, Expls)},
    foldl(mr(M,foldl(mr(M,new_children(M,G)))),Expls).
+children(_,  _, _) --> !.
+
 new_children(M, G, F) -->
    rb_get(F,_) -> []; children(F,M,G).
 
@@ -76,18 +86,6 @@ new_children(M, G, F) -->
 %  Extract list of switches referenced in an explanation graph.
 graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
-
-% --------- switch-value map -----------
-fmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
-fmap_sws(Map,SWs) :- rb_fold(emit_if_sw,Map,SWs1,[]), sort(SWs1,SWs).
-emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
-
-:- meta_predicate fmap_collate_sw(3,1,+,+,?).
-fmap_collate_sw(Conv,Def,Map,SW,SW-XX) :-
-   call(SW,_,Vals,[]), maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
-
-sw_val_or_default(Conv,Def,Map,SW,Val,X) :-
-   rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
 
 
 %! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
@@ -203,20 +201,16 @@ v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 graph_inside(Graph, Params, IGraph)  :-
    semiring_graph_fold(ann(r(=,=,mul,add)), Graph, Params, IGraph).
 
-%! graph_viterbi(+G:graph, ?P:sw_params, -T:tree, -LP:float) is det.
+%! graph_viterbi(+G:graph, ?P:sw_params, -T:list(tree), -LP:float) is det.
+%  Compute Viterbi (most likely) explanation, returning the list of children
+%  of the top node, since the top goal itself is fixed.
 graph_viterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
 
-%! igraph_sample_tree(+IG:igraph, -LPT:pair(float,tree)) is det.
-%! igraph_sample_tree(+IG:igraph, -T:tree, -LP:float) is det.
-%! igraph_sample_tree(+IG:igraph, -H:goal, -Ts:list(tree), -LP:float) is det.
+%! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree), -LP:float) is det.
 %
 %  Uses prob effect to sample a tree from a graph annotated with inside
 %  probabilities, as produced by graph_inside/3/
-igraph_sample_tree(Graph, LogProb-Tree) :-
-   igraph_sample_tree(Graph, Tree, LogProb).
-igraph_sample_tree(Graph, ('^top':top)-Subtrees, LogProb) :-
-   igraph_sample_tree(Graph, '^top':top, Subtrees, LogProb).
 igraph_sample_tree(Graph, Head, Subtrees, LogProb) :-
    memberchk(Head-(_-Expls), Graph), % Head should be unique in graph
    zip(Ps,Es,Expls), stoch(Ps,Ps1,_), dist(Ps1,Es,Expl),
@@ -225,8 +219,9 @@ igraph_sample_tree(Graph, Head, Subtrees, LogProb) :-
 sample_subexpl_tree(G, _-(M:Goal), (M:Goal)-Tree, LP) :- !, igraph_sample_tree(G, M:Goal, Tree, LP).
 sample_subexpl_tree(_, P-Factor,   Factor, LP) :- LP is log(P).
 
-% ---- explanation entropy ----
-inside_graph_entropy(Scaling, IGraph, GoalEntropies) :-
+%! igraph_entropy(+S:scaling, +IG:igraph, -Es:list(pair(goal,float))) is det.
+%  Explanation entropies from annotated explanation graph.
+igraph_entropy(Scaling, IGraph, GoalEntropies) :-
    rb_empty(E),
    foldl(goal_entropy(Scaling), IGraph, GoalEntropies, E, Map),
    rb_visit(Map, GoalEntropies).
@@ -276,20 +271,43 @@ scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(autodiff2:exp, LogP
 scaling_log_params(log, lin, LogP0, P0,    LogP0) :- map_swc(autodiff2:log, P0, LogP0).
 scaling_log_params(log, log, LogP0, LogP0, LogP0).
 
-:- meta_predicate accum_stats(//,-), accum_stats(//,+,-).
-accum_stats(Pred,Stats) :-
+%! accum_stats(+Acc:pred(fmap(int), fmap(int)), +GSWs:pred(fmap(int), list(switch(_))), -Stats:sw_params) is det.
+:- meta_predicate accum_stats(//,2,-).
+accum_stats(Acc, GetSWs, Stats) :-
    rb_empty(C0),
-   call_dcg(Pred,C0,C1), fmap_sws(C1, SWs),
-   maplist(ccp_graph:fmap_collate_sw(right,=(0),C1),SWs,Stats).
-accum_stats(Pred,SWs,Stats) :-
-   rb_empty(C0),
-   call_dcg(Pred,C0,C1),
-   maplist(ccp_graph:fmap_collate_sw(right,=(0),C1),SWs,Stats).
+   call_dcg(Acc,C0,C1), call(GetSWs,C1,SWs),
+   maplist(fmap_collate_sw(right,=(0),C1),SWs,Stats).
 
-tree_stats(Tree,Counts) :- accum_stats(tree_stats(Tree),Counts).
+%! tree_stats(+T:tree, -C:sw_params) is det.
+tree_stats(Tree,Counts) :- accum_stats(tree_stats(Tree), fmap_sws, Counts).
+
+sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),const(SWs),Stats).
 
 tree_stats(_-Subtrees) --> foldl(subtree_stats,Subtrees).
 subtree_stats(_-Trees) --> foldl(subtree_stats,Trees).
 subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1).
 subtree_stats(@_)      --> [].
 right(_,X,X).
+
+% --- Factor-value map, used internally --------------
+% =| fmap(A) == rbtree(factor, A).
+
+%! fmap(+F:factor, ?X:A, +M1:fmap(A), -M2:fmap(A)) is det.
+%  Unify X with value under K in M1 if present, otherwise add it.
+fmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
+
+%! fmap_sws(+M:fmap(A), -SWs:list(switch(_))) is det.
+%  Collect sorted list of switches from keys in M.
+fmap_sws(Map,SWs) :- rb_fold(emit_if_sw,Map,SWs1,[]), sort(SWs1,SWs).
+emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
+
+%! fmap_collate_sw(+Conv:pred(factor,+A,-B), +Def:pred(-B), +M:fmap(A), +SW:switch(_), -SWX:pair(switch(_), list(B))) is det.
+%  Collect all values associated with a switch mentioned in an fmap. For each
+%  value, the corresponding data from the map is either converted using Conv
+%  or assigned the value produced by Def.
+:- meta_predicate fmap_collate_sw(3,1,+,+,?).
+fmap_collate_sw(Conv,Def,Map,SW,SW-XX) :-
+   call(SW,_,Vals,[]), maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
+
+sw_val_or_default(Conv,Def,Map,SW,Val,X) :-
+   rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).

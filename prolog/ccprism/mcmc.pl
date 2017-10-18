@@ -3,7 +3,7 @@
 /** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
 :- use_module(library(insist)).
-:- use_module(library(callutils),   [(*)/4]).
+:- use_module(library(callutils),   [(*)/4, const/3]).
 :- use_module(library(listutils),   [enumerate/2]).
 :- use_module(library(math),        [add/3, sub/3, exp/2]).
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
@@ -16,9 +16,8 @@
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
-:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, tree_stats//1, accum_stats/3
-                          , graph_inside/3, graph_viterbi/4 , prune_graph/4
-                          , igraph_sample_tree/3, igraph_sample_tree/4
+:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3
+                          , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/4
                           ]).
 
 bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
@@ -50,8 +49,9 @@ rotation(params,   Post, Step, Sample, Sample*Post*Step).
 
 gstep(P0,IG,P1,Counts) :-
    copy_term(P0-IG,P1-IG1),
-   igraph_sample_tree(IG1,Tree,_),
-   tree_stats(Tree, Counts).
+   top_goal(Top),
+   igraph_sample_tree(IG1, Top, Trees, _),
+   tree_stats(Top-Trees, Counts).
 
 mc_machine(Method, Graph, Prior, Probs0, M) :-
    graph_as_conjunction(Graph, Graph1),
@@ -73,10 +73,10 @@ mc_sample(SampleGoal, SWs, Probs, T1, T2) :-
    mct_make(SWs, Goal, Tree, T2).
 
 make_tree_sampler(G, ccp_mcmc:sample_goal(P,IG)) :- graph_inside(G, P, IG).
-sample_goal(P0, IGraph0, P1, Goal, Tree) :-
+sample_goal(P0, IGraph0, P1, Goal, Trees) :-
    prune_graph(snd, Goal, IGraph0, ISubGraph0),
    copy_term(P0-ISubGraph0, P1-ISubGraph),
-   igraph_sample_tree(ISubGraph, Goal, Tree, _).
+   igraph_sample_tree(ISubGraph, Goal, Trees, _).
 
 mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Keys, TK_O, State1, StateExK),
@@ -117,5 +117,4 @@ mct_goal(Goal-_, Goal).
 mct_make(SWs, Goal, T, Goal-C) :- sw_trees_stats(SWs,T,C).
 mct_counts(_-C,C).
 
-sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),SWs,Stats).
 map_stats(SWs, Trees, Stats) :- maplist(fsnd(sw_trees_stats(SWs)), Trees, Stats).
