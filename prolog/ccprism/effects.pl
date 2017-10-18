@@ -1,4 +1,4 @@
-:- module(ccp_effects, [ ccstore/2, ccstored/1, cctabled/2, uniform/2, dist/2, dist/3, (:=)/2, sample/2 ]).
+:- module(ccp_effects, [ ccstore/2, ccstored/1, cctabled/2, uniform/2, dist/2, dist/3, (:=)/2, sample/2, factor/1 ]).
 
 /** <module> Computational effects for supporting probabilistic models */
 
@@ -21,7 +21,7 @@ uniform(Xs,X) :- p_shift(prob,uniform(Xs,X)).
 %% sample(+P:pred(-A,+rndstate,-rndstate), -A) is det.
 %  Do arbitrary random sampling using capabilities of pack plrand.
 %  NB. only works during sampling execution, not explanation search.
-sample(P,X)   :- p_shift(prob,sample(P,X)). 
+sample(P,X)   :- p_shift(prob,sample(P,X)).
 
 %% ((+SW:switch(A)) := (-X:A)) is nondet.
 %  Probabilistic choice from switch. A switch SW is a callable term of type:
@@ -31,6 +31,9 @@ sample(P,X)   :- p_shift(prob,sample(P,X)).
 %  such that =|call(SW,ID,X1,X2)|= unifies ID with a canonical callable form of the
 %  switch and X1-X2 with a difference list of the switch's possible value.
 SW := X       :- p_shift(prob,sw(SW,X)).
+
+% arbitrary factor
+factor(F) :- p_shift(prob, factor(F)).
 
 %% cctabled(:Head, +Work:callable) is nondet.
 %  Execute Work using tabled execution and storing the result under Head.
@@ -48,7 +51,7 @@ ccstore(Head,Work)  :- copy_term(Head-Work,H-W), p_shift(tab, tcall(H,once(W),_)
 
 %% ccstored(:Head) is det.
 %  Look up tabled fact previously stored using ccstore/2. Throws an exception
-%  if no such fact is found. 
+%  if no such fact is found.
 ccstored(Head)      :- p_shift(tab, tcall(Head,throw(not_stored(Head)),_)).
 
 
