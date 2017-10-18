@@ -3,7 +3,7 @@
 /** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
 :- use_module(library(insist)).
-:- use_module(library(callutils),   [(*)/4, const/3]).
+:- use_module(library(callutils),   [(*)/4]).
 :- use_module(library(listutils),   [enumerate/2]).
 :- use_module(library(math),        [add/3, sub/3, exp/2]).
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).

@@ -302,9 +302,8 @@ fmap_sws(Map,SWs) :- rb_fold(emit_if_sw,Map,SWs1,[]), sort(SWs1,SWs).
 emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
 
 %! fmap_collate_sw(+Conv:pred(factor,+A,-B), +Def:pred(-B), +M:fmap(A), +SW:switch(_), -SWX:pair(switch(_), list(B))) is det.
-%  Collect all values associated with a switch mentioned in an fmap. For each
-%  value, the corresponding data from the map is either converted using Conv
-%  or assigned the value produced by Def.
+%  Collect parameter data for each value of a switch. Either the data is
+%  extracted from the map and converted using Conv, or created using Def.
 :- meta_predicate fmap_collate_sw(3,1,+,+,?).
 fmap_collate_sw(Conv,Def,Map,SW,SW-XX) :-
    call(SW,_,Vals,[]), maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
