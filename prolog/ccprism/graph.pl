@@ -62,7 +62,7 @@ top_goal('^top':top).
 %  with _annotated_ explanations. The type of an annotation is described by the type constructor
 %  F: =|F(E,D)|= is the type of a =|D|= annotated with an =|E|=. The first argument P knows how to strip
 %  off any type of annotation and return the =|D|=. This is how we dig down into the annotated explanations
-%  to find out which subgoals are references. For example, if =|F = pair|=, then P should be =|snd|=.
+%  to find out which subgoals are referenced. For example, if =|F = pair|=, then P should be =|snd|=.
 %  If =|F(E,D) = D|= (ie no annotation), then P should be (=). Since PlDoc won't accept high-order
 %  type terms, we write =|F(E,D)|= as =|tcall(F,E,D)|=, where =|tcall|= is like =|call|= for types.
 prune_graph(Mapper, Top, GL1, GL2) :-
