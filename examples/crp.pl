@@ -9,6 +9,8 @@
                , new_dp3/3
                , abc_sw//1, abc_prior/2
                , samp_st/1, samp_ref/1
+               , htest/1
+               , msw/2
                , data/3, gen/2 ]).
 
 /** <module> CRPs and stochastic memoisation */
@@ -17,6 +19,7 @@
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers)).
+:- use_module(library(ccprism/switches), [sw_init/3]).
 :- use_module(library(math), [mul/3, add/3, stoch/3]).
 :- use_module(library(listutils), [take/3]).
 :- use_module(library(data/pair), [pair/3, fst/2]).
@@ -24,9 +27,11 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(ccref)).
+:- use_module(library(ccnbref)).
 :- use_module(library(ccstate)).
 :- use_module(library(plrand)).
 :- use_module(library(prob/tagless)).
+:- use_module(callops).
 
 % :- use_module(library(autodiff2)).
 
@@ -198,3 +203,35 @@ user:portray(S) :- is_rbtree(S), !,
    write('<'),
    forall(rb_in(K,V,S), format('~w→~p;',[K,V])),
    write('>').
+
+new_dirichlet(Alpha,Base, Ref, Dist) :-
+   length(Base,N),
+   length(Dist,N),
+   numlist(1,N,Is),
+   maplist(tag(Ref),Is, Dist),
+   factor(Ref->dirichlet(Alpha,Base)).
+
+tag(Ref,I,Ref=I).
+% tag(Ref,I,P) :- put_attr(P,crp,dir(Ref,I)).
+
+:- cctable named_param/2.
+named_param(_,Ref) :- new_param(Ref).
+new_param(Ref) :- nbref_new(param,Ref).
+
+:- cctable new_sw/1.
+new_sw(ID) :-
+   sw_init(unit, ID, _-Alphas),
+   new_dirichlet(1, Alphas, ID, _Probs).
+
+:- meta_predicate msw(3,-).
+msw(SW,Val) :-
+   call(SW,ID,Vals,[]),
+   new_sw(ID),
+   member(Val, Vals),
+   factor(sw(ID,Val)).
+
+htest(X) :-
+   call(new_param :> new_dirichlet(2, [0.6, 0.4]), Dist),
+   dist(Dist,[1,2], Y),
+   call(named_param(phi) :> new_dirichlet(Y, [0.5, 0.5]), Dist2),
+   maplist(dist(Dist2, [a,b]), X).
