@@ -9,8 +9,9 @@
                , new_dp3/3
                , abc_sw//1, abc_prior/2
                , samp_st/1, samp_ref/1
-               , htest/1
-               , msw/2
+               , bin_test/1, htest/1, flat/1, flat/2, stoch/2, test2/1
+               , negbin_test/3, gmm/2
+               % , msw/2
                , data/3, gen/2 ]).
 
 /** <module> CRPs and stochastic memoisation */
@@ -18,11 +19,12 @@
 :- use_module(library(apply_macros)).
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
+:- use_module(library(ccprism/primitives)).
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/switches), [sw_init/3]).
 :- use_module(library(math), [mul/3, add/3, stoch/3]).
-:- use_module(library(listutils), [take/3]).
-:- use_module(library(data/pair), [pair/3, fst/2]).
+:- use_module(library(listutils), [rep/3, take/3]).
+:- use_module(library(data/pair), [pair/3, fst/2, snd/2]).
 :- use_module(library(data/store)).
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
@@ -30,7 +32,7 @@
 :- use_module(library(ccnbref)).
 :- use_module(library(ccstate)).
 :- use_module(library(plrand)).
-:- use_module(library(prob/tagless)).
+:- use_module(library(prob/tagless), except([gamma/4, dirichlet/4])).
 :- use_module(callops).
 
 % :- use_module(library(autodiff2)).
@@ -132,7 +134,6 @@ hgem_(Sticks, K, Z) :-
    bernoulli(P, X),
    (X=1 -> Y=Z; J is K+1, hgem_(Sticks, J, Z)).
 
-bernoulli(P,X) :- P0 is 1-P, dist([P0-0, P-1], X).
 
 % paired state, compatible with ref_appl
 :- meta_predicate dp(+,3,-,+,-).
@@ -204,34 +205,73 @@ user:portray(S) :- is_rbtree(S), !,
    forall(rb_in(K,V,S), format('~w→~p;',[K,V])),
    write('>').
 
-new_dirichlet(Alpha,Base, Ref, Dist) :-
-   length(Base,N),
-   length(Dist,N),
-   numlist(1,N,Is),
-   maplist(tag(Ref),Is, Dist),
-   factor(Ref->dirichlet(Alpha,Base)).
-
-tag(Ref,I,Ref=I).
-% tag(Ref,I,P) :- put_attr(P,crp,dir(Ref,I)).
+:- cctable negbin_/3.
+negbin_(0,_,0).
+negbin_(R,P,K) :- R>0, bernoulli(P,U), negbin_cont(U,R,P,K).
+negbin_cont(1,R,P,K1) :- succ_(K,K1), negbin_(R,P,K).
+negbin_cont(0,R1,P,K) :- succ_(R,R1), negbin_(R,P,K).
 
 :- cctable named_param/2.
 named_param(_,Ref) :- new_param(Ref).
 new_param(Ref) :- nbref_new(param,Ref).
 
-:- cctable new_sw/1.
-new_sw(ID) :-
-   sw_init(unit, ID, _-Alphas),
-   new_dirichlet(1, Alphas, ID, _Probs).
+:- use_module(library(clpfd)).
+succ_(X,Y) :-  X #>= 0, Y #= X + 1.
 
-:- meta_predicate msw(3,-).
-msw(SW,Val) :-
-   call(SW,ID,Vals,[]),
-   new_sw(ID),
-   member(Val, Vals),
-   factor(sw(ID,Val)).
+% :- cctable new_sw/2.
+% new_sw(ID, Dist) :-
+%    sw_init(unit, ID, _-Alphas),
+%    dirichlet(1, Alphas, ID, Dist).
+
+% :- meta_predicate msw(3,-).
+% msw(SW,Val) :-
+%    call(SW,ID,Vals,[]),
+%    new_sw(ID, Dist),
+%    member(Val, Vals),
+%    factor(sw(ID,Val)).
 
 htest(X) :-
-   call(new_param :> new_dirichlet(2, [0.6, 0.4]), Dist),
-   dist(Dist,[1,2], Y),
-   call(named_param(phi) :> new_dirichlet(Y, [0.5, 0.5]), Dist2),
-   maplist(dist(Dist2, [a,b]), X).
+   call(new_param :> dirichlet(0.33, [1,1,1]), Dist),
+   discrete(Dist, Y),
+   call(named_param(phi) :> dirichlet(Y, [0.25, 0.25, 0.25, 0.25]), Dist2),
+   maplist(discrete(Dist2), X).
+
+bin_test(X-Y) :-
+   beta(2, 1, bb1, P),
+   maplist(binomial(5, P), X),
+   maplist(bernoulli(P),Y).
+
+negbin_test(prim,R,X) :-
+   beta(2, 1, bb1, P),
+   maplist(negbin(R, P), X).
+negbin_test(it,R,X) :-
+   beta(2, 1, bb1, P),
+   maplist(negbin_(R, P), X).
+
+poisson_test(A,B,X) :-
+   gamma(A,B, g1, Lambda),
+   maplist(poisson(Lambda), X).
+
+flat(Ps) :- flat(1,Ps).
+flat(K,Ps) :- maplist(snd >: snd >: maplist(=(K)), Ps).
+stoch(Ws,Ps) :- math:stoch(Ws,Qs,_), maplist(snd >: snd >: maplist(log,Qs), Ps).
+
+test2(X) :-
+   dirichlet(1, [1,1], d1, Dist1), discrete(Dist1, Y1),
+   dirichlet(1, [1,1], d2, Dist2), discrete(Dist2, Y2),
+   X is Y1+Y2.
+
+% Gaussians, GMMs
+
+gmm(K, Xs) :-
+   length(Means, K),
+   rep(K, 1, Alphas),
+   dirichlet(1, Alphas, dd, Theta),
+   maplist(new_param :> normal(0,9), Means),
+   maplist(gmm_obs(Theta, Means), Xs).
+
+:- cctable gmm_obs/3.
+gmm_obs(Theta, Means, X) :-
+   discrete(Theta, Z),
+   nth1(Z, Means, Mean),
+   obs_normal(Mean, 1.0, X).

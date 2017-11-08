@@ -1,4 +1,5 @@
 :- module(ccp_test, []).
+:- persistent_history.
 
 :- use_module(library(apply_macros)).
 
@@ -13,9 +14,10 @@
 
 :- use_module(library(rbutils)).
 :- use_module(library(plrand)).
-:- use_module(library(prob/tagless)).
+:- use_module(library(prob/tagless), except([gamma/4, dirichlet/4])).
 :- use_module(library(ccprism/machines)).
 :- use_module(library(ccprism/effects)).
+:- use_module(library(ccprism/primitives)).
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/switches), [marg_log_prob/3]).
 :- use_module(library(ccprism/graph)).

@@ -36,8 +36,9 @@
 :- use_module(library(rbutils),     [rb_in/3, rb_add//2, rb_app//2, rb_get//2]).
 :- use_module(library(autodiff2),   [back/1, deriv/3, compile/0]).
 :- use_module(effects,   [dist/3]).
-:- use_module(switches,  [map_swc/3, map_swc/4]).
+:- use_module(switches,  [map_swc/3]).
 :- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
+:- use_module(primitives).
 
 :- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2, m_zero/2.
 
@@ -85,7 +86,7 @@ new_children(M, G, F) -->
 %! graph_switches(+G:graph, -SWs:list(switch(_))) is det.
 %  Extract list of switches referenced in an explanation graph.
 graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
-graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
+graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E). % !!!! HERE
 
 
 %! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
@@ -131,8 +132,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 semiring_graph_fold(SR, Graph, Params, GoalSums) :-
    rb_empty(E),
    foldl(sr_sum(SR), Graph, GoalSums, E, Map),
-   fmap_sws(Map, SWs),
-   maplist(fmap_collate_sw(sr_param(SR),true1,Map),SWs,Params).
+   fmap_params(Map, Params).
 
 sr_sum(SR, Goal-Expls, Goal-Sum1) -->
    fmap(Goal,Proj), {sr_zero(SR,Zero)},
@@ -143,11 +143,17 @@ sr_add_prod(SR, Expl) -->
    {sr_unit(SR,Unit)},
    run_right(foldr(sr_factor(SR), Expl), Unit, Prod) <\> sr_plus(SR,Prod).
 
-sr_factor(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
-sr_factor(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
-sr_factor(SR, @P)      --> {sr_inj(SR,@P,P,X)}, \> sr_times(SR,X).
+sr_factor(SR, Factor)  --> sr_factor_inj(SR, Factor, X) <\> sr_times(SR,X).
 
-sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
+sr_factor_inj(_,  M:Head, X)  --> !, fmap(M:Head,X).
+sr_factor_inj(SR, Factor, X)  --> leaf_prob(Factor, Prob), {sr_inj(SR, Factor, Prob, X)}.
+
+leaf_prob(prim(Prim, ID), P) --> !, fmap(ID, Info), {prim_info_prob(Prim, Info, P)}.
+leaf_prob(obs(Prim, ID, Obs),   P) --> !, fmap(ID, Info), {info_obs_prob(Prim, Info, Obs, P)}.
+leaf_prob(@P,             P) --> [].
+
+fmap_params(Map, P) :- rb_fold(emit_if_prim,Map,P1,[]), sort(P1,P).
+emit_if_prim(K-V) --> {atom(K), info_params(V,Model,Ps)} -> [K-(Model-Ps)]; [].
 
 % --------- semirings ---------
 sr_inj(id,        F, _, F).
@@ -254,22 +260,16 @@ factor_entropy(_) --> [].
 %  ==
 %  counts_method ---> io(scaling); vit.
 %  ==
-graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
-   method_scaling_semiring(Method, ISc, SR, ToLogProb),
-   semiring_graph_fold(SR, Graph, P0, IG),
+graph_counts(Method, _PSc, Graph, Params, Eta, LogProb) :-
+   method_scaling_semiring(Method, SR, ToLogProb),
+   semiring_graph_fold(SR, Graph, Params0, IG),
    call(ToLogProb*top_value, IG, LogProb),
-   scaling_log_params(ISc, PSc, P0, Params0, LogP0),
-   map_swc(deriv(LogProb), LogP0, Eta),
+   map_swc(deriv(LogProb), Params0, Eta),
    back(LogProb), compile, Params=Params0.
 
-method_scaling_semiring(vit,     log, r(=,=,autodiff2:add,autodiff2:max), =).
-method_scaling_semiring(io(lin), lin, r(=,=,autodiff2:mul,autodiff2:add), autodiff2:log).
-method_scaling_semiring(io(log), log, r(=,autodiff2:lse, autodiff2:add,cons), =).
-
-scaling_log_params(lin, lin, P0,    P0,    LogP0) :- map_swc(autodiff2:llog, P0, LogP0).
-scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(autodiff2:exp, LogP0, P0).
-scaling_log_params(log, lin, LogP0, P0,    LogP0) :- map_swc(autodiff2:log, P0, LogP0).
-scaling_log_params(log, log, LogP0, LogP0, LogP0).
+method_scaling_semiring(vit,     r(=, =, autodiff2:add, autodiff2:max), =).
+method_scaling_semiring(io(lin), r(autodiff2:exp, =, autodiff2:mul, autodiff2:add), autodiff2:log).
+method_scaling_semiring(io(log), r(=, autodiff2:lse, autodiff2:add, cons), =).
 
 %! accum_stats(+Acc:pred(fmap(int), fmap(int)), +GSWs:pred(fmap(int), list(switch(_))), -Stats:sw_params) is det.
 :- meta_predicate accum_stats(//,2,-).
@@ -285,7 +285,7 @@ sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),const(SWs),St
 
 tree_stats(_-Subtrees) --> foldl(subtree_stats,Subtrees).
 subtree_stats(_-Trees) --> foldl(subtree_stats,Trees).
-subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1).
+subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1). % !!!! HERE
 subtree_stats(@_)      --> [].
 right(_,X,X).
 
@@ -299,7 +299,7 @@ fmap(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
 %! fmap_sws(+M:fmap(A), -SWs:list(switch(_))) is det.
 %  Collect sorted list of switches from keys in M.
 fmap_sws(Map,SWs) :- rb_fold(emit_if_sw,Map,SWs1,[]), sort(SWs1,SWs).
-emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; [].
+emit_if_sw(F-_) --> {F=(SW:=_)} -> [SW]; []. % !!!! HERE
 
 %! fmap_collate_sw(+Conv:pred(factor,+A,-B), +Def:pred(-B), +M:fmap(A), +SW:switch(_), -SWX:pair(switch(_), list(B))) is det.
 %  Collect parameter data for each value of a switch. Either the data is
@@ -309,4 +309,4 @@ fmap_collate_sw(Conv,Def,Map,SW,SW-XX) :-
    call(SW,_,Vals,[]), maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
 
 sw_val_or_default(Conv,Def,Map,SW,Val,X) :-
-   rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X).
+   rb_lookup(SW:=Val, P, Map) -> call(Conv,SW:=Val,P,X); call(Def,X). % !!!! HERE
