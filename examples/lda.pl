@@ -67,20 +67,3 @@ doc2(Nouns, Alpha, Topics, TopicProbs, L, Doc) :-
 topic_dist_word2(Nouns, Topics, TopicDist, Word) :-
    dist(TopicDist, Topics, Topic),
    dist(Topic, Nouns, Word).
-
-% plain ccprism
-nouns(H,T) := (findall(X,noun(_,_,X,_),Xs), append(Xs,T,H)).
-
-topic_word(_) +-> nouns.
-doc_topic(K,_) +-> models:iota(K).
-
-docs(K,Docs) :-
-   enumerate(Docs,NumDocs),
-   maplist(doc3(K),NumDocs).
-doc3(K, I-Doc) :- maplist(doc_word(K,I), Doc).
-
-:- cctable doc_word/3.
-doc_word(K,I,Word) :-
-   doc_topic(K,I) := Topic,
-   topic_word(Topic) := Word.
-
