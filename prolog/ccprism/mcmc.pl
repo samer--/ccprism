@@ -1,11 +1,11 @@
-:- module(ccp_mcmc, [mc_perplexity/4, mc_machine/5, gibbs_posterior_machine/5]).
+:- module(ccp_mcmc, [mc_evidence/4, mc_machine/5, gibbs_posterior_machine/5]).
 
 /** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
 :- use_module(library(insist)).
 :- use_module(library(callutils),   [(*)/4]).
 :- use_module(library(listutils),   [enumerate/2]).
-:- use_module(library(math),        [add/3, sub/3, exp/2]).
+:- use_module(library(math),        [neg/2, add/3, sub/3, exp/2]).
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_partition_dirichlet/2]).
 
@@ -16,26 +16,27 @@
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
-:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3
+:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3, semiring_graph_fold/4
                           , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/4
                           ]).
 
 bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
 
-mc_perplexity(Method, Graph, Prior, Stream) :-
-   converge(rel(1e-6), learn(vb(Prior), io(lin), Graph), _, Prior, VBPost),
+mc_evidence(Method, Graph, Prior, Stream) :-
+   converge(rel(1e-6), learn(vb(Prior), io(log), Graph), _, Prior, VBPost),
    sw_expectations(VBPost, VBProbs),
-   call(log*fst*top_value*graph_inside(Graph), VBProbs, LogPDataGivenVBProbs),
+   call(top_value*semiring_graph_fold(r(log_e,lse,add,cons),Graph), VBProbs, LogPDataGivenVBProbs),
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
    method_machine_mapper(Method, Prior, Machine, Mapper),
    unfold(call(Machine, Graph, Prior, VBProbs)
           >> mapper(p_params_given_post(VBProbs)*Mapper) >> mean
-          >> mapper(sub(LogPDataVBProbs)*log), Stream).
+          >> mapper(add(LogPDataVBProbs)*neg*log), Stream).
 
 p_params_given_post(Probs,Post,P) :- sw_log_prob(Post,Probs,LP), P is exp(LP).
 
-method_machine_mapper(gibbs, _,     ccp_mcmc:gibbs_posterior_machine(posterior), =).
-method_machine_mapper(mh,    Prior, mc_machine(mh), ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
+method_machine_mapper(gibbs,  _,     ccp_mcmc:gibbs_posterior_machine(posterior), =).
+method_machine_mapper(cgibbs, Prior, ccp_mcmc:mc_machine(gibbs), ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
+method_machine_mapper(mh,     Prior, ccp_mcmc:mc_machine(mh),    ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
 
 gibbs_posterior_machine(Rot, Graph, Prior, P1, M) :-
    graph_inside(Graph, P0, IG),
@@ -85,8 +86,16 @@ mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    sw_expectations(PostExK, ProbsExK),
    mc_sample(SampleGoal, SWs, ProbsExK, TK_O, TK_P),
    maplist(tree_acceptance_weight(PostExK, ProbsExK), [TK_O, TK_P], [W_O, W_P]),
-   (W_P>=W_O -> Accept=1; call(bernoulli*exp, W_P-W_O, Accept)),
+   D is W_P-W_O, (D>= -1e-13 -> Accept=1; call(bernoulli*exp, D, Accept)),
    (Accept=0 -> State2=State1; mcs_rebuild(TK_P, StateExK, State2)).
+
+mc_step(gibbs, Keys, SampleGoal, SWs, Prior, State1, State2) :-
+   mcs_random_select(Keys, TK_O, State1, StateExK),
+   mcs_dcounts(StateExK, CountsExK),
+   sw_posteriors(Prior, CountsExK, PostExK),
+   sw_samples(PostExK, ProbsExK),
+   mc_sample(SampleGoal, SWs, ProbsExK, TK_O, TK_P),
+   mcs_rebuild(TK_P, StateExK, State2).
 
 tree_acceptance_weight(Prior, Params, Tree, W) :-
    mct_counts(Tree, Counts),
