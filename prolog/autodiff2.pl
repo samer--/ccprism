@@ -1,7 +1,7 @@
 :- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1, compile/0]).
 /** <module> Reverse mode automatic differentatin using CHR.
- 
- Todo: 
+
+ Todo:
  - consider sum operator
  - consider neg/sub/div operators
  - fix constant handling in deriv stoch_exp rule
@@ -26,9 +26,17 @@ add(0.0,X,Y) <=> Y=X.
 add(X,0.0,Y) <=> Y=X.
 add(X,Y,Z1) \ add(X,Y,Z2) <=> Z1=Z2.
 
+% % collapse addions into products
+% add(Y,X,XY), add(Y,XY,XYY) <=> mul(2,Y,YY), add(YY,X,XYY).
+% add(YN,X,XYN), add(Y,XYN,XYNY), mul(N,Y,YN) <=> N1 is N+1, mul(N1,Y,YNY), add(YNY,X,XYNY).
+
+% % collapse multiplications into powers
+% mul(Y,X,XY), mul(Y,XY,XYY) <=> pow(2,Y,YY), mul(YY,X,XYY).
+% mul(YN,X,XYN), mul(Y,XYN,XYNY), pow(N,Y,YN) <=> N1 is N+1, pow(N1,Y,YNY), mul(YNY,X,XYNY).
+
 % lse: log(sum(map(exp,Xs))), stoch_exp: stoch(map(exp,Xs))
 % mes: max, exp, sum - used to share computation of max(Xs), exp(Exs-Max) and sum
-lse([X],Y) <=> X=Y. 
+lse([X],Y) <=> X=Y.
 lse(Xs,Y1) \ lse(Xs,Y2) <=> Y1=Y2.
 lse(Xs,_) ==> mes(Xs,_,_,_).
 stoch_exp(Xs,Ys1) \ stoch_exp(Xs,Ys2) <=> Ys1=Ys2.
@@ -49,12 +57,12 @@ deriv(L,Y,DY), mul(X1,X2,Y) ==> maplist(agg_mul(L,DY),[X1,X2],[X2,X1]).
 deriv(L,Y,DY), max(X1,X2,Y) ==> maplist(agg_max(L,DY),[X1,X2],[X2,X1]).
 deriv(L,Y,DY), lse(Xs,Y)    ==> stoch_exp(Xs,Ps), maplist(agg_mul(L,DY),Xs,Ps).
 deriv(L,Y,DY), stoch_exp(Xs,N,Y) ==>
-   pow(2,Y,Y2), mul(-1.0,Y2,NY2), 
+   pow(2,Y,Y2), mul(-1.0,Y2,NY2),
    mul(DY,NY2,T1), mul(DY,Y,T2),
    maplist(deriv(L),Xs,DXs), % !!! NB the rest is wrong for any constants in Xs
    maplist(agg(T1),DXs),
-   nth1(N,DXs,DXN), 
-   agg(T2,DXN). 
+   nth1(N,DXs,DXN),
+   agg(T2,DXN).
 
 dpow(K,X,T) :- K1 is K - 1, KK is float(K), pow(K1,X,XpowK1), mul(KK,XpowK1,T).
 agg_max(L,DY,X1,X2) :- var(X1) -> deriv(L,X1,DX1), chi(X1,X2,DY,T1), agg(T1,DX1); true.
