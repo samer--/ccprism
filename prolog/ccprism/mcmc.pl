@@ -1,4 +1,4 @@
-:- module(ccp_mcmc, [mc_evidence/4, mc_machine/5, gibbs_posterior_machine/5]).
+:- module(ccp_mcmc, [mc_evidence/4, mh_machine/4, gibbs_machine/5]).
 
 /** <module> Gibbs and Metropolis-Hastings explanation samplers */
 
@@ -34,11 +34,10 @@ mc_evidence(Method, Graph, Prior, Stream) :-
 
 p_params_given_post(Probs,Post,P) :- sw_log_prob(Post,Probs,LP), P is exp(LP).
 
-method_machine_mapper(gibbs,  _,     ccp_mcmc:gibbs_posterior_machine(posterior), =).
-method_machine_mapper(cgibbs, Prior, ccp_mcmc:mc_machine(gibbs), ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
-method_machine_mapper(mh,     Prior, ccp_mcmc:mc_machine(mh),    ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
+method_machine_mapper(gibbs,  _,     ccp_mcmc:gibbs_machine(posterior), =).
+method_machine_mapper(mh,     Prior, ccp_mcmc:mh_machine, ccp_mcmc:sw_posteriors(Prior)*mcs_counts).
 
-gibbs_posterior_machine(Rot, Graph, Prior, P1, M) :-
+gibbs_machine(Rot, Graph, Prior, P1, M) :-
    graph_inside(Graph, P0, IG),
    rotation(Rot, sw_posteriors(Prior), gstep(P0,IG), sw_samples, Step),
    unfolder(scan0(Step), P1, M).
@@ -54,14 +53,14 @@ gstep(P0,IG,P1,Counts) :-
    igraph_sample_tree(IG1, Top, Trees, _),
    tree_stats(Top-Trees, Counts).
 
-mc_machine(Method, Graph, Prior, Probs0, M) :-
+mh_machine(Graph, Prior, Probs0, M) :-
    graph_as_conjunction(Graph, Graph1),
    graph_viterbi(Graph1, Probs0, VTrees, _),
    maplist(fst,Prior,SWs),
    mcs_init(SWs, VTrees, Keys, State),
    (  Keys=[] -> unfolder(scan0(=), State, M)
    ;  make_tree_sampler(Graph1, SampleGoal),
-      unfolder(scan0(mc_step(Method, Keys, SampleGoal, SWs, Prior)), State, M)
+      unfolder(scan0(mh_step(Keys, SampleGoal, SWs, Prior)), State, M)
    ).
 
 graph_as_conjunction(Graph, Graph) :- top_value(Graph, [_]), !.
@@ -79,7 +78,7 @@ sample_goal(P0, IGraph0, P1, Goal, Trees) :-
    copy_term(P0-ISubGraph0, P1-ISubGraph),
    igraph_sample_tree(ISubGraph, Goal, Trees, _).
 
-mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
+mh_step(Keys, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Keys, TK_O, State1, StateExK),
    mcs_dcounts(StateExK, CountsExK),
    sw_posteriors(Prior, CountsExK, PostExK),
@@ -88,14 +87,6 @@ mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    maplist(tree_acceptance_weight(PostExK, ProbsExK), [TK_O, TK_P], [W_O, W_P]),
    D is W_P-W_O, (D>= -1e-13 -> Accept=1; call(bernoulli*exp, D, Accept)),
    (Accept=0 -> State2=State1; mcs_rebuild(TK_P, StateExK, State2)).
-
-mc_step(gibbs, Keys, SampleGoal, SWs, Prior, State1, State2) :-
-   mcs_random_select(Keys, TK_O, State1, StateExK),
-   mcs_dcounts(StateExK, CountsExK),
-   sw_posteriors(Prior, CountsExK, PostExK),
-   sw_samples(PostExK, ProbsExK),
-   mc_sample(SampleGoal, SWs, ProbsExK, TK_O, TK_P),
-   mcs_rebuild(TK_P, StateExK, State2).
 
 tree_acceptance_weight(Prior, Params, Tree, W) :-
    mct_counts(Tree, Counts),

@@ -127,9 +127,8 @@ dice_exact_probs(AA, Dist) :-
 
 test_mcmc(NumSamples, Sub, Spec, S) :-
 	counts(CC),
-   member(Spec>F, [gibbs_posterior_machine(counts)>(=),
-                   mc_machine(mh)>(ccp_mcmc:mcs_counts),
-                   mc_machine(gibbs)>(ccp_mcmc:mcs_counts)]),
+   member(Spec>F, [gibbs_machine(counts)>(=),
+                   mh_machine>(ccp_mcmc:mcs_counts)]),
 	unfold(NumSamples, dice_gibbs(2,Sub,Sub,Spec>F)
                       >> mapper(ind(CC))
                       % >> mean(maplist(=(0)), maplist(add), vec_divby)
