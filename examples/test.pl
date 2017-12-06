@@ -103,9 +103,11 @@ rep(N,G) :- N1 is N-1, call(G), rep(N1,G).
 dice_gibbs_samples(AA,Spec,K,NumSamples,S) :- unfold(NumSamples, dice_gibbs(AA,K,Spec), S).
 
 dice_gibbs(AA,Stride,Spec>F,M) :-
+   dice_gibbs(AA, 500, Stride, Spec>F, M).
+dice_gibbs(AA,BurnIn,Stride,Spec>F,M) :-
    goal_graph(maplist(two_dice,[4,4,4]), G),
    graph_params(AA*uniform,G,P0),
-	call(call(Spec,G,P0,P0) >> drop(500) >> subsample(Stride) >> mapper(snd*nth1(1)*F), M).
+	call(call(Spec,G,P0,P0) >> drop(BurnIn) >> subsample(Stride) >> mapper(snd*nth1(1)*F), M).
 
 counts(Counts) :- setof( Xs, expl_stats(Xs), Counts).
 counts_multiplicities(HH) :-
@@ -125,12 +127,23 @@ dice_exact_probs(AA, Dist) :-
 
 test_mcmc(NumSamples, Sub, Spec, S) :-
 	counts(CC),
-   member(Spec>F, [gibbs_posterior_machine(counts)>(=), mc_machine(mh)>mcs_counts, mc_machine(gibbs2)>mcs_counts, mc_machine(gibbs)>mcs_counts]),
-	unfold(NumSamples, dice_gibbs(2,Sub,Spec>F)
+   member(Spec>F, [gibbs_posterior_machine(counts)>(=),
+                   mc_machine(mh)>(ccp_mcmc:mcs_counts),
+                   mc_machine(gibbs)>(ccp_mcmc:mcs_counts)]),
+	unfold(NumSamples, dice_gibbs(2,Sub,Sub,Spec>F)
                       >> mapper(ind(CC))
-                      >> mean(maplist(=(0)), maplist(add), vec_divby)
-                      >> drop(2000),
+                      % >> mean(maplist(=(0)), maplist(add), vec_divby)
+                      >> drop(2), % was 200
           S).
+
+% produces MATLAB expression. Display, eg, using library(plml) with
+% ??plotseq(@plot, map(@squeeze, slices(Traces,1))).
+diagnose_mcmc(NumSamples, Sub, Spec, permute(Traces, [2,3,1])) :-
+   test_mcmc(NumSamples,Sub,Spec,S),
+   dice_exact_probs(2,Dist),
+   maplist(pair,_,Ps,Dist),
+   B = vecop(@lt,rand(10,NumSamples),arr(Ps)),
+   Traces = cumsum(vecop(@minus,cat(3,arr(S),B),arr(Ps)),2).
 
 ind(Xs,X,Is) :- maplist(eq(X),Xs,Is).
 eq(X,Y,I) :- X=Y -> I=1; I=0.
