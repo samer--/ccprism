@@ -1,5 +1,5 @@
 :- module(ccp_switches, [ map_sw/3, map_swc/3, map_sum_sw/3, map_sum_sw/4, map_swc/4
-                        , sw_samples/2, sw_expectations/2, sw_log_prob/3, sw_posteriors/3, marg_log_prob/3
+                        , sw_mode/2, sw_samples/2, sw_expectations/2, sw_log_prob/3, sw_posteriors/3, marg_log_prob/3
                         , sw_init/3, dirichlet/2
                         ]).
 
@@ -11,7 +11,7 @@
    ==
    Each switch term is associated with a list of numbers, one for each value
    the switch can take. The meaning of the numbers is context dependent, but is
-   usually either a normalised probability distribution over the values or the 
+   usually either a normalised probability distribution over the values or the
    parameters for a Dirichlet distribution over switch value distributions.
 */
 
@@ -20,7 +20,7 @@
 :- use_module(library(plrand),      [log_prob_dirichlet/3, log_partition_dirichlet/2]).
 :- use_module(library(prob/tagless),[dirichlet//2]).
 :- use_module(effects,  [sample/2]).
-:- use_module(lazymath, [add/3, mul/3, stoch/2, map_sum/3, map_sum/4]). 
+:- use_module(lazymath, [add/3, mul/3, max/3, stoch/2, map_sum/3, map_sum/4]).
 
 dirichlet(As,Ps) :- sample(dirichlet(As),Ps).
 
@@ -40,6 +40,7 @@ sw_expectations(Alphas,Probs) :- map_sw(stoch,Alphas,Probs).
 sw_samples(Alphas,Probs)      :- map_sw(dirichlet,Alphas,Probs).
 sw_log_prob(Alphas,Probs,LP)  :- map_sum_sw(log_prob_dirichlet,Alphas,Probs,LP).
 sw_marg_log_prob(Prior,Eta,LP):- map_sum_sw(marg_log_prob,Prior,Eta,LP).
+sw_mode(Alphas,Probs)         :- map_sw(stoch*maplist(max(0.0)*add(-1.0)),Alphas,Probs).
 
 marg_log_prob(Prior,Eta,LP) :-
    maplist(add,Prior,Eta,Post),
@@ -61,6 +62,7 @@ marg_log_prob(Prior,Eta,LP) :-
 %     Take the result of Spec and take the logarithm of each value.
 %     * Spec1+Spec2
 %     Add the results of initialising with Spec1 and Spec2
+sw_init(\Pred, SW, SW-P) :- !, call(SW,ID,Vals,[]), call(Pred,ID,Vals,P).
 sw_init(Spec, SW, SW-P) :- call(SW,_,Vals,[]), init(Spec, Vals, P).
 
 init(uniform,Vs, Params) :- length(Vs,N), P is 1.0/N, maplist(const(P),Vs,Params).
