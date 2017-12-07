@@ -102,12 +102,12 @@ rep(N,G) :- N1 is N-1, call(G), rep(N1,G).
 
 dice_gibbs_samples(AA,Spec,K,NumSamples,S) :- unfold(NumSamples, dice_gibbs(AA,K,Spec), S).
 
-dice_gibbs(AA,Stride,Spec>F,M) :-
-   dice_gibbs(AA, 500, Stride, Spec>F, M).
-dice_gibbs(AA,BurnIn,Stride,Spec>F,M) :-
+dice_gibbs(AA,Stride,Spec,M) :-
+   dice_gibbs(AA, 10, Stride, Spec, M).
+dice_gibbs(AA,BurnIn,Stride,Spec,M) :-
    goal_graph(maplist(two_dice,[4,4,4]), G),
    graph_params(AA*uniform,G,P0),
-	call(call(Spec,G,P0,P0) >> drop(BurnIn) >> subsample(Stride) >> mapper(snd*nth1(1)*F), M).
+	call(call(Spec,G,P0,P0) >> drop(BurnIn) >> subsample(Stride), M).
 
 counts(Counts) :- setof( Xs, expl_stats(Xs), Counts).
 counts_multiplicities(HH) :-
@@ -129,8 +129,8 @@ test_mcmc(NumSamples, Sub, Spec, S) :-
 	counts(CC),
    member(Spec>F, [gibbs_machine(counts)>(=),
                    mh_machine>(ccp_mcmc:mcs_counts)]),
-	unfold(NumSamples, dice_gibbs(2,Sub,Sub,Spec>F)
-                      >> mapper(ind(CC))
+	unfold(NumSamples, dice_gibbs(2,Sub,Sub,Spec)
+                      >> mapper(ind(CC)*snd*nth1(1)*F)
                       % >> mean(maplist(=(0)), maplist(add), vec_divby)
                       >> drop(2), % was 200
           S).
