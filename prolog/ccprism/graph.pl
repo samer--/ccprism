@@ -1,7 +1,7 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
                      , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
                      , tree_stats/2, sw_trees_stats/3, accum_stats/3, graph_counts/6
-                     , igraph_sample_tree/4, igraph_entropy/3
+                     , igraph_sample_tree/3, igraph_entropy/3
                      ]).
 
 /** <module> Inference and statistics on explanation hypergraphs
@@ -207,17 +207,17 @@ graph_inside(Graph, Params, IGraph)  :-
 graph_viterbi(Graph, Params, Tree, LP) :-
    semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
 
-%! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree), -LP:float) is det.
+%! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree)) is det.
 %
 %  Uses prob effect to sample a tree from a graph annotated with inside
 %  probabilities, as produced by graph_inside/3/
-igraph_sample_tree(Graph, Head, Subtrees, LogProb) :-
+igraph_sample_tree(Graph, Head, Subtrees) :-
    memberchk(Head-(_-Expls), Graph), % Head should be unique in graph
    zip(Ps,Es,Expls), stoch(Ps,Ps1,_), dist(Ps1,Es,Expl),
-   map_sum(sample_subexpl_tree(Graph), Expl, Subtrees, LogProb).
+   maplist(sample_subexpl_tree(Graph), Expl, Subtrees).
 
-sample_subexpl_tree(G, _-(M:Goal), (M:Goal)-Tree, LP) :- !, igraph_sample_tree(G, M:Goal, Tree, LP).
-sample_subexpl_tree(_, P-Factor,   Factor, LP) :- LP is log(P).
+sample_subexpl_tree(G, _-(M:Goal), (M:Goal)-Tree) :- !, igraph_sample_tree(G, M:Goal, Tree).
+sample_subexpl_tree(_, _-Factor,   Factor).
 
 %! igraph_entropy(+S:scaling, +IG:igraph, -Es:list(pair(goal,float))) is det.
 %  Explanation entropies from annotated explanation graph.
