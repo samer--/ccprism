@@ -24,7 +24,7 @@
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
-:- use_module(callops).
+:- use_module(callops, except([(:>)/3])).
 :- use_module(models).
 :- use_module(crp).
 
@@ -107,7 +107,7 @@ dice_gibbs(AA,Stride,Spec,M) :-
 dice_gibbs(AA,BurnIn,Stride,Spec,M) :-
    goal_graph(maplist(two_dice,[4,4,4]), G),
    graph_params(AA*uniform,G,P0),
-	call(call(Spec,G,P0,P0) >> drop(BurnIn) >> subsample(Stride), M).
+	call(call(Spec,G,P0,P0) :> drop(BurnIn) :> subsample(Stride), M).
 
 counts(Counts) :- setof( Xs, expl_stats(Xs), Counts).
 counts_multiplicities(HH) :-
@@ -130,9 +130,9 @@ test_mcmc(NumSamples, Sub, Spec, S) :-
    member(Spec>F, [gibbs_machine(counts)>(=),
                    mh_machine>(ccp_mcmc:mcs_counts)]),
 	unfold(NumSamples, dice_gibbs(2,Sub,Sub,Spec)
-                      >> mapper(ind(CC)*snd*nth1(1)*F)
-                      % >> mean(maplist(=(0)), maplist(add), vec_divby)
-                      >> drop(2), % was 200
+                      :> mapper(ind(CC)*snd*nth1(1)*F)
+                      % :> mean(maplist(=(0)), maplist(add), vec_divby)
+                      :> drop(2), % was 200
           S).
 
 % produces MATLAB expression. Display, eg, using library(plml) with

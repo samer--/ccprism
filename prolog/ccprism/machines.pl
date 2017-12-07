@@ -1,5 +1,5 @@
-:- module(machines, [ iterate/4, unfold/2, unfold_finite/2, scanner/3, scan0/4, mean/2, mean/5
-                    , (>>)/3, iterator/3, unfolder/3, mapper/3, moore/5, subsample/3, drop/3]).
+:- module(machines, [ iterate/4, unfold/2, unfold_finite/2, scanner/3, scan0/4, drop/3, mean/2, mean/5
+                    , op(600,yfx,:>), (:>)/3, iterator/3, unfolder/3, mapper/3, moore/5, subsample/3]).
 
 :- use_module(library(dcg_progress), [seqmap_with_progress//3]).
 :- use_module(library(math),         [add/3, divby/3]).
@@ -12,14 +12,14 @@ unfold_finite(MakeMachine, Stream) :- call(MakeMachine,unfolder(T,S)), lazy_unfo
 iterate(Setup, LPs) --> {call(Setup, Step)}, seqmap_with_progress(1,Step,LPs).
 
 % bulding unfolding predicates
-:- meta_predicate scanner(2,1,-), scan(2,3,-,+,-), scan0(2,?,?,?), >>(1,2,-).
+:- meta_predicate scanner(2,1,-), scan(2,3,-,+,-), scan0(2,?,?,?), :>(1,2,-).
 scanner(Sel, Setup, machines:scan(Sel, Step)) :- call(Setup,Step).
 scan(Sel,Trans,X,P1,P2) :- call(Trans,LP,P1,P2), call(Sel,t(LP,P1,P2),X).
 scan0(Trans,S1,S1,S2)   :- call(Trans,S1,S2).
 
-%% >>(+P:pred(-A), +Q:pred(+A,-B), -Y:B) is det.
-% machine composition: generator >> transducer --> generator
->>(U,T,M) :- call(U, Unfolder), call(T, Unfolder, M).
+%% :>(+P:pred(-A), +Q:pred(+A,-B), -Y:B) is det.
+% machine composition: generator :> transducer --> generator
+:>(U,T,M) :- call(U, Unfolder), call(T, Unfolder, M).
 
 % some predicates for building machings
 :- meta_predicate unfolder(3,?,-), mapper(2,+,-), moore(3,2,?,+,-), iterator(1,+,-).

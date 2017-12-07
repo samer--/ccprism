@@ -9,7 +9,7 @@
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_partition_dirichlet/2]).
 
-:- use_module(machines,   [unfold/2, unfolder/3, mapper/3, scan0/4, (>>)/3, mean/2]).
+:- use_module(machines,   [unfold/2, unfolder/3, mapper/3, scan0/4, (:>)/3, mean/2, op(600,yfx,:>)]).
 :- use_module(effects,    [dist/2, uniform/2]).
 :- use_module(lazymath,   [map_sum/4]).
 :- use_module(learn,      [converge/5, learn/4]).
@@ -17,7 +17,7 @@
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
 :- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3, semiring_graph_fold/4
-                          , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/4
+                          , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/3
                           ]).
 
 bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
@@ -29,8 +29,8 @@ mc_evidence(Method, Graph, Prior, Stream) :-
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
    method_machine_mapper(Method, Prior, Machine, Mapper),
    unfold(call(Machine, Graph, Prior, VBProbs)
-          >> mapper(p_params_given_post(VBProbs)*Mapper) >> mean
-          >> mapper(add(LogPDataVBProbs)*neg*log), Stream).
+          :> mapper(p_params_given_post(VBProbs)*Mapper) :> mean
+          :> mapper(add(LogPDataVBProbs)*neg*log), Stream).
 
 p_params_given_post(Probs,Post,P) :- sw_log_prob(Post,Probs,LP), P is exp(LP).
 
@@ -50,7 +50,7 @@ rotation(params,   Post, Step, Sample, Sample*Post*Step).
 gstep(P0,IG,P1,Counts) :-
    copy_term(P0-IG,P1-IG1),
    top_goal(Top),
-   igraph_sample_tree(IG1, Top, Trees, _),
+   igraph_sample_tree(IG1, Top, Trees),
    tree_stats(Top-Trees, Counts).
 
 mh_machine(Graph, Prior, Probs0, M) :-
@@ -77,7 +77,7 @@ make_tree_sampler(G, ccp_mcmc:sample_goal(P,IG)) :- graph_inside(G, P, IG).
 sample_goal(P0, IGraph0, P1, Goal, Trees) :-
    prune_graph(snd, Goal, IGraph0, ISubGraph0),
    copy_term(P0-ISubGraph0, P1-ISubGraph),
-   igraph_sample_tree(ISubGraph, Goal, Trees, _).
+   igraph_sample_tree(ISubGraph, Goal, Trees).
 
 mc_step(gibbs, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Keys, TK_O, State1, StateExK),
