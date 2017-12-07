@@ -42,7 +42,7 @@ it_step(Step,X-S1,S1,S2) :- call(Step,X,S1,S2).
 %% drop(+N:natural +G:unfolder(X,S), -T:unfolder(X,S)) is det.
 drop(N, unfolder(T,S0), unfolder(T,S1)) :- length(X,N), foldl(T,X,S0,S1).
 
-subsample(N, unfolder(T,S0), unfolder(skip(N,T),S0)).
+subsample(N, unfolder(T,S0), unfolder(machines:skip(N,T),S0)).
 skip(N,T,X,S1,S2) :- length([X|Y],N), foldl(T,[X|Y],S1,S2).
 
 % mean machine
