@@ -60,7 +60,8 @@ mh_machine(Graph, Prior, Probs0, M) :-
    mcs_init(SWs, VTrees, Keys, State),
    (  Keys=[] -> unfolder(scan0(=), State, M)
    ;  make_tree_sampler(Graph1, SampleGoal),
-      unfolder(scan0(mh_step(Keys, SampleGoal, SWs, Prior)), State, M)
+      (mcs_unit_counts(State) -> Stepper=gibbs; Stepper=mh),
+      unfolder(scan0(mc_step(Stepper, Keys, SampleGoal, SWs, Prior)), State, M)
    ).
 
 graph_as_conjunction(Graph, Graph) :- top_value(Graph, [_]), !.
@@ -78,7 +79,15 @@ sample_goal(P0, IGraph0, P1, Goal, Trees) :-
    copy_term(P0-ISubGraph0, P1-ISubGraph),
    igraph_sample_tree(ISubGraph, Goal, Trees, _).
 
-mh_step(Keys, SampleGoal, SWs, Prior, State1, State2) :-
+mc_step(gibbs, Keys, SampleGoal, SWs, Prior, State1, State2) :-
+   mcs_random_select(Keys, TK_O, State1, StateExK),
+   mcs_dcounts(StateExK, CountsExK),
+   sw_posteriors(Prior, CountsExK, PostExK),
+   sw_expectations(PostExK, ProbsExK),
+   mc_sample(SampleGoal, SWs, ProbsExK, TK_O, TK_P),
+   mcs_rebuild(TK_P, StateExK, State2).
+
+mc_step(mh, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Keys, TK_O, State1, StateExK),
    mcs_dcounts(StateExK, CountsExK),
    sw_posteriors(Prior, CountsExK, PostExK),
@@ -88,11 +97,11 @@ mh_step(Keys, SampleGoal, SWs, Prior, State1, State2) :-
    D is W_P-W_O, (D>= -1e-13 -> Accept=1; call(bernoulli*exp, D, Accept)),
    (Accept=0 -> State2=State1; mcs_rebuild(TK_P, StateExK, State2)).
 
-tree_acceptance_weight(Prior, Params, Tree, W) :-
+tree_acceptance_weight(PostExTree, PProbs, Tree, W) :-
    mct_counts(Tree, Counts),
-   sw_posteriors(Prior, Counts, Post),
+   sw_posteriors(PostExTree, Counts, Post),
    map_sum_sw(log_partition_dirichlet, Post, LZ),
-   map_sum_sw(map_sum(log_mul), Params, Counts, LP),
+   map_sum_sw(map_sum(log_mul), PProbs, Counts, LP),
    W is LZ - LP.
 log_mul(Prob, N, X) :- X is N*log(Prob).
 
@@ -113,6 +122,9 @@ mcs_rebuild(G-C, dmhs(K,CountsExK,MapExK), Totals-Map) :-
 
 mcs_dcounts(dmhs(_,CountsExK,_), CountsExK).
 mcs_counts(Counts-_, Counts).
+mcs_unit_counts(_-Map) :-
+   forall(rb_in(_,_-GCs,Map), forall(member(_-C, GCs), sumlist(C,1))).
+
 mct_goal(Goal-_, Goal).
 mct_make(SWs, Goal, T, Goal-C) :- sw_trees_stats(SWs,T,C).
 mct_counts(_-C,C).
