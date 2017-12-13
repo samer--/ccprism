@@ -73,11 +73,30 @@ mc_sample(SampleGoal, SWs, Probs, T1, T2) :-
    mct_goal(T1, Goal), call(SampleGoal, Probs, Goal, Tree),
    mct_make(SWs, Goal, Tree, T2).
 
-make_tree_sampler(G, ccp_mcmc:sample_goal(P,IG)) :- graph_inside(G, P, IG).
-sample_goal(P0, IGraph0, P1, Goal, Trees) :-
-   prune_graph(snd, Goal, IGraph0, ISubGraph0),
-   copy_term(P0-ISubGraph0, P1-ISubGraph),
-   igraph_sample_tree(ISubGraph, Goal, Trees).
+make_tree_sampler(G, ccp_mcmc:sample_goal(IGs)) :-
+   top_value(G, [Factors]),
+   maplist(sub_igraph(G), Factors, IGs).
+
+sub_igraph(G, Goal, Goal-(IG-Ps)) :-
+   prune_graph(=, Goal, G, SubGraph),
+   graph_inside(SubGraph, Ps, IG).
+
+sample_goal(IGs, PP, Goal, Trees) :-
+   member(Goal-(IG0-P0), IGs), % use rbtree for faster lookup
+   copy_term(P0-IG0, P1-IG1),
+   param_subset(P1, PP),
+   igraph_sample_tree(IG1, Goal, Trees).
+
+param_subset([], _).
+param_subset([H1-V1|T1], [H2-V2|T2]) :-
+    compare(Rel, H1, H2),
+    psub_aux(Rel, H1, V1, V2, T1, T2).
+
+psub_aux(>, H1, V1, _, T1, [H2-V2|T2]) :-
+    compare(Rel, H1, H2),
+    psub_aux(Rel, H1, V1, V2, T1, T2).
+psub_aux(=, _, V, V, T1, T2) :-
+    param_subset(T1, T2).
 
 mc_step(gibbs, Keys, SampleGoal, SWs, Prior, State1, State2) :-
    mcs_random_select(Keys, TK_O, State1, StateExK),
