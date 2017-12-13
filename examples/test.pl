@@ -14,7 +14,7 @@
 :- use_module(library(rbutils)).
 :- use_module(library(plrand)).
 :- use_module(library(prob/tagless)).
-:- use_module(library(ccprism/machines)).
+:- use_module(library(ccprism/machines), except([(:>)/3])).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/switches), [marg_log_prob/3]).
@@ -24,7 +24,7 @@
 :- use_module(library(ccprism/mcmc)).
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
-:- use_module(callops, except([(:>)/3])).
+:- use_module(callops).
 :- use_module(models).
 :- use_module(crp).
 
@@ -107,7 +107,7 @@ dice_gibbs(AA,Stride,Spec,M) :-
 dice_gibbs(AA,BurnIn,Stride,Spec,M) :-
    goal_graph(maplist(two_dice,[4,4,4]), G),
    graph_params(AA*uniform,G,P0),
-	call(call(Spec,G,P0,P0) :> drop(BurnIn) :> subsample(Stride), M).
+	call(Spec,G,P0,P0) :> drop(BurnIn) :> subsample(Stride) $$ M.
 
 counts(Counts) :- setof( Xs, expl_stats(Xs), Counts).
 counts_multiplicities(HH) :-
