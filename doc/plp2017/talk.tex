@@ -244,9 +244,9 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
 	~values~(die,[1,2,3,4]).
 
 	~dice~(0,0).
-	~dice~(N,Z) :- 
+	~dice~(N,Z) :-
 		msw(die, X),
-		N > 0, M is N-1, dice(M,Y), 
+		N > 0, M is N-1, dice(M,Y),
 		Z is X+Y.
 \end{prolog}
 	Enter a top goal "dice(3,4)".
@@ -282,9 +282,9 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
                         every node/.style={draw,fill=accent!25,inner sep=2pt},
                         rounded corners]%
     \graph[layered layout,
-           level distance=2em, sibling sep=1.5em, 
+           level distance=2em, sibling sep=1.5em,
            edges=rounded corners]
-    { 
+    {
 			"dice(0,0)" -> {{[fresh nodes] and/""[and]}};
 			"dice(1,1)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,1)"[sw],"dice(0,0)"}};
 			"dice(1,2)" -> {{[fresh nodes] and/""[and]} -> {"msw(die,2)"[sw],"dice(0,0)"}};
@@ -309,9 +309,9 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
 											  rounded corners
 											 ]
     \graph[layered layout,
-           level distance=2.5em, sibling sep=3em, 
+           level distance=2.5em, sibling sep=3em,
            edges=rounded corners]
-    { 
+    {
 "dice(0,0)"[label=right:$1.00$] -> {{[fresh nodes] and/""[and,label=above:$1.00$]}};
 "dice(1,1)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"msw(die,1)"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
 "dice(1,2)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"msw(die,2)"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
@@ -327,7 +327,7 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
 \begin{isframe}[Implementation size]
     Comparison between "ccprism" and PRISM version 2.1 (closest in feature set to "ccprism").
     Some code implementing general purpose services has been
-    excluded in order to compare like with like. 
+    excluded in order to compare like with like.
 
   \begin{center}
     \begin{tabular}{l|rr|r}
@@ -382,7 +382,7 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
   result, add 1 and print it.'
   }
 
-  \uncover<3->{ 
+  \uncover<3->{
   But why stop at the print? Taken to its logical conclusion, the \emph{undelimited}
   continuation includes the whole OS and only ends when the computer crashes or you
   switch it off.
@@ -404,7 +404,7 @@ Early versions: \citet{Sato1995,SatoKameya1997}.
   as pure function of type \caml{int -> int}. Here, it is the function $\lambda x.1+x$.
   }
 
-  \uncover<3->{How can we control where the context boundaries are? How can we get 
+  \uncover<3->{How can we control where the context boundaries are? How can we get
   hold of the continuations?}
 \end{iframe}
 
@@ -480,7 +480,7 @@ Let's write a simple effect handler which responds to \pl{get(Y)} by consuming v
 \begin{prolog}[frame=lines,belowskip=0em,xleftmargin=0em,basicstyle=\small]
   ~get~(Y) :- p_shift(rdr, get(Y)).
 
-  ~run_reader~(Goal, Values) :- 
+  ~run_reader~(Goal, Values) :-
     p_reset(rdr, Goal, Status), handle(Status, Values).
 
   ~handle~(susp(get(Y), Cont), [Y|Ys]) :- run_reader(Cont, Ys).
@@ -491,7 +491,7 @@ Let's write a simple effect handler which responds to \pl{get(Y)} by consuming v
 \begin{itemize}
   \item<2-> Unifying \pl{Y} with head of list sends data into \pl{Cont}.
   \item<3-> \pl{handle/2} invokes continuation using \pl{run_reader/2}.
-  \item<4-> Though \pl{Goal} may look `impure', with \pl{get/1} as a computational effect, 
+  \item<4-> Though \pl{Goal} may look `impure', with \pl{get/1} as a computational effect,
   \pl{run_reader/2} is pure. Effect is `reified' using extra parameter \pl{Values}.
 \end{itemize}
 \end{fframe}
@@ -507,7 +507,7 @@ Let's write a simple effect handler which responds to \pl{get(Y)} by consuming v
 
   ~dist~(Ps,Xs,X) :- p_shift(prob, dist(Ps,Xs,X)).
   ~uniform~(Xs,X) :- p_shift(prob, uniform(Xs,X)).
-  ~sample~(P,X)   :- p_shift(prob, sample(P,X)). 
+  ~sample~(P,X)   :- p_shift(prob, sample(P,X)).
   SW ~@:=@~ X       :- p_shift(prob, sw(SW,X)).
 
   ~cctabled~(Head,Work) :- p_shift(tab, tcall(Head,Work,Inj)), call(Inj).
@@ -593,7 +593,7 @@ A \pl{sw(A)} is predicate which `returns' a switch id and a difference list of t
 
 \uncover<3->{
 A \emph{factor} explains a probabilistic deduction step---it is either
-the probability of a choice from a fixed distribution, a switch with one of its values, or a 
+the probability of a choice from a fixed distribution, a switch with one of its values, or a
 module-qualified variant class representing a tabled subgoal.
 }
 \end{fframe}
@@ -605,8 +605,8 @@ module-qualified variant class representing a tabled subgoal.
   ~expl~(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [@P].
   ~expl~(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
 
-  ~term_to_variant_class~(T1, T2) :- 
-    copy_term_nat(T1,T2), 
+  ~term_to_variant_class~(T1, T2) :-
+    copy_term_nat(T1,T2),
     numbervars(T2,0,_).
 
   ~member2~(X,Y,[X|_],[Y|_]).
@@ -617,7 +617,7 @@ module-qualified variant class representing a tabled subgoal.
 \begin{fframe}[Tabled explanation search (tabling types)]
   \begin{prolog}[xleftmargin=0em,deletekeywords={ground,module,var},basicstyle=\small]
   :- @@type@@ ~soln~ == list(term).
-  :- @@type@@ ~kont~ ---> k(list(var),term,pred). 
+  :- @@type@@ ~kont~ ---> k(list(var),term,pred).
   :- @@type@@ ~table~ ---> tab(goal,rbtree(soln,list(list(factor))),list(cont)).
   \end{prolog}
 \uncover<1->{
@@ -627,7 +627,7 @@ A \pl{soln} (solution) is a list of values taken by variables in a tabled call.}
 along with the variables to `communicate' with it.}
 
 \uncover<3->{
-A \pl{table} contains the tabled goal itself (with variables), a 
+A \pl{table} contains the tabled goal itself (with variables), a
 map associating each solution with a list of explanations (each of which is a list of factors),
 and a list of continuations waiting for results from a tabled call.
 }
@@ -671,7 +671,7 @@ and a list of continuations waiting for results from a tabled call.
 \vspace{-1.5em}
 \rule{\linewidth}{0.4pt}\\
 This is basically the same as the tabling algorithm in \citep{Abdallah2017b}, slightly
-modified to collect explanations for each solution, instead of just collecting 
+modified to collect explanations for each solution, instead of just collecting
 solutions in a set.
 \end{isframe}
 
@@ -685,9 +685,9 @@ Before shallow program transformations:
 
   :- cctable dice/2.
 	~dice~(0,0).
-	~dice~(N,Z) :- 
+	~dice~(N,Z) :-
 		die := X,
-		succ(M,N), dice(M,Y), 
+		succ(M,N), dice(M,Y),
 		Z is X+Y.
 \end{prolog}
 \end{onlyenv}
@@ -700,9 +700,9 @@ After program transformations (but before DCG expansion):
 
   ~dice~(N,Z) :- cctabled(dice(N,Z),`dice#'(N,Z)).
 	`~dice#~'(0,0).
-	`~dice#~'(N,Z) :- 
+	`~dice#~'(N,Z) :-
 		die := X,
-		succ(M,N), dice(M,Y), 
+		succ(M,N), dice(M,Y),
 		Z is X+Y.
 \end{prolog}
 \end{onlyenv}
@@ -724,8 +724,8 @@ NB. Probabilistic predicates \emph{and} switches are module scoped.
 		 tables_graph(Ts, G0),
 		 prune_graph(=, `#top':top, [(`#top':top)-Es|G0], G1).
 
-  ~goal_expls_tables~(Goal, Es, Ts) :- 
-    run_tab(findall(E, run_prob(expl,Goal,E,[]), Es)), 
+  ~goal_expls_tables~(Goal, Es, Ts) :-
+    run_tab(findall(E, run_prob(expl,Goal,E,[]), Es)),
     nb_dump(Ts).
 \end{prolog}
 \end{isframe}
@@ -759,9 +759,9 @@ NB. Probabilistic predicates \emph{and} switches are module scoped.
 											  rounded corners
 											 ]
     \graph[layered layout,
-           level distance=2.5em, sibling sep=3em, 
+           level distance=2.5em, sibling sep=3em,
            edges=rounded corners]
-    { 
+    {
 "dice(0,0)"[label=right:$1.00$] -> {{[fresh nodes] and/""[and,label=above:$1.00$]}};
 "dice(1,1)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"die:=1"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
 "dice(1,2)"[label=right:$0.25$] -> {{[fresh nodes] and/""[and,label=above:$0.25$]} -> {"die:=2"[sw,label={[param]right:$0.25$}],"dice(0,0)"[label=right:$1.00$]}};
@@ -778,12 +778,12 @@ NB. Probabilistic predicates \emph{and} switches are module scoped.
 
 \begin{isframe}[Semiring graph processing]
 Generalised processing over parse forests \citep{Goodman1998,Goodman1999}.
-Idea is to replace `OR' and `AND' nodes of graph with 
+Idea is to replace `OR' and `AND' nodes of graph with
 `plus' and `times' operators from a semiring.
 
 A semiring is an algebra with a set of values and two binary operators
 $\oplus$ and $\otimes$, both monoidal (having identity elements $\mathbf{0}$ and $\mathbf{1}$ respectively),
-and with some additional conditions. Goodman shows how many useful parsing 
+and with some additional conditions. Goodman shows how many useful parsing
 algorithms can be defined using the same computation with different semirings,
 including $(+,0,\times,1)$ over reals for inside algorithm, $(\mathrm{max},-\infty,\times,1)$
 for Viterbi algorithm, and operations over sets of lists for parse tree extraction.
@@ -799,7 +799,7 @@ More convenient to generalise types:
   \mathit{inj} &: \mathit{factor} \times \theta \to \alpha\\
   \mathit{proj} &: \gamma \to \alpha
 \end{align*}
-Idea is to build a dataflow graph on the explanation graph, replacing 
+Idea is to build a dataflow graph on the explanation graph, replacing
 factor nodes with semiring operations, using $\mathit{inj}$ to get initial
 values from switch nodes and parameters and $\mathit{proj}$ to feed output of goal nodes
 back into product nodes.
@@ -854,18 +854,18 @@ of these by semiring \emph{composition}.
 Associative map from factors to $\alpha$ values in generalised semiring.
 \begin{prolog}[xleftmargin=0em,basicstyle=\small]
   ~fmap~(X,Y) --> rb_add(X,Y) -> []; rb_get(X,Y).
-  ~fmap_sws~(Map,SWs) :- 
-    rb_fold(emit_if_sw,Map,SWs1,[]), 
+  ~fmap_sws~(Map,SWs) :-
+    rb_fold(emit_if_sw,Map,SWs1,[]),
     sort(SWs1,SWs).
   ~emit_if_sw~(F-_) --> {F=(SW:=_)} -> [SW]; [].
 
   :- meta_predicate fmap_sw_vals(3,1,+,+,?).
   ~fmap_sw_vals~(Conv,Def,Map,SW,SW-XX) :-
-     call(SW,_,Vals,[]), 
+     call(SW,_,Vals,[]),
      maplist(sw_val_or_default(Conv,Def,Map,SW),Vals,XX).
 
   ~sw_val_or_default~(Conv,Def,Map,SW,Val,X) :-
-     (  rb_lookup(SW:=Val, P, Map) 
+     (  rb_lookup(SW:=Val, P, Map)
      ->call(Conv,SW:=Val,P,X)
      ;  call(Def,X)
      ).
@@ -903,7 +903,7 @@ Numeric and list based semirings: \pl{r(pred(T,A), pred(C,A), pred(A,B,B), pred(
   ~sr_zero~(best(_),  Z-_)   :- m_zero(max,Z).
   ~sr_unit~(best(_),  0.0-[]).
 
-  ~max_by_fst~(LX-X,LY-Y,Z) :- 
+  ~max_by_fst~(LX-X,LY-Y,Z) :-
     when(ground(LX-LY),(LX>= LY -> Z = LX-X; Z = LY-Y)).
 \end{prolog}
 \end{isframe}
@@ -926,7 +926,7 @@ Combine results from any two semirings.
 \rule{\linewidth}{0.4pt}\\
 \begin{prolog}[xleftmargin=0em,basicstyle=\small]
   ~sr_inj~(R1-R2, F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
-  ~sr_proj~(R1-R2, G, X1-X2, Z1-Z2, Y1-Y2) :- 
+  ~sr_proj~(R1-R2, G, X1-X2, Z1-Z2, Y1-Y2) :-
     sr_proj(R1,G,X1,Z1,Y1), sr_proj(R2,G,X2,Z2,Y2).
   ~sr_plus~(R1-R2, X1-X2) --> sr_plus(R1,X1) <\> sr_plus(R2,X2).
   ~sr_times~(R1-R2, X1-X2) --> sr_times(R1,X1) <\> sr_times(R2,X2).
@@ -972,7 +972,7 @@ Lazy, unbounded version of \citet{HuangChiang2005}
 		 enqueue(pos(I-J1,[X0|Xs],Ys)).
 
 	~enqueue~(P) --> new_position_cost(P,L) -> \> pq_add(L,P); [].
-	~new_position_cost~(pos(IJ,[X0|_],[Y0|_]),L) --> 
+	~new_position_cost~(pos(IJ,[X0|_],[Y0|_]),L) -->
     \< add_to_set(IJ), {L is X0+Y0}.
 
 	~pq_add~(L,P,H1,H2) :- add_to_heap(H1,L,P,H2).
@@ -990,13 +990,13 @@ Lazy, unbounded version of \citet{HuangChiang2005}
 	(pseudocounts representing how often each switch value is used in explanation graph).
 
 	Possibly \citet{SatoKameya2001} were the first to notice that this can be done by partial differentiation of
-	probability of top goal wrt switch parameters, then multiplying by inside probabilities: 
-	\[ 
-		\sw\eta = \frac{\sw\theta}{P_t} \pd{P_t}{\sw\theta}
-	\]
+	probability of top goal wrt switch parameters, then multiplying by inside probabilities:
+  \begin{equation}
+		\sw\eta = \frac{\sw\theta}{P_t} \pd{P_t}{\sw\theta} = \pd{\log P_t}{\log \sw\theta}.
+  \end{equation}
 	where $\sw\theta$ is the probability of switch $s$ taking value $i$,
-	$\sw\eta$ is the corresponding statistic, and $P_t$ is the inside probability 
-	of the top goal. 
+	$\sw\eta$ is the corresponding statistic, and $P_t$ is the inside probability
+	of the top goal.
 
 	In PRISM, this computation is expanded by hand into an explicit traversal of explanation graph annoted
   with inside probabilities.
@@ -1008,19 +1008,19 @@ Lazy, unbounded version of \citet{HuangChiang2005}
 	do away with all this code: simply compute the log (inside) probability of the top
 	goal wrt to the \emph{log} scaled switch value probabilities using a semiring
   composed of \emph{differentiable} operators to get
-	\[ 
+	\[
 		\sw\eta = \pd{\log P_t}{\log \sw\theta}.
 	\]
 	I suspect (not confirmed) that this will generalise to Viterbi training simply by using
   differentiable \pl{max} instead of \pl{add} in semiring.
 
-	Also expected to be useful in implementing new classes of switch distributions (\eg exponential 
+	Also expected to be useful in implementing new classes of switch distributions (\eg exponential
   families) and gradient based learning (\cf deep learning).
 \end{isframe}
 
 \begin{isframe}[ESS via automatic differentiation]
 \begin{prolog}[xleftmargin=0em,basicstyle=\small]
-	:- use_module(library(autodiff2),  [llog/2, log/2, exp/2, add/3, mul/3, 
+	:- use_module(library(autodiff2),  [llog/2, log/2, exp/2, add/3, mul/3,
                                       back/1, deriv/3, compile/0]).
 	~m_zero~(autodiff2:mul,1.0).
 	~m_zero~(autodiff2:add,0.0).
@@ -1053,7 +1053,7 @@ step of learning.
 
 	~unify3~(CVars,LP,P1,P2) :- copy_term(CVars, t(P1,P2,LP)).
 \end{prolog}
-This works because using \pl{CLP(R)} or similar, we can build the entire numerical dataflow graph 
+This works because using \pl{CLP(R)} or similar, we can build the entire numerical dataflow graph
 \emph{once} with \emph{uninstantiated} variables. We can then use the graph
 multiple times by copying all the variables (including constraints), unifying the inputs with
 numerical values, and reading off the outputs.
@@ -1089,7 +1089,7 @@ General tool for running single step repeatedly to convergence:
   \uncover<2->{All learning is pure declarative Prolog: parameters are input and output via arguments
   and there are no global variables.}
 
-  \uncover<3->{All variations on learning (linear or log scaled variants, temperatures, priors \etc) are 
+  \uncover<3->{All variations on learning (linear or log scaled variants, temperatures, priors \etc) are
   controlled by explicit parameters, not implicit global settings.}
 
   \uncover<4->{Gibbs and Metropolis-Hastings samplers implemented purely (using sampling effect handler)
@@ -1106,13 +1106,13 @@ General tool for running single step repeatedly to convergence:
 provide a predicate to act as a database of switch distributions, \eg, using "uniform_sampler//2"
 to assume a uniform distribution for all switches.
 \begin{prolog-barred}
-  ?- length(Xs,3), 
+  ?- length(Xs,3),
      strand(run_sampling(uniform_sampler,maplist(dice(3),Xs))).
   Xs = [10, 7, 6] .
 \end{prolog-barred}
 Here "strand/1" is a utility from an independent package
 "plrand" providing a random generator
-and various sampling distributions. "strand(G)" runs "G" as a DCG goal with the initial 
+and various sampling distributions. "strand(G)" runs "G" as a DCG goal with the initial
 state set to a random RNG state.
 \end{isframe}
 
@@ -1120,9 +1120,9 @@ state set to a random RNG state.
 If instead we want a particular distribution for switch "die", we can provide it using
 a `lookup sampler':
 \begin{prolog-barred}
-  ?- make_lookup_sampler([(eg:die)-[0.5,0.1,0.3,0.1]], S), 
+  ?- make_lookup_sampler([(eg:die)-[0.5,0.1,0.3,0.1]], S),
      strand(run_sampling(S,maplist(dice(3),Xs))),
-     length(Xs,3). 
+     length(Xs,3).
   Xs = [8, 5, 5],
   S = ccp_handlers:lookup_sampler(<rbtree>).
 \end{prolog-barred}
@@ -1150,9 +1150,9 @@ To build and pretty-print an explanation graph:
 Note that parameters "P" get numerical values \emph{after}
 running the inside aglorithm on the graph.
 \begin{prolog-barred}
-	?- goal_graph(dice(3,4),G), 
-		 semiring_graph_fold(r(=,=,mul,add),G,P,IG), 
-		 graph_params(uniform,G,P), 
+	?- goal_graph(dice(3,4),G),
+		 semiring_graph_fold(r(=,=,mul,add),G,P,IG),
+		 graph_params(uniform,G,P),
 		 print_term(IG,[]).
 
 	[ ('^top' : top) - 0.046875,
@@ -1170,17 +1170,17 @@ running the inside aglorithm on the graph.
 Showing only the calls and not the output, first an explanation
 graph annotated with inside probabilities:
 \begin{prolog-barred}
-	?- goal_graph(dice(3,4),G), 
-		 semiring_graph_fold(ann(r(=,=,mul,add)),G,P,IG), 
-		 graph_params(uniform,G,P), 
+	?- goal_graph(dice(3,4),G),
+		 semiring_graph_fold(ann(r(=,=,mul,add)),G,P,IG),
+		 graph_params(uniform,G,P),
 		 print_term(IG,[]).
 \end{prolog-barred}
 Now each subgoal with log probability of most likely explanation,
 using log scaled probabilities:
 \begin{prolog-barred}
-  ?- goal_graph(dice(3,4),G), 
-     semiring_graph_fold(r(log_e,=,add,max),G,P,VG), 
-     graph_params(uniform,G,P), 
+  ?- goal_graph(dice(3,4),G),
+     semiring_graph_fold(r(log_e,=,add,max),G,P,VG),
+     graph_params(uniform,G,P),
      print_term(VG,[]).
 \end{prolog-barred}
 \end{isframe}
@@ -1189,8 +1189,8 @@ using log scaled probabilities:
 Compute expected sufficient statistics given log-scaled switch parameters
 and using log-scaled inside algorithm:
 \begin{prolog-barred}
-  ?- goal_graph(dice(3,4),G), 
-     graph_counts(log,log,G,P,Eta,LP), 
+  ?- goal_graph(dice(3,4),G),
+     graph_counts(log,log,G,P,Eta,LP),
      graph_params(log(uniform),G,P).
 
   G = [...],
@@ -1202,8 +1202,8 @@ In this case, all explanations use "die:=1" twice and "die:=2" once.
 \end{isframe}
 
 \begin{isframe}[Examples: sampling and learning]
-This is a longer example combining sampling a dataset of 
-length "N" and trying to learn the die distribution from it. 
+This is a longer example combining sampling a dataset of
+length "N" and trying to learn the die distribution from it.
 The learned parameters are returned in "P1" and the history
 of likelihood values in "H".
 \begin{prolog}[xleftmargin=0em,basicstyle=\small]
@@ -1229,7 +1229,7 @@ random generator is passed in and out in "R1" and "R2".
 
       \item<+->Both these aspects are intended to encourage reading, understanding, modification and extension of the code.
 
-      \item<+->Performance: tabling is bit slow, but can be much improved using methods of \citet{Abdallah2017b}. EM learning 
+      \item<+->Performance: tabling is bit slow, but can be much improved using methods of \citet{Abdallah2017b}. EM learning
         is slower than PRISM, but faster than equivalent computation graph implemented using Theano or TensorFlow.
 
       \item<+->Future work: switches distributions from exponential families. Bayesian non-parametetrics.
