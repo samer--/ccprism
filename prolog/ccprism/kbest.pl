@@ -5,7 +5,7 @@
    order, based on the algorithm of Huang and Chiang [1]. Unlike their method
    however, this needs no preassigned limit on the number of parses to produce.
 
-   [1] Liang Huang and David Chiang. Better k-best parsing. 
+   [1] Liang Huang and David Chiang. Better k-best parsing.
        In Proceedings of the Ninth International Workshop on Parsing Technology, pages 53–64.
        Association for Computational Linguistics, 2005.
 */
@@ -20,12 +20,12 @@
 %  Find the most probable parse tree, and then find progressively less probable
 %  parse trees on backtracking.
 graph_nviterbi(Graph, Params, Tree, LP) :-
-   semiring_graph_fold(kbest, Graph, Params, VGraph), 
+   semiring_graph_fold(kbest, Graph, Params, VGraph),
    top_value(VGraph, Expls),
    member(LP-Tree,Expls).
 
-ccp_graph:sr_inj(kbest,   F, P, [Q-F]) :- surp(P,Q).
-ccp_graph:sr_proj(kbest,  G, X, X, Y)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
+ccp_graph:sr_inj(kbest,   P, F, [Q-F]) :- surp(P,Q).
+ccp_graph:sr_proj(kbest,  X, G, X, Y)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
 ccp_graph:sr_plus(kbest,  X) --> lazy(k_min,X).
 ccp_graph:sr_times(kbest, X) --> lazy(k_mul,X).
 ccp_graph:sr_zero(kbest,  []).
@@ -48,7 +48,7 @@ k_mul(Xs,Ys,Zs) :-
 
 k_next(L-[XF|YFs]) -->
    \> pq_get(L,pos(I-J,[X0|Xs],[Y0|Ys])),
-   {_-XF=X0, _-YFs=Y0, succ(I,I1), succ(J,J1)}, 
+   {_-XF=X0, _-YFs=Y0, succ(I,I1), succ(J,J1)},
    enqueue(pos(I1-J,Xs,[Y0|Ys])),
    enqueue(pos(I-J1,[X0|Xs],Ys)).
 

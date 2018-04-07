@@ -98,10 +98,10 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 %
 %  An algebra of type =|sr(A,B,C,T)|= must provide 4 operators and 2 values:
 %  ==
-%  inject  : factor, T -> A
+%  inject  : T, factor -> A
 %  times   : A, B -> B
 %  plus    : B, C -> C
-%  project : goal, C -> C, A
+%  project : C, goal -> W, A
 %  unit    : B
 %  zero    : C
 %  ==
@@ -137,7 +137,7 @@ semiring_graph_fold(SR, Graph, Params, GoalSums) :-
 sr_sum(SR, Goal-Expls, Goal-Sum1) -->
    fmap(Goal,Proj), {sr_zero(SR,Zero)},
    run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum),
-   {sr_proj(SR,Goal,Sum,Sum1,Proj)}.
+   {sr_proj(SR,Sum,Goal,Sum1,Proj)}.
 
 sr_add_prod(SR, Expl) -->
    {sr_unit(SR,Unit)},
@@ -145,23 +145,23 @@ sr_add_prod(SR, Expl) -->
 
 sr_factor(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
 sr_factor(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
-sr_factor(SR, @P)      --> {sr_inj(SR,@P,P,X)}, \> sr_times(SR,X).
+sr_factor(SR, @P)      --> {sr_inj(SR,P,@P,X)}, \> sr_times(SR,X).
 
-sr_param(SR,F,X,P) :- sr_inj(SR,F,P,X), !.
+sr_param(SR,F,X,P) :- sr_inj(SR,P,F,X), !.
 
 % --------- semirings ---------
-sr_inj(id,        F, _, F).
-sr_inj(r(I,_,_,_),  _, P, X)   :- call(I,P,X).
-sr_inj(best(log), F, P, P-F)   :- !.
-sr_inj(best(lin), F, P, Q-F)   :- log_e(P,Q).
-sr_inj(ann(SR),   F, P, Q-F)   :- sr_inj(SR,F,P,Q).
-sr_inj(R1-R2,     F, P, Q1-Q2) :- sr_inj(R1,F,P,Q1), sr_inj(R2,F,P,Q2).
+sr_inj(id,        _, F, F).
+sr_inj(r(I,_,_,_),  P, _, X)   :- call(I,P,X).
+sr_inj(best(log), P, F, P-F)   :- !.
+sr_inj(best(lin), P, F, Q-F)   :- log_e(P,Q).
+sr_inj(ann(SR),   P, F, Q-F)   :- sr_inj(SR,P,F,Q).
+sr_inj(R1-R2,     P, F, Q1-Q2) :- sr_inj(R1,P,F,Q1), sr_inj(R2,P,F,Q2).
 
-sr_proj(id,       G, Z,   Z, G).
-sr_proj(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
-sr_proj(best(_),  G, X-E, X-E, X-(G-E)).
-sr_proj(ann(SR),  G, X-Z, W-Z, Y-G)     :- sr_proj(SR,G,X,W,Y).
-sr_proj(R1-R2,    G, X1-X2, Z1-Z2, Y1-Y2) :- sr_proj(R1,G,X1,Z1,Y1), sr_proj(R2,G,X2,Z2,Y2).
+sr_proj(id,       Z, G,   Z, G).
+sr_proj(r(_,P,_,_), X, _, Y, Y) :- call(P,X,Y).
+sr_proj(best(_),  X-E, G, X-E, X-(G-E)).
+sr_proj(ann(SR),  X-Z, G, W-Z, Y-G)       :- sr_proj(SR,X,G,W,Y).
+sr_proj(R1-R2,    X1-X2, G, Z1-Z2, Y1-Y2) :- sr_proj(R1,X1,G,Z1,Y1), sr_proj(R2,X2,G,Z2,Y2).
 
 sr_plus(id,       Expl) --> cons(Expl).
 sr_plus(r(_,_,_,O), X) --> call(O,X).
