@@ -1,0 +1,23 @@
+Graph catamorphism (semiring graph fold) in Haskell.
+
+There are several implementations here:
+
+cata1 - Basic version, not very nice Viterbi using max_by_fst to factorise max monoid
+cata2 - Using Orders module to build max monoid in steps from an order, least element, and payload
+cata3 - Simplify algebra and catamorphism types by absorbing parameter maps (theta fns) into inj fn.
+        Add memoisation for big speed up.
+
+Models are represented as functions which map a goal in the model to a lis of explanations
+
+dice - Sum of K tetrahedral dice model.
+hmm  - Hidden Markov model, with both list and index representations of progress throgh chain.
+
+There are some supporting modules:
+
+common   - some utility functions, generalised monoid type (Binoid a b = (a -> b -> b, b)
+           and instances for multiplication, addition and list building. Also data type
+			  VTree for representing Viterbi tree.
+graph    - Type and helper function for building explanation graphs
+orders   - Slightly overengineered system for building lattice (for Viterbi stuff) from order relation
+memotrie - Pure and lazy memoisation using tries
+main     - Top level function for testing and timing execution.
