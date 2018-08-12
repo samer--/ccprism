@@ -1,0 +1,72 @@
+% range of hidden states
+values(obs(_), [a,c,g,t]).
+values(next(_), [x, y]).
+values(next_with_end(_), [x, y, end]).
+
+hmm(_, []).
+hmm(S1,[X1|XX]) :-
+   msw(next(S1), S2), msw(obs(S1),X1),
+   hmm(S2,XX).
+
+init_sw :- 
+   set_sw(next(x), [0.5, 0.5]),
+   set_sw(next(y), [0.5, 0.5]),
+   set_sw(obs(x), [0.25, 0.25, 0.25, 0.25]),
+   set_sw(obs(y), [0.25, 0.25, 0.25, 0.25]).
+
+sample_and_learn_hmm(N) :-
+   init_sw,
+   sample_hmm(N, X),
+   assert_seq(test, X),
+   % learn([hmm(x, X)]),
+   learn([hmm_db(test, x, 0)]),
+   statistics,
+   show_sw.
+
+hmm_db(Seq, _, T) :- seq_length(Seq,T).
+hmm_db(Seq, S1, T1) :- 
+   T2 is T1 + 1,
+   msw(next(S1), S2), 
+   nth_seq(T2, Seq, X1),
+   msw(obs(S1),X1),
+   hmm_db(Seq, S2, T2).
+
+hmm_with_end(end, []).
+hmm_with_end(S1,[X1|XX]) :- S1 \= end,
+   msw(next_with_end(S1), S2), msw(obs(S1),X1),
+   hmm_with_end(S2,XX).
+
+hmm_with_end_db(Seq, end, T) :- seq_length(Seq,T).
+hmm_with_end_db(Seq, S1, T1) :- S1 \= end,
+   T2 is T1 + 1,
+   msw(next_with_end(S1), S2), 
+   nth_seq(T2, Seq, X1),
+   msw(obs(S1),X1),
+   hmm_with_end_db(Seq, S2, T2).
+
+assert_seq(Seq, XX) :-
+   length(XX, L),
+   retractall(seq_length(Seq, _)),
+   retractall(seq_nth(Seq, _, _)),
+   retractall(nth_seq(_, Seq, _)),
+   assert(seq_length(Seq, L)),
+   forall(nth1(T, XX, X), assert(seq_nth(Seq, T, X))),
+   forall(nth1(T, XX, X), assert(nth_seq(T, Seq, X))).
+
+sample_hmm(N, X) :-
+   length(X,N),
+   hmm(x,X).
+
+time_infer(N,P) :-
+   sample_hmm(N, X),
+   prob(hmm_with_end(x,X),P),
+   infer_statistics.
+
+time_infer_db(N,P) :-
+   sample_hmm(N, X),
+   assert_seq(time, X),
+   prob(hmm_with_end_db(time,x,0), P),
+   infer_statistics.
+
+:- set_prism_flag(log_scale, on).
+:- set_prism_flag(epsilon, 1.0e-6).

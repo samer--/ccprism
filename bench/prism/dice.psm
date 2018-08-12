@@ -5,3 +5,22 @@ dice(N,Z) :-
    msw(die, X),
    N>0, M is N-1, dice(M,Y),
    Z is X+Y.
+
+sample_dice(K, N, Xs) :-
+   set_sw(die, [0.2,0.4,0.3,0.1]),
+   get_samples(N, dice(K,_), Xs).
+
+assert_ds(DS, K, N) :- sample_dice(K, N, Xs), retractall(data(DS, _)), assert(data(DS, Xs)).
+ds_learn(DS) :- data(DS, Xs), learn(Xs), show_sw.
+
+sample_and_learn_dice(K, N) :-
+   sample_dice(K, N, Xs),
+   learn(Xs),
+   statistics, 
+   show_sw.
+
+mdice([]).
+mdice([dice(K,Z)|D]) :- dice(K,Z), mdice(D).
+
+:- set_prism_flag(log_scale, on).
+:- set_prism_flag(epsilon, 1.0e-6).
