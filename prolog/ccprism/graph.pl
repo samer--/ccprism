@@ -34,7 +34,7 @@
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
 :- use_module(library(data/pair),   [fst/2, snd/2]).
 :- use_module(library(rbutils),     [rb_in/3, rb_add//2, rb_app//2, rb_get//2]).
-:- use_module(library(autodiff2),   [back/1, deriv/3, compile/0]).
+:- use_module(library(autodiff2),   [back/1, deriv/3, compile/1]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/3, map_swc/4]).
 :- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
@@ -88,7 +88,7 @@ graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 
-%! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,C))) is det.
+%! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,W))) is det.
 %
 %  Folds the semiring SR over the explanation graph G. Produces R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
@@ -193,6 +193,7 @@ m_zero(max,-inf).
 m_zero(cons,[]).
 m_zero(autodiff2:mul,1.0).
 m_zero(autodiff2:add,0.0).
+m_zero(autodiff2:add_to_wsum,0.0).
 m_zero(autodiff2:max,-inf).
 
 v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
@@ -256,15 +257,16 @@ factor_entropy(_) --> [].
 %  ==
 graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
    method_scaling_semiring(Method, ISc, SR, ToLogProb),
-   semiring_graph_fold(SR, Graph, P0, IG),
+   semiring_graph_fold(SR, Graph, P0, IG), autodiff2:expand_wsums,
    call(ToLogProb*top_value, IG, LogProb),
    scaling_log_params(ISc, PSc, P0, Params0, LogP0),
    map_swc(deriv(LogProb), LogP0, Eta),
-   back(LogProb), compile, Params=Params0.
+   back(LogProb), compile(_), Params=Params0.
 
 method_scaling_semiring(vit,     log, r(=,=,autodiff2:add,autodiff2:max), =).
 method_scaling_semiring(io(lin), lin, r(=,=,autodiff2:mul,autodiff2:add), autodiff2:log).
 method_scaling_semiring(io(log), log, r(=,autodiff2:lse, autodiff2:add,cons), =).
+method_scaling_semiring(io(log_wsum), log, r(=,autodiff2:lse, autodiff2:add_to_wsum,cons), =).
 
 scaling_log_params(lin, lin, P0,    P0,    LogP0) :- map_swc(autodiff2:llog, P0, LogP0).
 scaling_log_params(lin, log, P0,    LogP0, LogP0) :- map_swc(autodiff2:exp, LogP0, P0).
