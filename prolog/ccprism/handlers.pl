@@ -13,6 +13,7 @@
 */
 :- use_module(library(typedef)).
 :- use_module(library(lambdaki)).
+:- use_module(library(data/pair),   [ffst/3]).
 :- use_module(library(prob/tagless),[discrete//3, uniform//2]).
 :- use_module(library(delimcc),     [p_reset/3, p_shift/2]).
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
@@ -43,10 +44,16 @@ cont_notab(done).
 run_sampling(Sampler,Goal,S1,S2) :-
    run_notab(run_prob(sample(Sampler),Goal,S1,S2)).
 
+fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
 uniform_sampler(SW,X) --> {call(SW,_,Xs,[])}, uniform(Xs,X).
 lookup_sampler(Map,SW,X) --> {call(SW,ID,Xs,[]), rb_lookup(ID,Ps,Map)}, discrete(Xs,Ps,X).
-make_lookup_sampler(Params,ccp_handlers:lookup_sampler(Map)) :- list_to_rbtree(Params, Map).
-fallback_sampler(S1, S2, SW,X) --> call(S1,SW,X) -> []; call(S2,SW,X).
+
+:- meta_predicate make_lookup_sampler(:,-).
+make_lookup_sampler(M:Params,ccp_handlers:lookup_sampler(Map)) :-
+   maplist(ffst(switch_id(M)), Params,Params1),
+   list_to_rbtree(Params1, Map).
+
+switch_id(M, SW, ID) :- call(M:SW, ID, _, []).
 
 % -------- handlers for tabled explanation graph building -----------
 % goal_expls_tables(+Goal,-TopExpls:list(list(factor)), -Tables) is det.
