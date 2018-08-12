@@ -28,10 +28,10 @@ two_dice(X)     :- die(1) := D1, die(2) := D2, X is D1+D2.
 % :- use_module(library(clpfd)).
 dice(0,0).
 dice(N,Z) :- succ(M,N), die := X, dice(M,Y), Z is X+Y.
-% dice(N,Z) :- 
-%    die := X, 
-%    nonneg(Y), Z #= X+Y, 
-%    nonneg(M), N #= M+1, 
+% dice(N,Z) :-
+%    die := X,
+%    nonneg(Y), Z #= X+Y,
+%    nonneg(M), N #= M+1,
 %    dice(M,Y).
 % nonneg(X) :- X #>= 0.
 
@@ -44,7 +44,7 @@ test(Y,Z) :- (X=1;X=2;X=3), ssucc(A,Y), A=X, ssucc(_,Z).
 /* -------------------------- Grammars -------------------------
 
    Grammars are encoded here in a couple of ways. The first here is mostly like a
-   normal Prolog DCG, except that disjunctions need to be controlled by a 
+   normal Prolog DCG, except that disjunctions need to be controlled by a
    probabilistic choice. The term expansion =|Head :-> Alternatives|= introduces an
    integer valued switch =|Head|= to select one of the disjuncts in =|Alternatives|=,
    each of which can be a normal DCG body.
@@ -140,9 +140,9 @@ repeat_a(I) --> rep(I,"a").
 
 
 /* This is an alternative grammar system that uses 'pre-stored' tables to avoid
-   having to work with difference lists in the grammar predicates. Instead, 
+   having to work with difference lists in the grammar predicates. Instead,
    sequences are 'stored' (similar to assertion, but handled more declaratively
-   by using the continuation based tabling system), after which terminals are 
+   by using the continuation based tabling system), after which terminals are
    accessed by position index. The lookup predicate c//1 is itself tabled, and
    works by looking up the stored sequence.
 
@@ -151,7 +151,7 @@ repeat_a(I) --> rep(I,"a").
 */
 :- cctable c//1.
 c(T, S-I, S-J) :- ccstored(sequence(S,Ts)), nth0(I,Ts,T), succ(I,J).
-parse(NT,Words) :- 
+parse(NT,Words) :-
    gensym(seq,S),   ccstore(sequence(S,W),W=Words),
    length(Words,N), call_dcg(NT,S-0,S-N).
 
