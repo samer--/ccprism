@@ -1,1 +1,7 @@
 .*.sw[m-p]
+*.o
+*.hi
+.swipl_history.*
+doc/*/*.pdf
+*.psm.out
+*.vim
