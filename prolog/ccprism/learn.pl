@@ -66,11 +66,12 @@ unify3(PStats,LP,P1,P2) :- copy_term(PStats, t(P1,P2,LP)).
 :- meta_predicate converge(+,1,-,+,-).
 converge(Test, Setup, [X0|History], S0, SFinal) :-
    debug(learn, 'converge: Setting up...',[]),
-   time(call(Setup, Step)),
+   time(call(Setup, Step)), autodiff2:ops_count(N,N),
+   debug(learn(setup), 'converge: Computation graph contains ~d ops.', [N]),
    call(Step, X0, S0, S1),
-   converge_x(Test, Step, X0, History, S1, SFinal).
+   time(converge_x(Test, Step, X0, History, S1, SFinal)).
 converge_x(Test, Step, X0, [X1|History], S1, SFinal) :-
-   debug(learn, 'converge: Cost = ~p.',[X0]),
+   debug(learn(iters), 'converge: Cost = ~p.',[X0]),
    call(Step, X1, S1, S2),
    (  converged(Test, X0, X1) -> History=[], SFinal=S2
    ;  converge_x(Test, Step, X1, History, S2, SFinal)
