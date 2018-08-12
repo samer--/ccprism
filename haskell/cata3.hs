@@ -11,12 +11,12 @@ module Cata3 where
 -- lazy memoisation tools provided in the MemoTrie. This converts
 -- exponential time computations into sensible time!
 
-import Control.Arrow
-import Data.Maybe
-import MemoTrie
+import Control.Arrow (first, second, (&&&), (|||))
+import Data.Maybe    (fromJust)
+import MemoTrie      (HasTrie, memo)
+import Graph  (Graph, subg, prim)
+import Common (Binoid, multiplication, addition, list, (><), dup, lse, VTree(Prim, Goal))
 import Orders (bottom_lattice', floats_lattice, floats, payload_floats_lattice, payload_max_lb_lattice)
-import Common
-import Graph
 
 data A g p a b c w = GSR (Binoid a b)     -- times, one
                          (Binoid b c)     -- plus, zero

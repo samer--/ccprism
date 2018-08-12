@@ -1,5 +1,5 @@
-module  Orders (bottom_lattice', maxby_chain, floats_lattice, floats, payload_chain, maxby_lb_chain, payload_lb_chain,
-                payload_floats_lattice, payload_max_lb_lattice) where
+module  Orders (bottom_lattice', maxby_chain, floats_lattice, floats, payload_chain, maxby_lb_chain, 
+                payload_lb_chain, payload_floats_lattice, payload_max_lb_lattice) where
 
 import Control.Arrow (first, (>>>))
 import Data.Maybe (fromMaybe)

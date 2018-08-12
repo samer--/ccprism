@@ -1,8 +1,7 @@
 {-# LANGUAGE TypeOperators, TypeFamilies #-}
-module MemoTrie where
+module MemoTrie (HasTrie, memo) where
 -- See http://conal.net/blog/posts/elegant-memoization-with-functional-memo-tries
 
--- infix 4 ↛
 infix 4 :>
 infix 6 !!!
 

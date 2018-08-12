@@ -1,19 +1,9 @@
-module Cata1
+module Cata1 where
 
-import Control.Arrow
-import Data.Maybe
-import Graph (Graph, subg, prim)
-import Common
-
-max' x y = if x > y then (x, True) else (y, False)
-
-mmax' x Nothing = (Just x, True)
-mmax' x (Just y) = if x > y then (Just x, True) else (Just y, False)
-
-mmax x y = fst (mmax' x y)
-inf = read "Infinity" :: Float
-
-max_by_fst max (x,e1) (y,e2) = let (z,i) = max x y in (z, if i then e1 else e2)
+import Control.Arrow (first, second, (&&&), (***), (|||))
+import Data.Maybe    (fromJust)
+import Graph         (Graph, subg, prim)
+import Common        (dup, (<>), VTree(Prim, Goal))
 
 data A g p a b c t w = GSR (a -> b -> b) b  -- times, one
                            (b -> c -> c) c  -- plus, zero
@@ -31,6 +21,18 @@ inside :: Num t => A g p t t t t t
 inside = GSR (*) 1 (+) 0 fst (dup . snd)
 
 identity = GSR (:) [] (:) [] (prim . snd) (first subg)
+
+-- Viterbi stuff
+
+max' x y = if x > y then (x, True) else (y, False)
+
+mmax' x Nothing = (Just x, True)
+mmax' x (Just y) = if x > y then (Just x, True) else (Just y, False)
+
+mmax x y = fst (mmax' x y)
+inf = read "Infinity" :: Float
+
+max_by_fst max (x,e1) (y,e2) = let (z,i) = max x y in (z, if i then e1 else e2)
 
 viterbi :: (Num t, Ord t) => A g p t t (Maybe t) t t
 viterbi  = GSR (*) 1 mmax Nothing fst (dup . fromJust . snd)

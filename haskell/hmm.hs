@@ -1,4 +1,4 @@
-module HMM where
+module HMM (theta, graph, graphl) where
 
 import Graph
 

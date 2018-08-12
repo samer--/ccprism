@@ -1,4 +1,4 @@
-module Dice where
+module Dice (graph, theta, theta2) where
 
 import Control.Monad
 import Graph

@@ -3,11 +3,11 @@ module Cata2 where
 -- of lattice for Viterbi algorithms, and a product type Binoid a b to represent
 -- a function a -> b -> b and an initial element of type b.
 
-import Control.Arrow
-import Data.Maybe
+import Control.Arrow (first, second, (&&&), (***), (|||))
+import Data.Maybe    (fromJust)
+import Graph  (Graph, subg, prim)
+import Common (Binoid, multiplication, addition, list, (><), dup, lse, VTree(Prim, Goal))
 import Orders (bottom_lattice', floats_lattice, floats, payload_floats_lattice, payload_max_lb_lattice)
-import Common
-import Graph
 
 data A g p a b c t w = GSR (Binoid a b)     -- times, one
                            (Binoid b c)     -- plus, zero
@@ -28,7 +28,7 @@ inside_log = GSR addition list (log . fst) (dup . lse . snd)
 identity = GSR list list (prim . snd) (first subg)
 
 -- Viterbi -----------------------------
-viterbi multiplication lattice inj proj = 
+viterbi multiplication lattice inj proj =
   GSR multiplication lattice (inj . fst) (dup . proj . snd)
 
 viterbi_tree multiplication lattice inj proj =
