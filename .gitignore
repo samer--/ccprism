@@ -5,3 +5,4 @@
 doc/*/*.pdf
 *.psm.out
 *.vim
+haskell/test
