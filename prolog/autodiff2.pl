@@ -1,4 +1,5 @@
-:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1, compile/0]).
+:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1, compile/1, ops_count/2,
+                      expand_wsums/0, wsum/2, add_to_wsum/3]).
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
@@ -8,11 +9,22 @@
 */
 
 :- use_module(library(chr)).
+:- use_module(library(rbutils)).
 :- use_module(library(listutils), [measure/2]).
 
+:- chr_constraint expand_wsums, wsum(?,-), add_to_wsum(?,?,-).
 :- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-), pow(+,-,-),
                   lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mes(?,-,-,-),
                   deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go, compile.
+
+add_to_wsum(X,0.0,S) <=> ord_list_to_rbtree([X-1], Terms), wsum(Terms, S).
+add_to_wsum(X,S1,S2), wsum(Terms1, S1) <=> incr_term(X, Terms1, Terms2), wsum(Terms2, S2).
+
+incr_term(X) --> rb_app_or_new(X, succ, =(1)).
+add_mul(X-N, S1, S2) :- K is float(N), mul(K,X,NX), add(NX,S1,S2).
+expand_wsums \ wsum(Terms, Sum) <=> rb_fold(add_mul, Terms, 0.0, Sum).
+expand_wsums <=> true.
+
 
 % operations interface with simplifications
 mul(0.0,_,Y) <=> Y=0.0.
@@ -82,6 +94,8 @@ go \ deriv(_,_,_) <=> true.
 go \ acc(DX) <=> acc(DX,0.0).
 go <=> true.
 
+compile(N) :- ops_count(_, 0), compile, ops_count(N, N).
+
 % convert arithmetic constraints to frozen goals.
 compile \ max(X,Y,Z) <=> delay(max(X,Y),Z).
 compile \ add(X,Y,Z) <=> delay(X+Y,Z).
@@ -93,15 +107,18 @@ compile \ pow(K,X,Y) <=> delay(X**K,Y).
 compile \ llog(_,_)  <=> true.
 
 compile\ stoch_exp(_,_,_) <=> true.
-compile, mes(Xs,M,_,S)  \ lse(Xs,Y)        <=> when(ground(S), Y is M+log(S)).
-compile, mes(Xs,_,Ws,S) \ stoch_exp(Xs,Ys) <=> when(ground(S), maplist(divby(S),Ws,Ys)).
-compile\ mes(Xs,M,Ws,S)                    <=> when(ground(Xs), max_exp_sum(Xs,M,Ws,S)).
+compile, mes(Xs,M,_,S)  \ lse(Xs,Y)        <=> incr, when(ground(S), Y is M+log(S)).
+compile, mes(Xs,_,Ws,S) \ stoch_exp(Xs,Ys) <=> incr, when(ground(S), maplist(divby(S),Ws,Ys)).
+compile\ mes(Xs,M,Ws,S)                    <=> incr, when(ground(Xs), max_exp_sum(Xs,M,Ws,S)).
 
 compile <=> true.
 
-delay(Expr,Res) :- when(ground(Expr), Res is Expr).
-chi(X,Y,Z,I)  :- when(ground(X-Y), (X>Y -> I=Z; X<Y -> I=0.0; delay(Z/2.0,I))).
+delay(Expr,Res) :- incr, when(ground(Expr), Res is Expr).
+chi(X,Y,Z,I)  :- incr, when(ground(X-Y), (X>Y -> I=Z; X<Y -> I=0.0; delay(Z/2.0,I))).
 divby(K,X,Y) :- Y is X/K.
+
+ops_count(Old, New) :- flag(autodiff_ops_count, Old, New).
+incr :- flag(autodiff_ops_count, N, N+1).
 
 max_exp_sum(Xs,M,Ws,Sum) :-
    max_list(Xs,M),
