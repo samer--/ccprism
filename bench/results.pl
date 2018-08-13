@@ -79,6 +79,25 @@ dice(ccpws, 10, 200, 16, 267, 4873, 918).
 dice(ccpws, 10, 200, 16, 248, 6224, 1189).
 dice(ccpws, 10, 200, 34, 263, 6352, 1189).
 
+dice(ccpio, 10, 100, 70, 17, 2016, 236).
+dice(ccpio, 10, 100, 61, 16, 2026, 236).
+dice(ccpio, 10, 100, 61, 19, 6801, 873).
+dice(ccpio, 10, 100, 59, 22, 6895, 873).
+dice(ccpio, 10, 100, 64, 21, 10100, 1176).
+dice(ccpio, 10, 100, 62, 20, 10091, 1176).
+
+dice(ccpio, 20, 100, 230, 87, 110100, 2960).
+dice(ccpio, 20, 100, 159, 80, 113740, 2960).
+dice(ccpio, 20, 100, 161, 76, 143200, 4070).
+dice(ccpio, 20, 100, 162, 76, 100300, 2676).
+
+dice(ccpio, 10, 200, 170, 17, 22550, 2776).
+dice(ccpio, 10, 200, 279, 33, 26715, 2776).
+dice(ccpio, 10, 200, 154, 18, 10980, 1298).
+dice(ccpio, 10, 200, 146, 21, 19874, 1298).
+dice(ccpio, 10, 200, 144, 20, 9614, 1138).
+dice(ccpio, 10, 200, 147, 19, 9574, 1138).
+
 summary(Sys, K, N, MeanExpl, MeanAD, MeanIt) :-
    aggregate(r(bag(T_exp), bag(T_AD), bag(T_learn), bag(Its)), dice(Sys, K, N, T_exp, T_AD, T_learn, Its),
              r(ExplTimes, ADTimes, LearnTimes, Its)),
