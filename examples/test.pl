@@ -26,13 +26,19 @@
 :- use_module(library(ccprism/display)).
 :- use_module(library(ccprism)).
 :- use_module(callops).
-:- use_module(models).
+:- use_module(grammars).
+:- use_module(dice).
+:- use_module(tools).
 :- use_module(crp).
 
 :- set_prolog_flag(toplevel_mode, recursive).
-% ---- general purpose utilities ----
 
 :- initialization((init_rnd_state(S), nb_setval(rs,S)), program).
+
+% % mode to test handling of variables in answers
+% :- cctable ssucc/2.
+% ssucc(X, a(X)).
+% test(Y,Z) :- (X=1;X=2;X=3), ssucc(A,Y), A=X, ssucc(_,Z).
 
 :- meta_predicate samp(0), samp(4,0), samp(0,+,-).
 samp(G) :- samp(uniform_sampler,G).
@@ -40,17 +46,6 @@ samp(S,G) :- with_brs(rs, run_sampling(S,G)).
 samp(G) --> run_sampling(uniform_sampler,G).
 
 unfold(N0,M,S) :- succ(N0,N), time(samp(call(take(N)*unfold, M, [_|S]))).
-
-histof(Xs,Hist) :- setof(X-N, aggregate(count,member(X,Xs),N), Hist).
-distof(Xs,Dist) :-
-   histof(Xs,Hist),
-   length(Xs,N),
-   maplist(fsnd(divby(N)), Hist, Dist).
-
-nathist(Dom,Ns,H) :-
-	setof(N-C, aggregate(count, member(N,Ns), C), NCs),
-	maplist(lup(NCs), Dom, H).
-lup(NCs,N,C) :- member(N-C,NCs) -> true; C=0.
 
 seq_dist(S,CC) :-
 	length(S,NumSamples),
@@ -95,9 +90,6 @@ speed_test(CountsPred, PSc, Dataset, Reps, Counts, LogProb) :-
    copy_term(t(P0,Counts0,LP0), t(P1,Counts,LogProb)).
 
 eval(T,P1) :- copy_term(T,t(P1,_,_)).
-
-rep(0,_) :- !.
-rep(N,G) :- N1 is N-1, call(G), rep(N1,G).
 
 % ----- Testing MCMC with the two_dice system ----
 

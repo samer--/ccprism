@@ -8,11 +8,7 @@
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers), [make_lookup_sampler/2]).
 :- use_module(library(dcg_core), [rep//2]).
-
-%% iota(+N:natural, L1:list(natural), L2:list(natural)) is det.
-%  Difference list version of numlist, useful for switch domains.
-iota(0,L,L) :- !.
-iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
+:- use_module(tools, [iota//1]).
 
 % some switch declarations
 coin +-> iota(2).
