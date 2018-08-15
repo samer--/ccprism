@@ -1,0 +1,10 @@
+digraph ccprism {
+   node [shape="box"]
+   autodiff -> {"graph" switches}
+   "graph" -> {effects switches}
+   kbest -> {"graph"}
+   learn -> {"graph" autodiff switches}
+   mcmc -> {effects learn switches}
+   switches -> {effects}
+   ccprism -> {handlers "graph" switches}
+}
