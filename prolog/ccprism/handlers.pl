@@ -19,8 +19,8 @@
 :- use_module(library(rbutils),     [rb_app_or_new/5, rb_in/3]).
 :- use_module(library(ccnbref),     [run_nb_ref/1, nbref_new/2, nbref_add_with/3]).
 
-:- type table  ---> tab(rbtree(values, list(list(factor))), list(cont)).
-:- type factor ---> module:head ; @number ; sw(A):=A.
+:- type tab    ---> tab(rbtree(values, list(list(factor))), list(cont)).
+:- type factor ---> module:head ; \number ; sw(A):=A.
 :- type cont   == pred(+values, -values).
 :- type values == list(ground).
 
@@ -78,8 +78,8 @@ run_incr(Goal) :-
 
 expl(tab(G))     --> {term_to_ground(G,F)}, [F].
 expl(sw(SW,X))   --> {call(SW,ID,Xs,[]), member(X,Xs)}, [ID:=X].
-expl(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [@P].
-expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [@P].
+expl(dist(Ps,Xs,X)) --> {member2(P,X,Ps,Xs)}, [\P].
+expl(uniform(Xs,X)) --> {length(Xs,N), P is 1/N, member(X,Xs)}, [\P].
 expl(factor(F)) --> [F].
 
 :- meta_predicate run_tab(0,+,?).

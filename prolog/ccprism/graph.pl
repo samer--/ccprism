@@ -72,7 +72,7 @@ prune_graph(Mapper, Top, GL1, GL2) :-
 
 % SA 2017/10 - Temporarily weaken pattern matching to handle arbitrary factors
 % children(_:=_, _, _) --> !.
-% children(@_,   _, _) --> !.
+% children(\_,   _, _) --> !.
 children(Mod:Goal,  M, G) --> !,
    {rb_lookup(Mod:Goal,Entry,G)}, rb_add(Mod:Goal,Entry),
    {call(M, Entry, Expls)},
@@ -145,7 +145,7 @@ sr_add_prod(SR, Expl) -->
 
 sr_factor(SR, M:Head)  --> !, fmap(M:Head,X) <\> sr_times(SR,X).
 sr_factor(SR, SW:=Val) --> !, fmap(SW:=Val,X) <\> sr_times(SR,X).
-sr_factor(SR, @P)      --> {sr_inj(SR,P,@P,X)}, \> sr_times(SR,X).
+sr_factor(SR, \P)      --> {sr_inj(SR,P,\P,X)}, \> sr_times(SR,X).
 
 sr_param(SR,F,X,P) :- sr_inj(SR,P,F,X), !.
 
@@ -288,7 +288,7 @@ sw_trees_stats(SWs,Trees,Stats) :- accum_stats(tree_stats(_-Trees),const(SWs),St
 tree_stats(_-Subtrees) --> foldl(subtree_stats,Subtrees).
 subtree_stats(_-Trees) --> foldl(subtree_stats,Trees).
 subtree_stats(SW:=Val) --> rb_app(SW:=Val,succ) -> []; rb_add(SW:=Val,1).
-subtree_stats(@_)      --> [].
+subtree_stats(\_)      --> [].
 right(_,X,X).
 
 % --- Factor-value map, used internally --------------
