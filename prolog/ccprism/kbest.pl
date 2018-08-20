@@ -25,7 +25,7 @@ graph_nviterbi(Graph, Params, Tree, LP) :-
    member(LP-Tree,Expls).
 
 ccp_graph:sr_inj(kbest,   P, F, [Q-F]) :- surp(P,Q).
-ccp_graph:sr_proj(kbest,  X, G, X, Y)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
+ccp_graph:sr_proj(kbest,  G, X, Y, X)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
 ccp_graph:sr_plus(kbest,  X) --> lazy(k_min,X).
 ccp_graph:sr_times(kbest, X) --> lazy(k_mul,X).
 ccp_graph:sr_zero(kbest,  []).

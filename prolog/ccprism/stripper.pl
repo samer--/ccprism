@@ -15,7 +15,7 @@ strip_graph_modules(G1, G3) :-
 strip(_:F, F).
 
 ccp_graph:sr_inj(strip, _, (_:SW):=V, SW:=V).
-ccp_graph:sr_proj(strip, Z, _:G, Z, G).
+ccp_graph:sr_proj(strip, _:G, Z, G, Z).
 ccp_graph:sr_plus(strip, Expl) --> cons(Expl).
 ccp_graph:sr_times(strip, F)   --> cons(F).
 ccp_graph:sr_zero(strip, []).

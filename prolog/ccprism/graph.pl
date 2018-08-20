@@ -101,7 +101,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 %  inject  : T, factor -> A
 %  times   : A, B -> B
 %  plus    : B, C -> C
-%  project : C, goal -> W, A
+%  project : goal, C -> A, W
 %  unit    : B
 %  zero    : C
 %  ==
@@ -134,10 +134,10 @@ semiring_graph_fold(SR, Graph, Params, GoalSums) :-
    fmap_sws(Map, SWs),
    maplist(fmap_collate_sw(sr_param(SR),true1,Map),SWs,Params).
 
-sr_sum(SR, Goal-Expls, Goal-Sum1) -->
+sr_sum(SR, Goal-Expls, Goal-Result) -->
    fmap(Goal,Proj), {sr_zero(SR,Zero)},
    run_right(foldr(sr_add_prod(SR),Expls), Zero, Sum),
-   {sr_proj(SR,Sum,Goal,Sum1,Proj)}.
+   {sr_proj(SR,Goal,Sum,Proj,Result)}.
 
 sr_add_prod(SR, Expl) -->
    {sr_unit(SR,Unit)},
@@ -157,11 +157,11 @@ sr_inj(best(lin), P, F, Q-F)   :- log_e(P,Q).
 sr_inj(ann(SR),   P, F, Q-F)   :- sr_inj(SR,P,F,Q).
 sr_inj(R1-R2,     P, F, Q1-Q2) :- sr_inj(R1,P,F,Q1), sr_inj(R2,P,F,Q2).
 
-sr_proj(id,       Z, G,   Z, G).
-sr_proj(r(_,P,_,_), X, _, Y, Y) :- call(P,X,Y).
-sr_proj(best(_),  X-E, G, X-E, X-(G-E)).
-sr_proj(ann(SR),  X-Z, G, W-Z, Y-G)       :- sr_proj(SR,X,G,W,Y).
-sr_proj(R1-R2,    X1-X2, G, Z1-Z2, Y1-Y2) :- sr_proj(R1,X1,G,Z1,Y1), sr_proj(R2,X2,G,Z2,Y2).
+sr_proj(id,       G, Z,   G, Z).
+sr_proj(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
+sr_proj(best(_),  G, X-E, X-(G-E), X-E).
+sr_proj(ann(SR),  G, X-Z, Y-G, W-Z)       :- sr_proj(SR,G,X,Y,W).
+sr_proj(R1-R2,    G, X1-X2, Y1-Y2, Z1-Z2) :- sr_proj(R1,G,X1,Y1,Z1), sr_proj(R2,G,X2,Y2,Z2).
 
 sr_plus(id,       Expl) --> cons(Expl).
 sr_plus(r(_,_,_,O), X) --> call(O,X).
