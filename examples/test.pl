@@ -134,8 +134,8 @@ diagnose_mcmc(NumSamples, Sub, Spec, permute(Traces, [2,3,1])) :-
    test_mcmc(NumSamples,Sub,Spec,S),
    dice_exact_probs(2,Dist),
    maplist(pair,_,Ps,Dist),
-   B = vecop(@lt,rand(10,NumSamples),arr(Ps)),
-   Traces = cumsum(vecop(@minus,cat(3,arr(S),B),arr(Ps)),2).
+   B = vecop(@(lt),rand(10,NumSamples),arr(Ps)),
+   Traces = cumsum(vecop(@(minus),cat(3,arr(S),B),arr(Ps)),2).
 
 ind(Xs,X,Is) :- maplist(eq(X),Xs,Is).
 eq(X,Y,I) :- X=Y -> I=1; I=0.
