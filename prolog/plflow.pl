@@ -45,8 +45,6 @@ op_goal(log, [X], [Z]) --> g(Z is log(X)).
 op_goal(chi, [X,Y,Z], [I]) --> g(X>Y -> I=Z; X<Y -> I=0.0; I is Z/2.0).
 op_goal(sum_list,   Xs, [Z]) --> g(sum_list(Xs,Z)).
 op_goal(max_list,   Xs, [Z]) --> g(max_list(Xs,Z)).
-% op_goal(divby_list, [K|Xs], Zs) --> g(divby_list(K, Xs, Zs)).
-% divby_list(K, Xs, Zs) :- maplist(divby(K), Xs, Zs).
 op_goal(divby_list, [K|Xs], Zs) --> foldl(divby(K), Xs, Zs).
 divby(K, X, Z) --> g(Z is X / K).
 
