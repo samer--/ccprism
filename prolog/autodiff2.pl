@@ -108,7 +108,7 @@ ops(G1,G2), max(X,Y,Z) <=> upd_ops(op(max, [X,Y], [Z]), G1, G2).
 ops(G1,G2), pow(X,Y,Z) <=> upd_ops(op(pow, [X,Y], [Z]), G1, G2).
 ops(G1,G2), log(X,Y)   <=> upd_ops(op(log, [X], [Y]), G1, G2).
 ops(G1,G2), exp(X,Y)   <=> upd_ops(op(exp, [X], [Y]), G1, G2).
-ops(_,_) \ llog(_,_)  <=> true.
+ops(_,_) \ llog(_,_)   <=> true.
 
 ops(_,_) \ stoch_exp(_,_,_)  <=> true.
 mes(Xs,M,_,S)  \ ops(G1,G2), lse(Xs,Y)        <=> mes(Xs,M,_,S), upd_ops(add_log(S,M,Y), G1, G2).
@@ -118,8 +118,7 @@ ops(G1,G2), chi(X,Y,Z,I)                      <=> upd_ops(op(chi, [X,Y,Z], [I]),
 ops(G1,G2) <=> G1=G2.
 
 add_log(S,M,Y) --> op(log,[S],[LogS]), op(add,[LogS,M],[Y]).
-divby_list(S,Ws,Ys) --> op(divby_list, [S|Ws], Ys).
-% divby_list(S,Ws,Ys) --> foldl(divby(S), Ws, Ys).
+divby_list(S,Ws,Ys) --> foldl(divby(S), Ws, Ys).
 divby(S,W,Y) --> op(div, [W,S], [Y]).
 
 max_exp_sum(Xs,M,Ws,Sum) -->
