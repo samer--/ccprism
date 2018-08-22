@@ -5,7 +5,6 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(insist)).
-:- use_module(library(math), [divby/3]).
 
 topsort(Ins, Outs, Ops, SortedOps) :-
    rb_empty(E),
@@ -31,20 +30,16 @@ ops_body(Ops, Body) :-
 
 op_goals(op(OpCode, Ins, Outs)) --> op_goal(OpCode, Ins, Outs).
 
-:- meta_predicate g(0,?,?).
-g(G) --> [G].
-
 :- multifile op_goal/4.
-op_goal(add, [X,Y], [Z]) --> g(Z is X + Y).
-op_goal(sub, [X,Y], [Z]) --> g(Z is X - Y).
-op_goal(mul, [X,Y], [Z]) --> g(Z is X * Y).
-op_goal(div, [X,Y], [Z]) --> g(Z is X / Y).
-op_goal(pow, [X,Y], [Z]) --> g(Z is Y**X).
-op_goal(exp, [X], [Z]) --> g(Z is exp(X)).
-op_goal(log, [X], [Z]) --> g(Z is log(X)).
-op_goal(chi, [X,Y,Z], [I]) --> g(X>Y -> I=Z; X<Y -> I=0.0; I is Z/2.0).
-op_goal(sum_list,   Xs, [Z]) --> g(sum_list(Xs,Z)).
-op_goal(max_list,   Xs, [Z]) --> g(max_list(Xs,Z)).
+op_goal(add, [X,Y], [Z]) --> [Z is X + Y].
+op_goal(sub, [X,Y], [Z]) --> [Z is X - Y].
+op_goal(mul, [X,Y], [Z]) --> [Z is X * Y].
+op_goal(div, [X,Y], [Z]) --> [Z is X / Y].
+op_goal(pow, [X,Y], [Z]) --> [Z is Y**X].
+op_goal(exp, [X], [Z]) --> [Z is exp(X)].
+op_goal(log, [X], [Z]) --> [Z is log(X)].
+op_goal(chi, [X,Y,Z], [I]) --> [X>Y -> I=Z; X<Y -> I=0.0; I is Z/2.0].
+op_goal(sum_list,   Xs, [Z]) --> [sum_list(Xs,Z)].
+op_goal(max_list,   Xs, [Z]) --> [max_list(Xs,Z)].
 op_goal(divby_list, [K|Xs], Zs) --> foldl(divby(K), Xs, Zs).
-divby(K, X, Z) --> g(Z is X / K).
-
+divby(K, X, Z) --> [Z is X / K].
