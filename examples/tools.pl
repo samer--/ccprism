@@ -1,4 +1,4 @@
-:- module(tools, [rep/2, iota//1, nathist/3, histof/2, distof/2]).
+:- module(tools, [rep/2, iota//1, nathist/3, histof/2, distof/2, nmaplist/3]).
 
 :- use_module(library(data/pair), [fsnd/3]).
 :- use_module(library(math), [divby/3]).
@@ -10,6 +10,9 @@ iota(N,L3,L1) :- succ(M,N), iota(M,L3,[N|L1]).
 
 rep(0,_) :- !.
 rep(N,G) :- N1 is N-1, call(G), rep(N1,G).
+
+:- meta_predicate nmaplist(?,1,?).
+nmaplist(N,P,Xs) :- length(Xs,N), maplist(P,Xs).
 
 histof(Xs,Hist) :- setof(X-N, aggregate(count,member(X,Xs),N), Hist).
 distof(Xs,Dist) :-

@@ -6,11 +6,12 @@
 :- use_module(library(math),       []).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
-:- use_module(lazymath, [sub/3, max/3, add/3, mul/3, pow/3, stoch/2, map_sum/4, patient/3]).
+:- use_module(lazymath, [sub/3, add/3, mul/3, pow/3, stoch/2, map_sum/4, patient/3]).
 :- use_module(graph,    [graph_counts/6]).
-:- use_module(switches, [ map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3, map_sum_sw/4
-                        , sw_log_prob/3, sw_posteriors/3, sw_mode/2]).
+:- use_module(switches, [map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3, map_sum_sw/4, sw_log_prob/3]).
 
+sw_posteriors(Prior, Eta, Post) :- map_swc(add, Eta, Prior, Post).
+sw_mode(Alphas, Probs)          :- map_sw(stoch*maplist(max(0.0)*add(-1.0)), Alphas, Probs).
 
 %! learn(+Method:learn_method, +Stats:stats_method, +ITemp:number, +G:graph, -U:learner) is det.
 %! learn(+Method:learn_method, +Stats:stats_method, +G:graph, -U:learner) is det.
@@ -66,8 +67,8 @@ unify3(PStats,LP,P1,P2) :- copy_term(PStats, t(P1,P2,LP)).
 :- meta_predicate converge(+,1,-,+,-).
 converge(Test, Setup, [X0|History], S0, SFinal) :-
    debug(learn, 'converge: Setting up...',[]),
-   time(call(Setup, Step)), autodiff2:ops_count(N,N),
-   debug(learn(setup), 'converge: Computation graph contains ~d ops.', [N]),
+   time(call(Setup, Step)),
+   debug(learn(setup), 'converge: Computation graph contains ~d ops.', [unknown]),
    call(Step, X0, S0, S1),
    time(converge_x(Test, Step, X0, History, S1, SFinal)).
 converge_x(Test, Step, X0, [X1|History], S1, SFinal) :-

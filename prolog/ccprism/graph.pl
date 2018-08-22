@@ -34,7 +34,7 @@
 :- use_module(library(callutils),   [mr/5, (*)/4, const/3, true1/1]).
 :- use_module(library(data/pair),   [fst/2, snd/2]).
 :- use_module(library(rbutils),     [rb_in/3, rb_add//2, rb_app//2, rb_get//2]).
-:- use_module(library(autodiff2),   [back/1, deriv/3, compile/1]).
+:- use_module(library(autodiff2),   [back/1, deriv/3]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/3, map_swc/4]).
 :- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
@@ -261,7 +261,7 @@ graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
    call(ToLogProb*top_value, IG, LogProb),
    scaling_log_params(ISc, PSc, P0, Params0, LogP0),
    map_swc(deriv(LogProb), LogP0, Eta),
-   back(LogProb), compile(_), Params=Params0.
+   back(LogProb), Params=Params0.
 
 method_scaling_semiring(vit,     log, r(=,=,autodiff2:add,autodiff2:max), =).
 method_scaling_semiring(io(lin), lin, r(=,=,autodiff2:mul,autodiff2:add), autodiff2:log).
