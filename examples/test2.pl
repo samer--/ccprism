@@ -8,7 +8,7 @@
 :- use_module(library(ccprism)).
 :- use_module(library(autodiff2)).
 :- use_module(library(julia)).
-:- use_module(juliaflow).
+:- use_module(library(plflow)).
 :- use_module(dice).
 :- use_module(tools).
 

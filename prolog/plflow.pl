@@ -1,6 +1,5 @@
-:- module(juliaflow, [topsort/4, ops_body/2]).
+:- module(plflow, [topsort/4, ops_body/2]).
 
-:- use_module(library(julia)).
 :- use_module(library(rbutils)).
 :- use_module(library(dcg_core)).
 :- use_module(library(dcg_pair)).
