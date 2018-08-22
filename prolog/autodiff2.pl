@@ -118,8 +118,7 @@ ops(G1,G2), chi(X,Y,Z,I)                      <=> upd_ops(op(chi, [X,Y,Z], [I]),
 ops(G1,G2) <=> G1=G2.
 
 add_log(S,M,Y) --> op(log,[S],[LogS]), op(add,[LogS,M],[Y]).
-divby_list(S,Ws,Ys) --> foldl(divby(S), Ws, Ys).
-divby(S,W,Y) --> op(div, [W,S], [Y]).
+divby_list(S,Ws,Ys) --> op(divby_list, [S|Ws], Ys).
 
 max_exp_sum(Xs,M,Ws,Sum) -->
    op(max_list, Xs, [M]),
