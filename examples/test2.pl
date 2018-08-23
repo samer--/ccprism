@@ -1,5 +1,6 @@
 :- start_doc.
 :- use_module(library(plrand)).
+:- use_module(library(callops)).
 :- use_module(library(listutils), [zip/3, drop/3]).
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/learn)).
@@ -9,6 +10,7 @@
 :- use_module(library(autodiff2)).
 :- use_module(library(julia)).
 :- use_module(library(plflow)).
+:- use_module(library(clambda)).
 :- use_module(dice).
 :- use_module(tools).
 
@@ -40,7 +42,7 @@ multitrial(Learner, K, N, Curves) :-
 
 learn1(Modifier, Drop, Tol, Meth, G, H) :-
    graph_params(random, G, P0),
-   converge(abs(Tol), call(Modifier, learn(ml, io(Meth), G)), HFull, P0, _P1),
+   converge(abs(Tol), learn(ml, io(Meth), G) :> Modifier, HFull, P0, _P1),
    drop(Drop, HFull, H).
 
 add_plot(Drop, Y, P1, P2) :-
@@ -48,9 +50,8 @@ add_plot(Drop, Y, P1, P2) :-
    numlist(1, NumIts, X),
    P2 ?? 'plot!'(P1, Drop+X, Y).
 
-with_plot(Setup, with_plot(Step)) :- call(Setup, Step).
-with_plot(Step, Cost, S1, S2) :-
-   call(Step, Cost, S1, S2),
+with_plot(lambda(Args,Body), lambda(Args,(Body, do_plot(Cost,S2)))) :- Args=[Cost,_,S2].
+do_plot(Cost, S2) :-
    member((dice:die)-Probs, S2),
    format(string(Title), "~1f", [Cost]),
    !gui(1, bar(Probs, title=Title, size= #(160, 160), ylim= #(0,0.6))).
@@ -82,28 +83,10 @@ mode_graph_body(Mode, G, P0, Result, Body) :-
    time(topsort(Ins, Outs, Ops, SortedOps)),
    ops_body(SortedOps, Body).
 
-params_variables(Params, Ins) :- foldl(probs, Params, [], Ins).
-probs(_-Probs) --> append(Probs).
-
-:- meta_predicate with_compiled_lambda(+,-,0).
-with_compiled_lambda(Lambda, Pred, Goal) :-
-   flag(dpred, I, I+1), atom_number(Pred, I),
-   lambda_clause(Lambda, Pred, Arity, Clause),
-   setup_call_cleanup(assert(Clause), Goal, abolish(Pred/Arity)).
-
-:- meta_predicate with_compiled_lambda2(+,-,0).
-with_compiled_lambda2(\Lambda, dpred(I), Goal) :-
-   flag(dpred, I, I+1),
-   once(lambda_clause(\I^Lambda, dpred, _, Clause)),
-   setup_call_cleanup(assert(Clause), Goal, retract(Clause)).
-
-lambda_clause(\X^Y^Z^Body, Pred, 3, Head :- Body) :- Head =.. [Pred, X, Y, Z].
-lambda_clause(\X^Y^Body, Pred, 2, Head :- Body) :- Head =.. [Pred, X, Y].
-
 speed_test(Mode,K,N,M) :-
    writeln('Timings are: search, build_chr, topsort, total_setup, iterations'),
    with_brs(rs, with_die_sampler(nmaplist(N, dice(K), Xs))),
    goal_graph(maplist(dice(K),Xs), G),
    graph_params(uniform, G, P0),
    time(mode_graph_body(Mode, G, P, Top, Body)),
-   time(with_compiled_lambda(\P^Top^Body, Pred, nmaplist(M, call(Pred, P0), _Vals))).
+   time(with_compiled_lambda(lambda([P,Top],Body), Pred, nmaplist(M, call(Pred, P0), _Vals))).

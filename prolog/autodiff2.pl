@@ -1,5 +1,5 @@
 :- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1,
-                      expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/1]).
+                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/1]).
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
@@ -15,7 +15,7 @@
 :- chr_constraint expand_wsums, wsum(?,-), add_to_wsum(?,?,-), ops(-,+).
 :- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-), pow(+,-,-),
                   lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mes(?,-,-,-), chi(?,?,?,-),
-                  deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go.
+                  deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go, esc(+,?,-).
 
 add_to_wsum(X,0.0,S) <=> ord_list_to_rbtree([X-1], Terms), wsum(Terms, S).
 add_to_wsum(X,S1,S2), wsum(Terms1, S1) <=> incr_term(X, Terms1, Terms2), wsum(Terms2, S2).
@@ -31,8 +31,8 @@ mul(_,0.0,Y) <=> Y=0.0.
 mul(1.0,X,Y) <=> Y=X.
 mul(X,1.0,Y) <=> Y=X.
 mul(X,Y,Z1) \ mul(X,Y,Z2) <=> Z1=Z2.
-pow(1,X,Y) <=> Y=X.
-pow(0,_,Y) <=> Y=1.
+pow(1,X,Y)   <=> Y=X.
+pow(0,_,Y)   <=> Y=1.
 add(0.0,X,Y) <=> Y=X.
 add(X,0.0,Y) <=> Y=X.
 add(X,Y,Z1) \ add(X,Y,Z2) <=> Z1=Z2.
@@ -93,14 +93,15 @@ go \ deriv(_,_,_) <=> true.
 go \ acc(DX) <=> acc(DX,0.0).
 go <=> true.
 
-max_exp_sum(Xs,M,Ws,Sum) :-
-   max_list(Xs,M),
-   maplist(exp_sub(M),Xs,Ws),
-   sum_list(Ws, Sum).
-exp_sub(M,X,Y) :- Y is exp(X-M).
-
 gather_ops(G) :- ops(G,[]).
+
+:- meta_predicate upd_ops(//,?,?).
 upd_ops(Upd,G1,G3) :- call(Upd,G1,G2), ops(G2,G3).
+op(Op, Ins, Outs) --> [op(Op,Ins,Outs)].
+
+% these don't make much difference..
+% goal_expansion(op(Op,Ins,Outs,G1,G2), G1 = [op(Op,Ins,Outs)|G2]).
+% goal_expansion(upd_ops(P,G1,G3), (call(P,G1,G2), ops(G2,G3))).
 
 ops(G1,G2), add(X,Y,Z) <=> upd_ops(op(add, [X,Y], [Z]), G1, G2).
 ops(G1,G2), mul(X,Y,Z) <=> upd_ops(op(mul, [X,Y], [Z]), G1, G2).
@@ -108,6 +109,7 @@ ops(G1,G2), max(X,Y,Z) <=> upd_ops(op(max, [X,Y], [Z]), G1, G2).
 ops(G1,G2), pow(X,Y,Z) <=> upd_ops(op(pow, [X,Y], [Z]), G1, G2).
 ops(G1,G2), log(X,Y)   <=> upd_ops(op(log, [X], [Y]), G1, G2).
 ops(G1,G2), exp(X,Y)   <=> upd_ops(op(exp, [X], [Y]), G1, G2).
+ops(G1,G2), esc(Op,X,Y)<=> upd_ops(op(Op, X, Y), G1, G2).
 ops(_,_) \ llog(_,_)   <=> true.
 
 ops(_,_) \ stoch_exp(_,_,_)  <=> true.
@@ -126,5 +128,3 @@ max_exp_sum(Xs,M,Ws,Sum) -->
    foldl(exp_sub(M),Xs,Ws),
    op(sum_list, Ws, [Sum]).
 exp_sub(M,X,Y) --> op(sub, [X,M], [XsubM]), op(exp, [XsubM], [Y]).
-
-op(Op, Ins, Outs) --> [op(Op,Ins,Outs)].
