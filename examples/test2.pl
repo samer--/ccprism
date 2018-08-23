@@ -50,8 +50,9 @@ add_plot(Drop, Y, P1, P2) :-
    numlist(1, NumIts, X),
    P2 ?? 'plot!'(P1, Drop+X, Y).
 
-with_plot(lambda(Args,Body), lambda(Args,(Body, do_plot(Cost,S2)))) :- Args=[Cost,_,S2].
-do_plot(Cost, S2) :-
+with_plot(Step, step_and_plot(Step)).
+step_and_plot(Step, Cost, S1, S2) :-
+   call(Step, Cost, S1, S2),
    member((dice:die)-Probs, S2),
    format(string(Title), "~1f", [Cost]),
    !gui(1, bar(Probs, title=Title, size= #(160, 160), ylim= #(0,0.6))).

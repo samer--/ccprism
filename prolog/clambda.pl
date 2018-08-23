@@ -1,4 +1,4 @@
-:- module(clambda, [with_compiled_lambda/3, run_lambda_compiler/1, clambda/2]).
+:- module(clambda, [run_lambda_compiler/1, clambda/2]).
 /** <module> Compiled lambdas */
 :- use_module(library(delimcc), [p_reset/3, p_shift/2]).
 
@@ -12,8 +12,3 @@ cont(done,Used) :- maplist(retractall, Used).
 cont(susp(compile(lambda(Args, Body), clambda:dpred(I)), Cont), Used) :-
    flag(clambda, I, I+1), Head =.. [dpred, I|Args],
    assert(Head :- Body), run_lambda_compiler(Cont, [Head | Used]).
-
-:- meta_predicate with_compiled_lambda(+,-,0).
-with_compiled_lambda(lambda(Args,Body), clambda:dpred(I), Goal) :-
-   flag(clambda, I, I+1), Head =.. [dpred, I|Args],
-   setup_call_cleanup(assert(Head :- Body), Goal, retractall(Head)).

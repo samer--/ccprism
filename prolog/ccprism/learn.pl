@@ -8,7 +8,7 @@
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
 :- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1]).
 :- use_module(library(plflow),     [topsort/4, ops_body/2]).
-:- use_module(library(clambda),    [with_compiled_lambda/3]).
+:- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
 :- use_module(lazymath, [map_sum/4]).
 :- use_module(graph,    [graph_counts/6]).
 :- use_module(switches, [map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3, map_sum_sw/4]).
@@ -37,12 +37,12 @@ log_part_dir(As, LZ) :- esc(log_partition_dirichlet, As, [LZ]).
 plflow:op_goal(log_prob_dirichlet(As), Ps, [LP], switches:log_prob_dirichlet(As,Ps,LP)).
 plflow:op_goal(log_partition_dirichlet, As, [LZ], plrand:log_partition_dirichlet(As,LZ)).
 
-make_lambda(Obj, P1, P2, lambda([Obj,P1,P2],Body)) :-
+make_lambda(Obj, P1, P2, Pred) :-
    maplist(params_variables, [P1,P2], [Ins,Outs]),
    gather_ops(Ops), length(Ops, NumOps),
    debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
-   topsort(Ins, [Obj|Outs], Ops, SortedOps),
-   ops_body(SortedOps,Body).
+   call(ops_body * topsort(Ins, [Obj|Outs]), Ops, Body),
+   clambda(lambda([Obj,P1,P2], Body), Pred).
 
 learn(ml, Stats, ITemp, Graph, Lambda) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),
@@ -93,8 +93,8 @@ mul_add(K,X,Y,Z) :- mul(K,Y,KY), add(X,KY,Z).
 :- meta_predicate converge(+,1,-,+,-).
 converge(Test, Setup, [X0|History], S0, SFinal) :-
    debug(learn(setup), 'converge: Setting up...',[]),
-   time(call(Setup, Lambda)),
-   with_compiled_lambda(Lambda, Step, (
+   run_lambda_compiler((
+      time(call(Setup, Step)),
       call(Step, X0, S0, S1),
       time(converge_x(Test, Step, X0, History, S1, SFinal)))).
 
