@@ -12,3 +12,11 @@ cont(done,Used) :- maplist(retractall, Used).
 cont(susp(compile(lambda(Args, Body), clambda:dpred(I)), Cont), Used) :-
    flag(clambda, I, I+1), Head =.. [dpred, I|Args],
    assert(Head :- Body), run(Cont, [Head | Used]).
+
+% cclause(Head, Body) :- p_shift(clambda, compile(Head, Body)).
+% clambda(lambda(Args, Body), clambda:dpred(I)) :-
+%    flag(clambda, I, I+1), Head =.. [dpred, I|Args],
+%    cclause(Head, Body).
+
+% cont(done,Used) :- maplist(retractall, Used).
+% cont(susp(compile(Head, Body), Cont), Used) :- assert(Head :- Body), run(Cont, [Head | Used]).
