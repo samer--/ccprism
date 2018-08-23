@@ -1,4 +1,4 @@
-:- module(plflow, [topsort/4, ops_body/2]).
+:- module(plflow, [topsort/4, topsort//3, ops_body/2]).
 
 :- use_module(library(rbutils)).
 :- use_module(library(dcg_core)).
@@ -7,10 +7,11 @@
 :- use_module(library(insist)).
 :- use_module(library(math), [stoch/3]).
 
-topsort(Ins, Outs, Ops, SortedOps) :-
+topsort(Ins, Outs, Ops, Sorted) :- topsort(Ins, Outs, Ops, Sorted, []).
+topsort(Ins, Outs, Ops, S1, S2) :-
    rb_empty(E),
    foldl(back_links, Ops, E, BS),
-   traverse(BS, Ins, Outs, SortedOps-E, []-_).
+   traverse(BS, Ins, Outs, S1-E, S2-_).
 
 back_links(Edge) --> {Edge=op(_,_,Outs)}, foldl(back_link(Edge), Outs).
 back_link(Edge, Out) --> rb_add(Out, Edge).
