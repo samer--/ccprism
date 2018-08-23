@@ -40,10 +40,15 @@ multitrial(Learner, K, N, Curves) :-
    goal_graph(maplist(dice(K),Xs), G),
    maplist(call(Learner, G), Curves).
 
-learn1(Modifier, Drop, Tol, Meth, G, H) :-
+learn1(Mode, Modifier, Drop, Tol, Meth, G, H) :-
    graph_params(random, G, P0),
-   converge(abs(Tol), learn(ml, io(Meth), G) :> Modifier, HFull, P0, _P1),
+   mode_learn_spec(Mode, G, Spec),
+   converge(abs(Tol), learn(Spec, io(Meth), G) :> Modifier, HFull, P0, _P1),
    drop(Drop, HFull, H).
+
+mode_learn_spec(ml, _, ml).
+mode_learn_spec(map(A), G, map(Prior)) :- graph_params(A*uniform, G, Prior).
+mode_learn_spec(vb(A),  G, vb(Prior))  :- graph_params(A*uniform, G, Prior).
 
 add_plot(Drop, Y, P1, P2) :-
    length(Y, NumIts),
@@ -57,9 +62,10 @@ step_and_plot(Step, Cost, S1, S2) :-
    format(string(Title), "~1f", [Cost]),
    !gui(1, bar(Probs, title=Title, size= #(160, 160), ylim= #(0,0.6))).
 
-run(Mod,Drop,Tol,K,N,T) :-
+run(Mod,Drop,Tol,K,N,T) :- run(ml,Mod,Drop,Tol,K,N,T).
+run(Mode,Mod,Drop,Tol,K,N,T) :-
    length(Curves,T),
-   with_brs(rs, with_die_sampler(multitrial(learn1(Mod, Drop, Tol, log), K, N, Curves))),
+   with_brs(rs, with_die_sampler(multitrial(learn1(Mode, Mod, Drop, Tol, log), K, N, Curves))),
    format(string(Title), "dice: K=~w, N=~w, tol=~g", [K,N,Tol]),
    P0 = plot(grid=true, title=Title, xlabel="iteration", ylabel="log likelihood"),
    foldl(add_plot(Drop), Curves, P0, PP),
@@ -90,4 +96,4 @@ speed_test(Mode,K,N,M) :-
    goal_graph(maplist(dice(K),Xs), G),
    graph_params(uniform, G, P0),
    time(mode_graph_body(Mode, G, P, Top, Body)),
-   time(with_compiled_lambda(lambda([P,Top],Body), Pred, nmaplist(M, call(Pred, P0), _Vals))).
+   time(run_lambda_compiler((clambda(lambda([P,Top],Body), Pred), nmaplist(M, call(Pred, P0), _Vals)))).
