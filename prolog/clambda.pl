@@ -5,10 +5,10 @@
 clambda(Lambda, Pred) :- p_shift(clambda, compile(Lambda,Pred)).
 
 :- meta_predicate run_lambda_compiler(0).
-run_lambda_compiler(Goal) :- run_lambda_compiler(Goal, []).
-run_lambda_compiler(Goal,Used) :- p_reset(clambda, Goal, Status), cont(Status, Used).
+run_lambda_compiler(Goal) :- run(Goal, []).
+run(Goal,Used) :- p_reset(clambda, Goal, Status), cont(Status, Used).
 
 cont(done,Used) :- maplist(retractall, Used).
 cont(susp(compile(lambda(Args, Body), clambda:dpred(I)), Cont), Used) :-
    flag(clambda, I, I+1), Head =.. [dpred, I|Args],
-   assert(Head :- Body), run_lambda_compiler(Cont, [Head | Used]).
+   assert(Head :- Body), run(Cont, [Head | Used]).
