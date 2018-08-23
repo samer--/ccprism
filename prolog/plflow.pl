@@ -34,6 +34,7 @@ op_goal(sub, [X,Y], [Z], Z is X - Y).
 op_goal(mul, [X,Y], [Z], Z is X * Y).
 op_goal(div, [X,Y], [Z], Z is X / Y).
 op_goal(pow, [X,Y], [Z], Z is Y**X).
+op_goal(max, [X,Y], [Z], Z is max(X,Y)).
 op_goal(exp, [X], [Z], Z is exp(X)).
 op_goal(log, [X], [Z], Z is log(X)).
 op_goal(chi, [X,Y,Z], [I], (X>Y -> I=Z; X<Y -> I=0.0; I is Z/2.0)).
