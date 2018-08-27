@@ -72,8 +72,6 @@ run(Mod,Drop,Tol,K,N,T) :-
 run(Mode,Mod,Drop,Tol,K,N,Curves) :-
    with_brs(rs, with_die_sampler(multitrial(learn1(Mode, Mod, Drop, Tol, log), K, N, Curves))).
 
-% print_fig(pdf, plot_histogram("dice(3,_)",Hist), 'hist.pdf', [size(16,10)]),
-% print_fig(pdf, r(plot(History)), 'cost.pdf', [size(16,10)]).
 thingy(inside, G, P0, [TopVal], TopVal) :-
    semiring_graph_fold(r(autodiff2:log,autodiff2:lse,autodiff2:add_to_wsum,cons), G, P0, IG),
    expand_wsums, top_value(IG, TopVal).

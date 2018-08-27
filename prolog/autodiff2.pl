@@ -102,10 +102,6 @@ gather_ops(G) :- ops(G,[]).
 upd_ops(Upd,G1,G3) :- call(Upd,G1,G2), ops(G2,G3).
 op(Op, Ins, Outs) --> [op(Op,Ins,Outs)].
 
-% these don't make much difference..
-% goal_expansion(op(Op,Ins,Outs,G1,G2), G1 = [op(Op,Ins,Outs)|G2]).
-% goal_expansion(upd_ops(P,G1,G3), (call(P,G1,G2), ops(G2,G3))).
-
 ops(G1,G2), add(X,Y,Z) <=> upd_ops(op(add, [X,Y], [Z]), G1, G2).
 ops(G1,G2), mul(X,Y,Z) <=> upd_ops(op(mul, [X,Y], [Z]), G1, G2).
 ops(G1,G2), max(X,Y,Z) <=> upd_ops(op(max, [X,Y], [Z]), G1, G2).
