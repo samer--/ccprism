@@ -9,7 +9,8 @@
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
 :- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1, topsort/4]).
 :- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
-:- use_module(library(plflow),     [ops_body/4]).
+:- use_module(library(juliaflow),  []).
+:- use_module(library(plflow),     []).
 :- use_module(graph,    [graph_counts/6]).
 :- use_module(switches, [map_sw/3, map_swc/3, map_swc/4]).
 
@@ -31,7 +32,7 @@ learn(Method, StatsMethod, Graph, Step) :-
    maplist(params_variables, [P1,P2], [Ins,Outs]),
    gather_ops(Ops), length(Ops, NumOps),
    debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
-   call(ops_body(Ins, [Obj|Outs]) * topsort(Ins, [Obj|Outs]), Ops, Body),
+   call(juliaflow:ops_body(Ins, [Obj|Outs]) * topsort(Ins, [Obj|Outs]), Ops, Body),
    clambda(lambda([Obj,P1,P2], Body), Step).
 
 params_variables(Params, Ins) :- foldl(probs, Params, [], Ins).
@@ -93,7 +94,7 @@ converge(Test, Setup, [X0|History], S0, SFinal) :-
    debug(learn(setup), 'converge: Setting up...',[]),
    run_lambda_compiler((
       time(call(Setup, Step)),
-      call(Step, X0, S0, S1),
+      time(call(Step, X0, S0, S1)),
       time(converge_x(Test, Step, X0, History, S1, SFinal)))).
 
 converge_x(Test, Step, X0, [X1|History], S1, SFinal) :-

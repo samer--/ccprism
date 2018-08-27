@@ -9,7 +9,8 @@
 :- use_module(library(ccprism)).
 :- use_module(library(autodiff2)).
 :- use_module(library(julia)).
-:- use_module(library(plflow)).
+:- use_module(library(plflow), []).
+:- use_module(library(juliaflow), []).
 :- use_module(library(clambda)).
 :- use_module(dice).
 :- use_module(tools).
@@ -82,19 +83,20 @@ thingy(io(ISc), G, P0, [LogProb|Outs], LogProb-Eta) :-
    graph_counts(io(ISc), lin, G, P0, Eta, LogProb),
    params_variables(Eta, Outs).
 
-mode_graph_body(Mode, G, P0, Result, Body) :-
+mode_graph_body(Module:Mode, G, P0, Result, Body) :-
    time(thingy(Mode, G, P0, Outs, Result)),
    params_variables(P0, Ins),
    gather_ops(Ops),
    length(Ops, NumOps),
    format('Compiling ~d ops...\n', [NumOps]),
+   garbage_collect_atoms,
    time(topsort(Ins, Outs, Ops, SortedOps)),
-   time(ops_body(Ins, Outs, SortedOps, Body)).
+   time(Module:ops_body(Ins, Outs, SortedOps, Body)).
 
 speed_test(Mode,K,N,M) :-
-   writeln('Timings are: search, build_chr, topsort, total_setup, iterations'),
+   writeln('Timings are: search, build_chr, topsort, build_body, iterations'),
    with_brs(rs, with_die_sampler(nmaplist(N, dice(K), Xs))),
    goal_graph(maplist(dice(K),Xs), G),
    graph_params(uniform, G, P0),
-   time(mode_graph_body(Mode, G, P, Top, Body)),
+   mode_graph_body(Mode, G, P, Top, Body),
    run_lambda_compiler((clambda(lambda([P,Top],Body), Pred), time(nmaplist(M, call(Pred, P0), _Vals)))).
