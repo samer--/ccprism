@@ -17,10 +17,11 @@
 
 :- use_module(library(callutils),   [(*)/4, const/3]).
 :- use_module(library(data/pair),   [fsnd/3, snd/2]).
+:- use_module(library(math),        [map_sum/3, map_sum/4]).
 :- use_module(library(plrand),      [log_prob_dirichlet/3, log_partition_dirichlet/2]).
 :- use_module(library(prob/tagless),[dirichlet//2]).
 :- use_module(effects,  [sample/2]).
-:- use_module(lazymath, [add/3, mul/3, max/3, stoch/2, map_sum/3, map_sum/4]).
+:- use_module(lazymath, [add/3, mul/3, max/3, stoch/2]).
 
 dirichlet(As,Ps) :- sample(dirichlet(As),Ps).
 
