@@ -12,7 +12,7 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lazy), [lazy_maplist/3, lazy_unfold_finite/4]).
-:- use_module(lazymath, [surp/2, lazy/4]).
+:- use_module(lazymath, [neg_log/2, lazy/4]).
 :- use_module(graph, [semiring_graph_fold/4, top_value/2]).
 
 %% graph_nviterbi(+G:graph, +P:sw_params, -T:expl_tree, -LP:number) is nondet.
@@ -24,7 +24,7 @@ graph_nviterbi(Graph, Params, Tree, LP) :-
    top_value(VGraph, Expls),
    member(LP-Tree,Expls).
 
-ccp_graph:sr_inj(kbest,   P, F, [Q-F]) :- surp(P,Q).
+ccp_graph:sr_inj(kbest,   P, F, [Q-F]) :- neg_log(P,Q).
 ccp_graph:sr_proj(kbest,  G, X, Y, X)  :- freeze(Y,lazy_maplist(k_tag(G),X,Y)).
 ccp_graph:sr_plus(kbest,  X) --> lazy(k_min,X).
 ccp_graph:sr_times(kbest, X) --> lazy(k_mul,X).
