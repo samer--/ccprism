@@ -57,9 +57,3 @@ run(Mod,Drop,Tol,K,N,T) :-
    P0 = plot(grid=true, title=Title, xlabel="iteration", ylabel="log likelihood"),
    foldl(add_plot(Drop), Curves, P0, PP),
    !savefig(PP, "test2.pdf").
-
-% histof(Xs,Hist),
-% print_fig(pdf, plot_histogram("dice(3,_)",Hist), 'hist.pdf', [size(16,10)]),
-% member(Meth,[io(log), io(lin), vit]),
-% print_fig(pdf, r(plot(History)), 'cost.pdf', [size(16,10)]).
-% maplist(open,['hist.pdf','cost.pdf']),
