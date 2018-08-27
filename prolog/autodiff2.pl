@@ -1,5 +1,5 @@
 :- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1,
-                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/1]).
+                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/1, topsort/4, topsort/5]).
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
@@ -11,6 +11,9 @@
 :- use_module(library(chr)).
 :- use_module(library(rbutils)).
 :- use_module(library(listutils), [measure/2]).
+:- use_module(library(dcg_core), [seqmap//2]).
+:- use_module(library(dcg_pair)).
+:- use_module(library(dcg_macros)).
 
 :- chr_constraint expand_wsums, wsum(?,-), add_to_wsum(?,?,-), ops(-,+).
 :- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-), pow(+,-,-),
@@ -128,3 +131,21 @@ max_exp_sum(Xs,M,Ws,Sum) -->
    foldl(exp_sub(M),Xs,Ws),
    op(sum_list, Ws, [Sum]).
 exp_sub(M,X,Y) --> op(sub, [X,M], [XsubM]), op(exp, [XsubM], [Y]).
+
+topsort(Ins, Outs, Ops, Sorted) :- topsort(Ins, Outs, Ops, Sorted, []).
+topsort(Ins, Outs, Ops, S1, S2) :-
+   rb_empty(E),
+   seqmap(back_links, Ops, E, BS),
+   traverse(BS, Ins, Outs, S1-E, S2-_).
+
+back_links(Edge) --> {Edge=op(_,_,Outs)}, seqmap(back_link(Edge), Outs).
+back_link(Edge, Out) --> rb_add(Out, Edge).
+traverse(BS, Ins, Outs) --> \> seqmap(insert, Ins), seqmap(eval(BS), Outs).
+insert(X) --> rb_add(X,t).
+
+eval(BS, Var) -->
+   (  ({nonvar(Var)}; \> rb_get(Var, _)) -> []
+   ;  {rb_lookup(Var, Edge, BS), Edge=op(_,Ins,Outs)},
+      seqmap(eval(BS), Ins),
+      [Edge] <\> seqmap(insert, Outs)
+   ).

@@ -88,7 +88,7 @@ mode_graph_body(Mode, G, P0, Result, Body) :-
    length(Ops, NumOps),
    format('Compiling ~d ops...\n', [NumOps]),
    time(topsort(Ins, Outs, Ops, SortedOps)),
-   ops_body(SortedOps, Body).
+   time(ops_body(Ins, Outs, SortedOps, Body)).
 
 speed_test(Mode,K,N,M) :-
    writeln('Timings are: search, build_chr, topsort, total_setup, iterations'),

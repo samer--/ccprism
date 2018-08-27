@@ -7,9 +7,9 @@
 :- use_module(library(data/pair),  [snd/2]).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
-:- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1]).
-:- use_module(library(plflow),     [topsort/4, ops_body/2]).
+:- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1, topsort/4]).
 :- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
+:- use_module(library(plflow),     [ops_body/4]).
 :- use_module(graph,    [graph_counts/6]).
 :- use_module(switches, [map_sw/3, map_swc/3, map_swc/4]).
 
@@ -31,7 +31,7 @@ learn(Method, StatsMethod, Graph, Step) :-
    maplist(params_variables, [P1,P2], [Ins,Outs]),
    gather_ops(Ops), length(Ops, NumOps),
    debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
-   call(ops_body * topsort(Ins, [Obj|Outs]), Ops, Body),
+   call(ops_body(Ins, [Obj|Outs]) * topsort(Ins, [Obj|Outs]), Ops, Body),
    clambda(lambda([Obj,P1,P2], Body), Step).
 
 params_variables(Params, Ins) :- foldl(probs, Params, [], Ins).
@@ -39,9 +39,6 @@ probs(_-Probs) --> append(Probs).
 
 log_prob_dir(As, Ps, LP) :- esc(log_prob_dirichlet(As), Ps, [LP]).
 log_part_dir(As, LZ) :- esc(log_partition_dirichlet, As, [LZ]).
-
-plflow:op_goal(log_prob_dirichlet(As), Ps, [LP], switches:log_prob_dirichlet(As,Ps,LP)).
-plflow:op_goal(log_partition_dirichlet, As, [LZ], plrand:log_partition_dirichlet(As,LZ)).
 
 map_sum_(P,X,Sum) :- maplist(P,X,Z), esc(sum_list,Z,[Sum]).
 map_sum_(P,X,Y,Sum) :- maplist(P,X,Y,Z), esc(sum_list,Z,[Sum]).
