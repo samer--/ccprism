@@ -40,14 +40,6 @@ add(0.0,X,Y) <=> Y=X.
 add(X,0.0,Y) <=> Y=X.
 add(X,Y,Z1) \ add(X,Y,Z2) <=> Z1=Z2.
 
-% % collapse addions into products
-% add(Y,X,XY), add(Y,XY,XYY) <=> mul(2,Y,YY), add(YY,X,XYY).
-% add(YN,X,XYN), add(Y,XYN,XYNY), mul(N,Y,YN) <=> N1 is N+1, mul(N1,Y,YNY), add(YNY,X,XYNY).
-
-% % collapse multiplications into powers
-% mul(Y,X,XY), mul(Y,XY,XYY) <=> pow(2,Y,YY), mul(YY,X,XYY).
-% mul(YN,X,XYN), mul(Y,XYN,XYNY), pow(N,Y,YN) <=> N1 is N+1, pow(N1,Y,YNY), mul(YNY,X,XYNY).
-
 % lse: log(sum(map(exp,Xs))), stoch_exp: stoch(map(exp,Xs))
 % mes: max, exp, sum - used to share computation of max(Xs), exp(Exs-Max) and sum
 lse([X],Y) <=> X=Y.
@@ -118,7 +110,7 @@ ops(G1,G2), mes(Xs,M,Ws,S)                    <=> upd_ops(max_exp_sum(Xs,M,Ws,S)
 ops(G1,G2), chi(X,Y,Z,I)                      <=> upd_ops(op(chi, [X,Y,Z], [I]), G1, G2).
 ops(G1,G2) <=> G1=G2.
 
-add_log(S,M,Y) --> op(log,[S],[LogS]), op(add,[LogS,M],[Y]).
+add_log(S,M,Y) --> op(add_log,[M,S],[Y]).
 divby_list(S,Ws,Ys) --> foldl(divby(S), Ws, Ys).
 divby(S,W,Y) --> op(div, [W,S], [Y]).
 
@@ -126,7 +118,7 @@ max_exp_sum(Xs,M,Ws,Sum) -->
    op(max_list, Xs, [M]),
    foldl(exp_sub(M),Xs,Ws),
    op(sum_list, Ws, [Sum]).
-exp_sub(M,X,Y) --> op(sub, [X,M], [XsubM]), op(exp, [XsubM], [Y]).
+exp_sub(M,X,Y) --> op(exp_sub, [M,X], [Y]).
 
 topsort(Ins, Outs, Ops, Sorted) :- topsort(Ins, Outs, Ops, Sorted, []).
 topsort(Ins, Outs, Ops, S1, S2) :-

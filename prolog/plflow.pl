@@ -16,9 +16,10 @@ op_goal(max, [X,Y], [Z], Z is max(X,Y)).
 op_goal(exp, [X], [Z], Z is exp(X)).
 op_goal(log, [X], [Z], Z is log(X)).
 op_goal(chi, [X,Y,Z], [I], (X>Y -> I=Z; X<Y -> I=0.0; I is Z/2.0)).
+op_goal(add_log, [M,S], [Z], Z is log(S) + M).
+op_goal(exp_sub, [M,Z], [S], S is exp(Z-M)).
 op_goal(sum_list,   Xs, [Z], sum_list(Xs,Z)).
 op_goal(max_list,   Xs, [Z], max_list(Xs,Z)).
 op_goal(stoch, Xs, Ys, math:stoch(Xs,Ys,_)).
 op_goal(log_prob_dirichlet(As),  Ps, [LP], plrand:log_prob_dirichlet(As,Ps,LP)).
 op_goal(log_partition_dirichlet, As, [LZ], plrand:log_partition_dirichlet(As,LZ)).
-
