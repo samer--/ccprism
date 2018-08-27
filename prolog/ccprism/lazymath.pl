@@ -1,4 +1,4 @@
-:- module(lazymath, [ add/3, sub/3, mul/3, max/3, min/3, stoch/2, exp/2, log/2, neg_log/2, lse/2, pow/3, log_stoch/2
+:- module(lazymath, [ add/3, sub/3, mul/3, max/3, min/3, stoch/2, exp/2, log/2, lse/2, pow/3, log_stoch/2
                     , patient/3, patient/4]).
 
 /** <module> Multimoded arithmetic operations
@@ -20,7 +20,6 @@ log(X,Y)   :- when(ground(X),   Y is log(X)).
 exp(X,Y)   :- when(ground(X),   Y is exp(X)).
 pow(1,X,X) :- !.
 pow(B,X,Y) :- when(ground(X), Y is X^B).
-neg_log(P,L)   :- when(ground(P), L is -log(P)).
 log_stoch(X,Y) :- when(ground(X), log_stoch_strict(X,Y)).
 
 log_stoch_strict([_],[0.0]) :- !.
