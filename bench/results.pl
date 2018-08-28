@@ -54,6 +54,7 @@ dice(ccp, 10, 200, 34, 3824, 564).
 
 dice(Sys, A, B, C, 0, D, E) :- dice(Sys, A, B, C, D, E).
 
+% ws = weighted sums?
 dice(ccpws, 10, 100, 10, 214, 7377, 1507).
 dice(ccpws, 10, 100, 15, 250, 7667, 1507).
 dice(ccpws, 10, 100, 14, 255, 656, 125).
@@ -79,6 +80,31 @@ dice(ccpws, 10, 200, 16, 267, 4873, 918).
 dice(ccpws, 10, 200, 16, 248, 6224, 1189).
 dice(ccpws, 10, 200, 34, 263, 6352, 1189).
 
+% ccp_plflow: compile CHR graph to Prolog predicate, _wsum with weighted sums
+dice(ccp_plflow_wsum, 20, 100, 54, 2314, 7968, 2993).
+dice(ccp_plflow_wsum, 20, 100, 56, 2302, 7945, 2993).
+dice(ccp_plflow_wsum, 20, 100, 57, 2174, 3087, 1260).
+dice(ccp_plflow_wsum, 20, 100, 47, 2089, 3235, 1260).
+dice(ccp_plflow, 20, 100, 53, 2126, 7306, 2993).
+dice(ccp_plflow, 20, 100, 52, 2074, 7266, 2993).
+dice(ccp_plflow, 20, 100, 57, 2422, 3468, 1260).
+dice(ccp_plflow, 20, 100, 57, 2368, 3478, 1260).
+
+dice(ccp_plflow, 10, 200, 47, 383, 77, 106).
+dice(ccp_plflow, 10, 200, 42, 378, 88, 106).
+dice(ccp_plflow, 10, 200, 44, 389, 357, 454).
+dice(ccp_plflow, 10, 200, 43, 393, 356, 454).
+dice(ccp_plflow_wsum, 10, 200, 44, 347, 85, 106).
+dice(ccp_plflow_wsum, 10, 200, 43, 345, 86, 106).
+dice(ccp_plflow_wsum, 10, 200, 42, 362, 332, 454).
+dice(ccp_plflow_wsum, 10, 200, 31, 367, 342, 454).
+
+dice(ccp_plflow, 10, 100, 26, 363, 77, 99).
+dice(ccp_plflow, 10, 100, 14, 348, 273, 358).
+dice(ccp_plflow_wsum, 10, 100, 24, 372, 75, 99).
+dice(ccp_plflow_wsum, 10, 100, 19, 370, 257, 358).
+
+% io = old explicitly coded IO algorim
 dice(ccpio, 10, 100, 70, 17, 2016, 236).
 dice(ccpio, 10, 100, 61, 16, 2026, 236).
 dice(ccpio, 10, 100, 61, 19, 6801, 873).
@@ -116,3 +142,9 @@ summary(Sys, K, N, MeanExpl, MeanIt) :-
    MeanIt is LearnTime / TotalIts.
 
 mean(Xs, M) :- sumlist(Xs,Tot), length(Xs,N), M is Tot/N.
+
+print_table :-
+   format('~w ~16|~w ~20|~w ~27|~w ~36|~w ~46|~w\n\n', ['Model','K','N','MeanExpl','MeanAD', 'MeanIt']),
+   forall((summary(Model, K, N, MeanExpl, MeanAD, MeanIt),
+           \+member(Model,[ccp,ccp_plflow_wsum])),
+          format('~w ~16|~w ~20|~w ~27|~2f ~36|~2f ~46|~2f\n', [Model,K,N,MeanExpl,MeanAD, MeanIt])).

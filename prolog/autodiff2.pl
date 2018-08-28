@@ -1,5 +1,5 @@
-:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1, compile/1, ops_count/2,
-                      expand_wsums/0, wsum/2, add_to_wsum/3]).
+:- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1,
+                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/3]).
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
@@ -9,11 +9,13 @@
 :- use_module(library(chr)).
 :- use_module(library(rbutils)).
 :- use_module(library(listutils), [measure/2]).
+:- use_module(library(dcg_pair)).
+:- use_module(library(dcg_macros)).
 
-:- chr_constraint expand_wsums, wsum(?,-), add_to_wsum(?,?,-).
+:- chr_constraint expand_wsums, wsum(?,-), add_to_wsum(?,?,-), ops(-,+).
 :- chr_constraint max(?,?,-), add(?,?,-), mul(?,?,-), llog(-,-), log(-,-), exp(-,-), pow(+,-,-),
-                  lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mes(?,-,-,-),
-                  deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go, compile.
+                  lse(?,-), stoch_exp(?,-), stoch_exp(?,+,-), mes(?,-,-,-), chi(?,?,?,-),
+                  deriv(?,-,?), agg(?,-), acc(?,-), acc(-), go, esc(+,?,-).
 
 add_to_wsum(X,0.0,S) <=> ord_list_to_rbtree([X-1], Terms), wsum(Terms, S).
 add_to_wsum(X,S1,S2), wsum(Terms1, S1) <=> incr_term(X, Terms1, Terms2), wsum(Terms2, S2).
@@ -23,15 +25,14 @@ add_mul(X-N, S1, S2) :- K is float(N), mul(K,X,NX), add(NX,S1,S2).
 expand_wsums \ wsum(Terms, Sum) <=> rb_fold(add_mul, Terms, 0.0, Sum).
 expand_wsums <=> true.
 
-
 % operations interface with simplifications
 mul(0.0,_,Y) <=> Y=0.0.
 mul(_,0.0,Y) <=> Y=0.0.
 mul(1.0,X,Y) <=> Y=X.
 mul(X,1.0,Y) <=> Y=X.
 mul(X,Y,Z1) \ mul(X,Y,Z2) <=> Z1=Z2.
-pow(1,X,Y) <=> Y=X.
-pow(0,_,Y) <=> Y=1.
+pow(K,X,Y)   <=> K =:= 1 | Y=X. % guard to match floats and ints
+pow(0,_,Y)   <=> Y=1.
 add(0.0,X,Y) <=> Y=X.
 add(X,0.0,Y) <=> Y=X.
 add(X,Y,Z1) \ add(X,Y,Z2) <=> Z1=Z2.
@@ -84,34 +85,49 @@ go \ deriv(_,_,_) <=> true.
 go \ acc(DX) <=> acc(DX,0.0).
 go <=> true.
 
-compile(N) :- ops_count(_, 0), compile, ops_count(N, N).
+:- meta_predicate upd_ops(//,?,?).
+upd_ops(Upd,G1,G3) :- call(Upd,G1,G2), ops(G2,G3).
+op(Op, Ins, Outs) --> [op(Op,Ins,Outs)].
 
-% convert arithmetic constraints to frozen goals.
-compile \ max(X,Y,Z) <=> delay(max(X,Y),Z).
-compile \ add(X,Y,Z) <=> delay(X+Y,Z).
-compile \ mul(X,Y,Z) <=> delay(X*Y,Z).
-compile \ add(X,Y,Z) <=> delay(X+Y,Z).
-compile \ log(X,Y)   <=> delay(log(X),Y).
-compile \ exp(X,Y)   <=> delay(exp(X),Y).
-compile \ pow(K,X,Y) <=> delay(X**K,Y).
-compile \ llog(_,_)  <=> true.
+ops(G1,G2), add(X,Y,Z) <=> upd_ops(op(add, [X,Y], [Z]), G1, G2).
+ops(G1,G2), mul(X,Y,Z) <=> upd_ops(op(mul, [X,Y], [Z]), G1, G2).
+ops(G1,G2), max(X,Y,Z) <=> upd_ops(op(max, [X,Y], [Z]), G1, G2).
+ops(G1,G2), pow(X,Y,Z) <=> upd_ops(op(pow, [X,Y], [Z]), G1, G2).
+ops(G1,G2), log(X,Y)   <=> upd_ops(op(log, [X], [Y]), G1, G2).
+ops(G1,G2), exp(X,Y)   <=> upd_ops(op(exp, [X], [Y]), G1, G2).
+ops(G1,G2), esc(Op,X,Y)<=> upd_ops(op(Op, X, Y), G1, G2).
+ops(_,_) \ llog(_,_)   <=> true.
 
-compile\ stoch_exp(_,_,_) <=> true.
-compile, mes(Xs,M,_,S)  \ lse(Xs,Y)        <=> incr, when(ground(S), Y is M+log(S)).
-compile, mes(Xs,_,Ws,S) \ stoch_exp(Xs,Ys) <=> incr, when(ground(S), maplist(divby(S),Ws,Ys)).
-compile\ mes(Xs,M,Ws,S)                    <=> incr, when(ground(Xs), max_exp_sum(Xs,M,Ws,S)).
+ops(_,_) \ stoch_exp(_,_,_)  <=> true.
+mes(Xs,M,_,S)  \ ops(G1,G2), lse(Xs,Y)        <=> mes(Xs,M,_,S), upd_ops(add_log(S,M,Y), G1, G2).
+mes(Xs,_,Ws,S) \ ops(G1,G2), stoch_exp(Xs,Ys) <=> upd_ops(divby_list(S,Ws,Ys), G1, G2).
+ops(G1,G2), mes(Xs,M,Ws,S)                    <=> upd_ops(max_exp_sum(Xs,M,Ws,S),G1,G2).
+ops(G1,G2), chi(X,Y,Z,I)                      <=> upd_ops(op(chi, [X,Y,Z], [I]), G1, G2).
+ops(G1,G2) <=> G1=G2.
 
-compile <=> true.
+add_log(S,M,Y) --> op(add_log,[M,S],[Y]).
+divby_list(S,Ws,Ys) --> foldl(divby(S), Ws, Ys).
+divby(S,W,Y) --> op(div, [W,S], [Y]).
 
-delay(Expr,Res) :- incr, when(ground(Expr), Res is Expr).
-chi(X,Y,Z,I)  :- incr, when(ground(X-Y), (X>Y -> I=Z; X<Y -> I=0.0; delay(Z/2.0,I))).
-divby(K,X,Y) :- Y is X/K.
+max_exp_sum(Xs,M,Ws,Sum) -->
+   op(max_list, Xs, [M]),
+   foldl(exp_sub(M),Xs,Ws),
+   op(sum_list, Ws, [Sum]).
+exp_sub(M,X,Y) --> op(exp_sub, [M,X], [Y]).
 
-ops_count(Old, New) :- flag(autodiff_ops_count, Old, New).
-incr :- flag(autodiff_ops_count, N, N+1).
+gather_ops(Ins, Outs, Sorted) :-
+   ops(Ops,[]), rb_empty(E),
+   foldl(back_links, Ops, E, BS),
+   traverse(BS, Ins, Outs, Sorted-E, []-_).
 
-max_exp_sum(Xs,M,Ws,Sum) :-
-   max_list(Xs,M),
-   maplist(exp_sub(M),Xs,Ws),
-   sum_list(Ws, Sum).
-exp_sub(M,X,Y) :- Y is exp(X-M).
+back_links(Edge) --> {Edge=op(_,_,Outs)}, foldl(back_link(Edge), Outs).
+back_link(Edge, Out) --> rb_add(Out, Edge).
+traverse(BS, Ins, Outs) --> \> foldl(insert, Ins), foldl(eval(BS), Outs).
+insert(X) --> rb_add(X,t).
+
+eval(BS, Var) -->
+   (  ({nonvar(Var)}; \> rb_get(Var, _)) -> []
+   ;  {rb_lookup(Var, Edge, BS), Edge=op(_,Ins,Outs)},
+      foldl(eval(BS), Ins),
+      [Edge] <\> foldl(insert, Outs)
+   ).
