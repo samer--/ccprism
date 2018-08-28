@@ -10,7 +10,7 @@
 :- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
 :- use_module(library(plflow),     [ops_body/4]).
 :- use_module(graph,    [graph_counts/6]).
-:- use_module(switches, [map_sw/3, map_swc/3, map_swc/4]).
+:- use_module(switches, [map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3]).
 
 
 stoch(Xs,Ys) :- same_length(Xs,Ys), esc(stoch,Xs,Ys).
@@ -26,7 +26,7 @@ stoch(Xs,Ys) :- same_length(Xs,Ys), esc(stoch,Xs,Ys).
 %  learner == pred(-float, +sw_params, -sw_params).
 %  ==
 learn(Method, StatsMethod, Graph, Step) :-
-   learn(Method, StatsMethod, 1, Graph, Obj, P1, P2),
+   learn(Method, StatsMethod, 1.0, Graph, Obj, P1, P2),
    maplist(params_variables, [P1,P2], [Ins,Outs]),
    gather_ops(Ops), length(Ops, NumOps),
    debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
@@ -39,7 +39,7 @@ probs(_-Probs) --> append(Probs).
 log_prob_dir(As, Ps, LP) :- esc(log_prob_dirichlet(As), Ps, [LP]).
 log_part_dir(As, LZ) :- esc(log_partition_dirichlet, As, [LZ]).
 
-map_sum_(P,X,Sum) :- maplist(P,X,Z), esc(sum_list,Z,[Sum]).
+map_sum_(P,X,Sum)   :- maplist(P,X,Z),   esc(sum_list,Z,[Sum]).
 map_sum_(P,X,Y,Sum) :- maplist(P,X,Y,Z), esc(sum_list,Z,[Sum]).
 map_sum_sw_(P,X,Sum)   :- map_sum_(P*snd,X,Sum).
 map_sum_sw_(P,X,Y,Sum) :- map_sum_(f2sw1(P),X,Y,Sum).
@@ -63,8 +63,8 @@ learn(map(Prior), Stats, ITemp, Graph, Obj, P1, P2) :-
 learn(vb(Prior), Stats, ITemp, Graph, Obj, A1, A2) :-
    maplist(map_swc(true2,Prior), [A1,Pi]), % establish same shape as prior
    map_swc(mul_add(ITemp,1.0-ITemp), Prior, EffPrior),
-   map_sum_sw_(log_partition_dirichlet, Prior, LogZPrior),
-   call(vb_helper(ITemp, LogZPrior, EffPrior), A1, Pi - Div),
+   map_sum_sw(log_partition_dirichlet, Prior, LogZPrior),
+   vb_helper(ITemp, LogZPrior, EffPrior, A1, Pi - Div),
    once(graph_counts(Stats, log, Graph, Pi, Eta, LL)),
    map_swc(mul_add(ITemp), EffPrior, Eta, A2),
    esc(sub,[LL,Div],[Obj]).
@@ -77,7 +77,6 @@ vb_helper(ITemp, LogZPrior, EffPrior, A, Pi - Div) :-
    map_sum_sw_(map_sum_(mul), PsiA, Delta, Diff),
    Div is Diff - LogZA + ITemp*LogZPrior.
 
-mul_add(1.0,X,Y,Z) :- !, add(X,Y,Z).
 mul_add(K,X,Y,Z) :- mul(K,Y,KY), add(X,KY,Z).
 
 %! converge(+C:convergence, +L:pred(-learner), -LL:list(float), +P1:sw_params, -P2:sw_params) is det.
