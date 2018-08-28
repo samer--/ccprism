@@ -1,4 +1,4 @@
-:- module(ccprism, [ goal_graph/2, goal_prob/3, graph_params/3]).
+:- module(ccprism, [goal_graph/2, graph_params/3, semiring_graph_fold/4, top_value/2]).
 
 /** <module> Top level tabled explanation graph creation */
 
@@ -9,12 +9,12 @@
 :- use_module(ccprism/switches,   [sw_init/3]).
 
 %% goal_graph(+Goal:callable, -Graph:graph) is det.
-%  Finds all solutions to Goal in a delimited context supplying tabling and 
-%  probabilistic choice. Explanations are extracted from the tables and 
+%  Finds all solutions to Goal in a delimited context supplying tabling and
+%  probabilistic choice. Explanations are extracted from the tables and
 %  returned as a hypergraph, including explanations of Goal itself (which need
 %  not be tabled) under the pseudo-goal =|'^top':top|=.
 :- meta_predicate goal_graph(0,-).
-goal_graph(Goal, Graph) :- 
+goal_graph(Goal, Graph) :-
    time(goal_expls_tables(Goal, Es, Tables)),
    tables_graph(Tables, Graph0),
    prune_graph(=, '^top':top, [('^top':top)-Es|Graph0], Graph).
@@ -23,10 +23,3 @@ goal_graph(Goal, Graph) :-
 %  Initialise parameters for all switches referenced in graph G.
 %  See sw_init/2 for more information.
 graph_params(Spec,G,Params) :- call(maplist(sw_init(Spec))*graph_switches, G, Params).
-
-:- meta_predicate goal_prob(0,+,-).
-goal_prob(Goal,ParamSpec,Prob) :-
-   goal_graph(Goal, Graph),
-   graph_params(ParamSpec, Graph, Params),
-   semiring_graph_fold(r(=,=,mul,add), Graph, Params, IG),
-   top_value(IG, Prob).
