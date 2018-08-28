@@ -6,7 +6,7 @@
 :- use_module(library(math),       [map_sum/4]).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
-:- use_module(lazymath, [sub/3, max/3, add/3, mul/3, pow/3, stoch/2, patient/3]).
+:- use_module(library(lazymath),   [sub/3, max/3, add/3, mul/3, pow/3, stoch/2, patient/3]).
 :- use_module(graph,    [graph_counts/6]).
 :- use_module(switches, [ map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3, map_sum_sw/4
                         , sw_log_prob/3, sw_posteriors/3, sw_mode/2]).
