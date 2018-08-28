@@ -37,7 +37,7 @@
 :- use_module(library(autodiff2),   [back/1, deriv/3]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/3, map_swc/4]).
-:- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log/2, lse/2, stoch/2, log_stoch/2, patient/4]).
+:- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log/2, lse/2, stoch/2, log_stoch/2]).
 
 :- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2, m_zero/2.
 
