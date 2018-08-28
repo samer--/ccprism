@@ -1,5 +1,5 @@
 :- module(autodiff2, [max/3, mul/3, add/3, pow/3, exp/2, llog/2, log/2, lse/2, deriv/3, back/1, grad/1,
-                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/1, topsort/4, topsort/5]).
+                      esc/3, expand_wsums/0, wsum/2, add_to_wsum/3, gather_ops/3]).
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
@@ -86,8 +86,6 @@ go \ deriv(_,_,_) <=> true.
 go \ acc(DX) <=> acc(DX,0.0).
 go <=> true.
 
-gather_ops(G) :- ops(G,[]).
-
 :- meta_predicate upd_ops(//,?,?).
 upd_ops(Upd,G1,G3) :- call(Upd,G1,G2), ops(G2,G3).
 op(Op, Ins, Outs) --> [op(Op,Ins,Outs)].
@@ -118,11 +116,10 @@ max_exp_sum(Xs,M,Ws,Sum) -->
    op(sum_list, Ws, [Sum]).
 exp_sub(M,X,Y) --> op(exp_sub, [M,X], [Y]).
 
-topsort(Ins, Outs, Ops, Sorted) :- topsort(Ins, Outs, Ops, Sorted, []).
-topsort(Ins, Outs, Ops, S1, S2) :-
-   rb_empty(E),
+gather_ops(Ins, Outs, Sorted) :-
+   ops(Ops,[]), rb_empty(E),
    seqmap(back_links, Ops, E, BS),
-   traverse(BS, Ins, Outs, S1-E, S2-_).
+   traverse(BS, Ins, Outs, Sorted-E, []-_).
 
 back_links(Edge) --> {Edge=op(_,_,Outs)}, seqmap(back_link(Edge), Outs).
 back_link(Edge, Out) --> rb_add(Out, Edge).

@@ -6,7 +6,7 @@
 :- use_module(library(data/pair),  [snd/2]).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
 :- use_module(library(plrand),     [log_partition_dirichlet/2]).
-:- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1, topsort/4]).
+:- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/3]).
 :- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
 :- use_module(library(plflow),     [ops_body/4, sub/3, stoch/2, mean_log_dir/2, log_part_dir/2, log_prob_dir/3]).
 :- use_module(graph,    [graph_counts/6]).
@@ -19,7 +19,6 @@ map_sum_(P,X,Y,Sum) :- maplist(P,X,Y,Z), esc(sum_list,Z,[Sum]).
 map_sum_sw_(P,X,Sum)   :- map_sum_(P*snd,X,Sum).
 map_sum_sw_(P,X,Y,Sum) :- map_sum_(f2sw1(P),X,Y,Sum).
 f2sw1(P,SW-X,SW-Y,Z) :- call(P,X,Y,Z).
-
 
 %! learn(+Method:learn_method, +Stats:stats_method, +ITemp:number, +G:graph, -U:learner) is det.
 %! learn(+Method:learn_method, +Stats:stats_method, +G:graph, -U:learner) is det.
@@ -34,16 +33,15 @@ f2sw1(P,SW-X,SW-Y,Z) :- call(P,X,Y,Z).
 learn(Method, StatsMethod, Graph, Step) :-
    learn(Method, StatsMethod, 1.0, Graph, Obj, P1, P2),
    maplist(term_variables, [P1,P2], [Ins,Outs]),
-   gather_ops(Ops), length(Ops, NumOps),
-   debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
-   call(ops_body(Ins, [Obj|Outs]) * topsort(Ins, [Obj|Outs]), Ops, Body),
+   gather_ops(Ins, [Obj|Outs], Ops), length(Ops, NumOps),
+   debug(learn(setup), 'Compiled ~d operations.', [NumOps]),
+   ops_body(Ins, [Obj|Outs], Ops, Body),
    clambda(lambda([Obj,P1,P2], Body), Step).
 
 learn(ml, Stats, ITemp, Graph, LL, P1, P2) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),
    map_swc(pow(ITemp), P1, PP),
    map_sw(stoch, Eta, P2).
-
 
 learn(map(Prior), Stats, ITemp, Graph, Obj, P1, P2) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),

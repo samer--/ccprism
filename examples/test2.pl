@@ -84,11 +84,9 @@ thingy(io(ISc), G, P0, [LogProb|Outs], LogProb-Eta) :-
 mode_graph_body(Mode, G, P0, Result, Body) :-
    time(thingy(Mode, G, P0, Outs, Result)),
    term_variables(P0, Ins),
-   gather_ops(Ops),
-   length(Ops, NumOps),
-   format('Compiling ~d ops...\n', [NumOps]),
-   time(topsort(Ins, Outs, Ops, SortedOps)),
-   time(ops_body(Ins, Outs, SortedOps, Body)).
+   time(gather_ops(Ins, Outs, Ops)), length(Ops, NumOps),
+   format('Compiled ~d ops.\n', [NumOps]),
+   ops_body(Ins, Outs, Ops, Body).
 
 speed_test(Mode,K,N,M) :-
    writeln('Timings are: search, build_chr, topsort, total_setup, iterations'),
