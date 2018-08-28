@@ -32,7 +32,7 @@ mul(_,0.0,Y) <=> Y=0.0.
 mul(1.0,X,Y) <=> Y=X.
 mul(X,1.0,Y) <=> Y=X.
 mul(X,Y,Z1) \ mul(X,Y,Z2) <=> Z1=Z2.
-pow(1,X,Y)   <=> Y=X.
+pow(K,X,Y)   <=> K =:= 1 | Y=X. % guard to match floats and ints
 pow(0,_,Y)   <=> Y=1.
 add(0.0,X,Y) <=> Y=X.
 add(X,0.0,Y) <=> Y=X.
