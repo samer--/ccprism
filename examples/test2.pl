@@ -74,7 +74,7 @@ run(Mode,Mod,Drop,Tol,K,N,Curves) :-
    with_brs(rs, with_die_sampler(multitrial(learn1(Mode, Mod, Drop, Tol, log), K, N, Curves))).
 
 thingy(inside, G, P0, [TopVal], TopVal) :-
-   semiring_graph_fold(r(autodiff2:log,autodiff2:lse,autodiff2:add_to_wsum,cons), G, P0, IG),
+   graph_fold(r(autodiff2:log,autodiff2:lse,autodiff2:add_to_wsum,cons), P0, G, IG),
    expand_wsums, top_value(IG, TopVal).
 
 thingy(io(ISc), G, P0, [LogProb|Outs], LogProb-Eta) :-
