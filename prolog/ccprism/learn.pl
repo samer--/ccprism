@@ -1,4 +1,4 @@
-:- module(ccp_learn, [converge/5, learn/4, params_variables/2]).
+:- module(ccp_learn, [converge/5, learn/4]).
 
 /** <module> Expectation-maximisation, variational Bayes and deterministic annealing.
 */
@@ -33,14 +33,11 @@ f2sw1(P,SW-X,SW-Y,Z) :- call(P,X,Y,Z).
 %  ==
 learn(Method, StatsMethod, Graph, Step) :-
    learn(Method, StatsMethod, 1.0, Graph, Obj, P1, P2),
-   maplist(params_variables, [P1,P2], [Ins,Outs]),
+   maplist(term_variables, [P1,P2], [Ins,Outs]),
    gather_ops(Ops), length(Ops, NumOps),
    debug(learn(setup), 'Compiling ~d operations...', [NumOps]),
    call(ops_body(Ins, [Obj|Outs]) * topsort(Ins, [Obj|Outs]), Ops, Body),
    clambda(lambda([Obj,P1,P2], Body), Step).
-
-params_variables(Params, Ins) :- foldl(probs, Params, [], Ins).
-probs(_-Probs) --> append(Probs).
 
 learn(ml, Stats, ITemp, Graph, LL, P1, P2) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),

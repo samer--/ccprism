@@ -79,11 +79,11 @@ thingy(inside, G, P0, [TopVal], TopVal) :-
 
 thingy(io(ISc), G, P0, [LogProb|Outs], LogProb-Eta) :-
    graph_counts(io(ISc), lin, G, P0, Eta, LogProb),
-   params_variables(Eta, Outs).
+   term_variables(Eta, Outs).
 
 mode_graph_body(Mode, G, P0, Result, Body) :-
    time(thingy(Mode, G, P0, Outs, Result)),
-   params_variables(P0, Ins),
+   term_variables(P0, Ins),
    gather_ops(Ops),
    length(Ops, NumOps),
    format('Compiling ~d ops...\n', [NumOps]),
