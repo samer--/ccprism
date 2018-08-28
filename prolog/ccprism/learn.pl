@@ -51,7 +51,6 @@ learn(map(Prior), Stats, ITemp, Graph, Obj, P1, P2) :-
    call(mul_add(ITemp, LL), LP0, Obj),
    map_swc(pow(ITemp), P1, PP).
 
-% FIXME: very broken
 learn(vb(Prior), Stats, ITemp, Graph, Obj, A1, A2) :-
    maplist(map_swc(true2,Prior), [A1,Pi]), % establish same shape as prior
    map_swc(mul_add(ITemp,1.0-ITemp), Prior, EffPrior),
