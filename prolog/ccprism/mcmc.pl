@@ -8,8 +8,8 @@
 :- use_module(library(math),        [neg/2, add/3, sub/3, exp/2, map_sum/4]).
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_partition_dirichlet/2]).
+:- use_module(library(machines),    [unfold/2, unfolder/3, mapper/3, scan0/4, (:>)/3, mean/2, op(600,yfx,:>)]).
 
-:- use_module(machines,   [unfold/2, unfolder/3, mapper/3, scan0/4, (:>)/3, mean/2, op(600,yfx,:>)]).
 :- use_module(effects,    [dist/2, uniform/2]).
 :- use_module(learn,      [converge/5, learn/4]).
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4

@@ -15,7 +15,7 @@
 :- use_module(library(rbutils)).
 :- use_module(library(plrand)).
 :- use_module(library(prob/tagless)).
-:- use_module(library(ccprism/machines), except([(:>)/3, (>>)/4])).
+:- use_module(library(machines), except([(:>)/3, (>>)/4])).
 :- use_module(library(ccprism/effects)).
 :- use_module(library(ccprism/handlers)).
 :- use_module(library(ccprism/switches), [marg_log_prob/3]).
