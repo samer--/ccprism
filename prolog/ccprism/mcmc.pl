@@ -5,13 +5,12 @@
 :- use_module(library(insist)).
 :- use_module(library(callutils),   [(*)/4]).
 :- use_module(library(listutils),   [enumerate/2]).
-:- use_module(library(math),        [neg/2, add/3, sub/3, exp/2]).
+:- use_module(library(math),        [neg/2, add/3, sub/3, exp/2, map_sum/4]).
 :- use_module(library(data/pair),   [is_pair/1, pair/3, fst/2, fsnd/3, snd/2]).
 :- use_module(library(plrand),      [log_partition_dirichlet/2]).
 
 :- use_module(machines,   [unfold/2, unfolder/3, mapper/3, scan0/4, (:>)/3, mean/2, op(600,yfx,:>)]).
 :- use_module(effects,    [dist/2, uniform/2]).
-:- use_module(lazymath,   [map_sum/4]).
 :- use_module(learn,      [converge/5, learn/4]).
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
@@ -25,7 +24,7 @@ bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
 mc_evidence(Method, Graph, Prior, Stream) :-
    converge(rel(1e-6), learn(vb(Prior), io(log), Graph), _, Prior, VBPost),
    sw_expectations(VBPost, VBProbs),
-   call(top_value*semiring_graph_fold(r(log_e,lse,add,cons),Graph), VBProbs, LogPDataGivenVBProbs),
+   call(top_value*semiring_graph_fold(r(log,lse,add,cons),Graph), VBProbs, LogPDataGivenVBProbs),
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
    method_machine_mapper(Method, Prior, Machine, Mapper),
    unfold(call(Machine, Graph, Prior, VBProbs)

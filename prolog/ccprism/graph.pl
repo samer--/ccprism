@@ -37,7 +37,7 @@
 :- use_module(library(autodiff2),   [back/1, deriv/3]).
 :- use_module(effects,   [dist/3]).
 :- use_module(switches,  [map_swc/3, map_swc/4]).
-:- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log_e/2, lse/2, stoch/2, log_stoch/2, map_sum/4, patient/4]).
+:- use_module(lazymath,  [max/3, add/3, mul/3, exp/2, log/2, lse/2, stoch/2, log_stoch/2, patient/4]).
 
 :- multifile sr_inj/4, sr_proj/5, sr_times/4, sr_plus/4, sr_unit/2, sr_zero/2, m_zero/2.
 
@@ -153,7 +153,7 @@ sr_param(SR,F,X,P) :- sr_inj(SR,P,F,X), !.
 sr_inj(id,        _, F, F).
 sr_inj(r(I,_,_,_),  P, _, X)   :- call(I,P,X).
 sr_inj(best(log), P, F, P-F)   :- !.
-sr_inj(best(lin), P, F, Q-F)   :- log_e(P,Q).
+sr_inj(best(lin), P, F, Q-F)   :- log(P,Q).
 sr_inj(ann(SR),   P, F, Q-F)   :- sr_inj(SR,P,F,Q).
 sr_inj(R1-R2,     P, F, Q1-Q2) :- sr_inj(R1,P,F,Q1), sr_inj(R2,P,F,Q2).
 

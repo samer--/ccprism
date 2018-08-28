@@ -3,8 +3,6 @@
 /** <module> Reverse mode automatic differentatin using CHR.
 
  Todo:
- - consider sum operator
- - consider neg/sub/div operators
  - fix constant handling in deriv stoch_exp rule
 */
 

@@ -3,7 +3,6 @@
 /** <module> Expectation-maximisation, variational Bayes and deterministic annealing.
 */
 
-:- use_module(library(math),       []).
 :- use_module(library(data/pair),  [snd/2]).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
 :- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
