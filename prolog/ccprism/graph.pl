@@ -1,5 +1,5 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
-                     , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
+                     , graph_fold/4, graph_viterbi/4, graph_inside/3
                      , tree_stats/2, sw_trees_stats/3, accum_stats/3, graph_counts/6
                      , igraph_sample_tree/3, igraph_entropy/3
                      ]).
@@ -48,7 +48,7 @@
 %! top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
 %  Extract the value associated with the goal =|'^top':top|= from a list
 %  of goal-value pairs. This can be applied to explanation graphs or
-%  the results of semiring_graph_fold/4.
+%  the results of graph_fold/4.
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 top_goal('^top':top).
 
@@ -88,7 +88,7 @@ graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 
-%! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,W))) is det.
+%! graph_fold(+SR:sr(A,B,C,T), ?P:params(T), +G:graph, -R:list(pair(goal,W))) is det.
 %
 %  Folds the semiring SR over the explanation graph G. Produces R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
@@ -112,9 +112,8 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 %     * r(pred(+T,-A), pred(+C,-C), pred(+A,+B,-B), pred(+B,+C,-C))
 %     A term containing the operators in restricted forms as callable terms.
 %     The unit and zero for the times and plus operators respectively are looked up in m_zero/2.
-%     * best(scaling)
-%     Finds the best single explanation for each goal. If scaling is 'lin', parameters
-%     are assumed to be probabilities; if it's 'log', they are assumed to be log probabilities.
+%     * best
+%     Finds the best single explanation for each goal. Parameters are assumed to be probabilities.
 %     * ann(sr(A,B,C,T))
 %     Annotates the original hypergraph with the results of any semiring analysis.
 %     *  sr(A1,B1,C1,T) - sr(A1,B1,C1,T)
@@ -128,7 +127,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 %     * r(=,=,mul,max)
 %     Viterbi probabilities.
 
-semiring_graph_fold(SR, Graph, Params, GoalSums) :-
+graph_fold(SR, Params, Graph, GoalSums) :-
    rb_empty(E),
    foldl(sr_sum(SR), Graph, GoalSums, E, Map),
    fmap_sws(Map, SWs),
@@ -152,38 +151,37 @@ sr_param(SR,F,X,P) :- sr_inj(SR,P,F,X), !.
 % --------- semirings ---------
 sr_inj(id,        _, F, F).
 sr_inj(r(I,_,_,_),  P, _, X)   :- call(I,P,X).
-sr_inj(best(log), P, F, P-F)   :- !.
-sr_inj(best(lin), P, F, Q-F)   :- log(P,Q).
+sr_inj(best,      P, F, Q-F)   :- log(P,Q).
 sr_inj(ann(SR),   P, F, Q-F)   :- sr_inj(SR,P,F,Q).
 sr_inj(R1-R2,     P, F, Q1-Q2) :- sr_inj(R1,P,F,Q1), sr_inj(R2,P,F,Q2).
 
 sr_proj(id,       G, Z,   G, Z).
 sr_proj(r(_,P,_,_), _, X, Y, Y) :- call(P,X,Y).
-sr_proj(best(_),  G, X-E, X-(G-E), X-E).
+sr_proj(best,     G, X-E, X-(G-E), X-E).
 sr_proj(ann(SR),  G, X-Z, Y-G, W-Z)       :- sr_proj(SR,G,X,Y,W).
 sr_proj(R1-R2,    G, X1-X2, Y1-Y2, Z1-Z2) :- sr_proj(R1,G,X1,Y1,Z1), sr_proj(R2,G,X2,Y2,Z2).
 
 sr_plus(id,       Expl) --> cons(Expl).
 sr_plus(r(_,_,_,O), X) --> call(O,X).
-sr_plus(best(_),  X) --> v_max(X).
+sr_plus(best,     X) --> v_max(X).
 sr_plus(ann(SR),  X-Expl) --> sr_plus(SR,X) <\> cons(X-Expl).
 sr_plus(R1-R2,    X1-X2) --> sr_plus(R1,X1) <\> sr_plus(R2,X2).
 
 sr_times(id,       F)   --> cons(F).
 sr_times(r(_,_,O,_), X) --> call(O,X).
-sr_times(best(_),  X-F) --> add(X) <\> cons(F).
+sr_times(best,     X-F) --> add(X) <\> cons(F).
 sr_times(ann(SR),  X-F) --> sr_times(SR,X) <\> cons(X-F).
 sr_times(R1-R2,    X1-X2) --> sr_times(R1,X1) <\> sr_times(R2,X2).
 
 sr_zero(id,       []).
 sr_zero(r(_,_,_,O), I) :- m_zero(O,I).
-sr_zero(best(_),  Z-_)   :- m_zero(max,Z).
+sr_zero(best,     Z-_)   :- m_zero(max,Z).
 sr_zero(ann(SR),  Z-[])  :- sr_zero(SR,Z).
 sr_zero(R1-R2,    Z1-Z2) :- sr_zero(R1,Z1), sr_zero(R2,Z2).
 
 sr_unit(id,       []).
 sr_unit(r(_,_,O,_), I) :- m_zero(O,I).
-sr_unit(best(_),  0.0-[]).
+sr_unit(best,     0.0-[]).
 sr_unit(ann(SR),  U-[])  :- sr_unit(SR,U).
 sr_unit(R1-R2,    U1-U2) :- sr_unit(R1,U1), sr_unit(R2,U2).
 
@@ -200,13 +198,13 @@ v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 
 %! graph_inside(+G:graph, ?P:sw_params, -IG:igraph) is det.
 graph_inside(Graph, Params, IGraph)  :-
-   semiring_graph_fold(ann(r(=,=,mul,add)), Graph, Params, IGraph).
+   graph_fold(ann(r(=,=,mul,add)), Params, Graph, IGraph).
 
 %! graph_viterbi(+G:graph, ?P:sw_params, -T:list(tree), -LP:float) is det.
 %  Compute Viterbi (most likely) explanation, returning the list of children
 %  of the top node, since the top goal itself is fixed.
 graph_viterbi(Graph, Params, Tree, LP) :-
-   semiring_graph_fold(best(lin), Graph, Params, VGraph), top_value(VGraph, LP-Tree).
+   graph_fold(best, Params, Graph, VGraph), top_value(VGraph, LP-Tree).
 
 %! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree)) is det.
 %
@@ -257,7 +255,7 @@ factor_entropy(_) --> [].
 %  ==
 graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
    method_scaling_semiring(Method, ISc, SR, ToLogProb),
-   semiring_graph_fold(SR, Graph, P0, IG), autodiff2:expand_wsums,
+   graph_fold(SR, P0, Graph, IG), autodiff2:expand_wsums,
    call(ToLogProb*top_value, IG, LogProb),
    scaling_log_params(ISc, PSc, P0, Params0, LogP0),
    map_swc(deriv(LogProb), LogP0, Eta),

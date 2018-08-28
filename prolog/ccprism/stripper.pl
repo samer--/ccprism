@@ -6,11 +6,9 @@
 */
 :- use_module(library(listutils),   [cons//1]).
 :- use_module(library(data/pair),   [ffst/3]).
-:- use_module(graph, [semiring_graph_fold/4]).
+:- use_module(graph, [graph_fold/4]).
 
-strip_graph_modules(G1, G3) :-
-   semiring_graph_fold(strip, G1, _, G2),
-   maplist(ffst(strip), G2, G3).
+strip_graph_modules --> graph_fold(strip, _), maplist(ffst(strip)).
 
 strip(_:F, F).
 

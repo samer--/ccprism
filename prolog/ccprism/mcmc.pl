@@ -15,7 +15,7 @@
 :- use_module(switches,   [ map_sum_sw/3, map_sum_sw/4, map_swc/4
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
-:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3, semiring_graph_fold/4
+:- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3, graph_fold/4
                           , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/3
                           ]).
 
@@ -24,7 +24,7 @@ bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
 mc_evidence(Method, Graph, Prior, Stream) :-
    converge(rel(1e-6), learn(vb(Prior), io(log), Graph), _, Prior, VBPost),
    sw_expectations(VBPost, VBProbs),
-   call(top_value*semiring_graph_fold(r(log,lse,add,cons),Graph), VBProbs, LogPDataGivenVBProbs),
+   call(top_value*graph_fold(r(log,lse,add,cons),VBProbs), Graph, LogPDataGivenVBProbs),
    call(add(LogPDataGivenVBProbs)*sw_log_prob(Prior), VBProbs, LogPDataVBProbs),
    method_machine_mapper(Method, Prior, Machine, Mapper),
    unfold(call(Machine, Graph, Prior, VBProbs)
