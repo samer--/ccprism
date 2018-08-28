@@ -34,10 +34,9 @@
 
 ## Note on tabling implementations
 
-   Earlier versions used a tabling implementation where non-backtrackable state
-   was stored using services from the ccnbenv library module. This was replaced
-   with a trie-based data structure (see https://github.com/samer--/cctable)
-   which is a lot faster. However, in doing so, we lost the ability to store
-   attributed variables in the variant and solution tries. The old version is
-   still available in `handlers_old.pl`, though you will have to replace
-   the `use_module` directive in `ccprism.pl` to use it.
+   This branch (`old_tabling_with_attributes`) uses a tabling implementation 
+   where non-backtrackable state is stored using services from the ccnbenv module. 
+   This was replaced in later versions with a trie-based data structure (see 
+   <https://github.com/samer--/cctable>) which is a lot faster. However, in doing so
+   , we lost the ability to store attributed variables in the variant and solution 
+   tries.
