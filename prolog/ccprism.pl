@@ -1,11 +1,11 @@
-:- module(ccprism, [goal_graph/2, graph_params/3, semiring_graph_fold/4, top_value/2, unpack_viterbi/4]).
+:- module(ccprism, [goal_graph/2, graph_params/3, graph_fold/4, top_value/2, unpack_viterbi/4]).
 
 /** <module> Top level tabled explanation graph creation */
 
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
 :- use_module(ccprism/handlers,   [goal_expls_tables/3, tables_graph/2]).
-:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2, semiring_graph_fold/4, top_value/2, top_goal/1]).
+:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2, graph_fold/4, top_value/2, top_goal/1]).
 :- use_module(ccprism/switches,   [sw_init/3]).
 
 %% goal_graph(+Goal:callable, -Graph:graph) is det.

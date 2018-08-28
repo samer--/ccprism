@@ -12,14 +12,14 @@
 :- use_module(library(dcg_pair)).
 :- use_module(library(dcg_macros)).
 :- use_module(library(lazy), [lazy_maplist/3, lazy_unfold_finite/4, lazy/4]).
-:- use_module(graph, [semiring_graph_fold/4, top_value/2]).
+:- use_module(graph, [graph_fold/4, top_value/2]).
 
 %% graph_nviterbi(+G:graph, +P:sw_params, -T:expl_tree, -LP:number) is nondet.
 %
 %  Find the most probable parse tree, and then find progressively less probable
 %  parse trees on backtracking.
 graph_nviterbi(Graph, Params, Tree, LP) :-
-   semiring_graph_fold(kbest, Graph, Params, VGraph),
+   graph_fold(kbest, Params, Graph, VGraph),
    top_value(VGraph, Expls),
    member(LP-Tree,Expls).
 

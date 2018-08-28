@@ -1,5 +1,5 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
-                     , semiring_graph_fold/4, graph_viterbi/4, graph_inside/3
+                     , graph_fold/4, graph_viterbi/4, graph_inside/3
                      , tree_stats/2, sw_trees_stats/3, accum_stats/3, graph_counts/6
                      , igraph_sample_tree/3, igraph_entropy/3
                      ]).
@@ -48,7 +48,7 @@
 %! top_value(+Pairs:list(pair(goal,A)), -X:A) is semidet.
 %  Extract the value associated with the goal =|'^top':top|= from a list
 %  of goal-value pairs. This can be applied to explanation graphs or
-%  the results of semiring_graph_fold/4.
+%  the results of graph_fold/4.
 top_value(Pairs, Top) :- memberchk(('^top':top)-Top, Pairs).
 top_goal('^top':top).
 
@@ -88,7 +88,7 @@ graph_switches(G,SWs) :- (setof(SW, graph_sw(G,SW), SWs) -> true; SWs=[]).
 graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 
 
-%! semiring_graph_fold(+SR:sr(A,B,C,T), +G:graph, ?P:params(T), -R:list(pair(goal,W))) is det.
+%! graph_fold(+SR:sr(A,B,C,T), ?P:params(T), +G:graph, -R:list(pair(goal,W))) is det.
 %
 %  Folds the semiring SR over the explanation graph G. Produces R, a list of pairs
 %  of goals in the original graph with the result of the fold for that goal. Different
@@ -127,7 +127,7 @@ graph_sw(G,SW)        :- member(_-Es,G), member(E,Es), member(SW:=_,E).
 %     * r(=,=,mul,max)
 %     Viterbi probabilities.
 
-semiring_graph_fold(SR, Graph, Params, GoalSums) :-
+graph_fold(SR, Params, Graph, GoalSums) :-
    rb_empty(E),
    foldl(sr_sum(SR), Graph, GoalSums, E, Map),
    fmap_sws(Map, SWs),
@@ -198,13 +198,13 @@ v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 
 %! graph_inside(+G:graph, ?P:sw_params, -IG:igraph) is det.
 graph_inside(Graph, Params, IGraph)  :-
-   semiring_graph_fold(ann(r(=,=,mul,add)), Graph, Params, IGraph).
+   graph_fold(ann(r(=,=,mul,add)), Params, Graph, IGraph).
 
 %! graph_viterbi(+G:graph, ?P:sw_params, -T:list(tree), -LP:float) is det.
 %  Compute Viterbi (most likely) explanation, returning the list of children
 %  of the top node, since the top goal itself is fixed.
 graph_viterbi(Graph, Params, Tree, LP) :-
-   semiring_graph_fold(best, Graph, Params, VGraph), top_value(VGraph, LP-Tree).
+   graph_fold(best, Params, Graph, VGraph), top_value(VGraph, LP-Tree).
 
 %! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree)) is det.
 %
@@ -255,7 +255,7 @@ factor_entropy(_) --> [].
 %  ==
 graph_counts(Method, PSc, Graph, Params, Eta, LogProb) :-
    method_scaling_semiring(Method, ISc, SR, ToLogProb),
-   semiring_graph_fold(SR, Graph, P0, IG), autodiff2:expand_wsums,
+   graph_fold(SR, P0, Graph, IG), autodiff2:expand_wsums,
    call(ToLogProb*top_value, IG, LogProb),
    scaling_log_params(ISc, PSc, P0, Params0, LogP0),
    map_swc(deriv(LogProb), LogP0, Eta),
