@@ -59,11 +59,12 @@ step_and_plot(Step, Cost, S1, S2) :-
    call(Step, Cost, S1, S2),
    member((dice:die)-Probs, S2),
    format(string(Title), "~1f", [Cost]),
-   !gui(1, bar(Probs, title=Title, size= #(160, 160), ylim= #(0,0.6))).
+   !gui(1, bar(Probs, title=Title, size= #(160, 160))). %, ylim= #(0,YMax))).
 
-run(Mod,Drop,Tol,K,N,T) :-
+run_plot(Mod,Drop,Tol,K,N,T) :- run(ml,Mod,Drop,Tol,K,N,T).
+run_plot(Mode,Mod,Drop,Tol,K,N,T) :-
    length(Curves,T),
-   run(ml,Mod,Drop,Tol,K,N,Curves),
+   run(Mode,Mod,Drop,Tol,K,N,Curves),
    format(string(Title), "dice: K=~w, N=~w, tol=~g", [K,N,Tol]),
    P0 = plot(grid=true, title=Title, xlabel="iteration", ylabel="log likelihood"),
    foldl(add_plot(Drop), Curves, P0, PP),

@@ -5,15 +5,21 @@
 
 :- use_module(library(data/pair),  [snd/2]).
 :- use_module(library(callutils),  [(*)/4, true2/2]).
-:- use_module(library(plrand),     [mean_log_dirichlet/2, log_partition_dirichlet/2]).
+:- use_module(library(plrand),     [log_partition_dirichlet/2]).
 :- use_module(library(autodiff2),  [esc/3, add/3, mul/3, pow/3, max/3, gather_ops/1, topsort/4]).
 :- use_module(library(clambda),    [clambda/2, run_lambda_compiler/1]).
-:- use_module(library(plflow),     [ops_body/4]).
+:- use_module(library(plflow),     [ops_body/4, sub/3, stoch/2, mean_log_dir/2, log_part_dir/2, log_prob_dir/3]).
 :- use_module(graph,    [graph_counts/6]).
 :- use_module(switches, [map_sw/3, map_swc/3, map_swc/4, map_sum_sw/3]).
 
 
-stoch(Xs,Ys) :- same_length(Xs,Ys), esc(stoch,Xs,Ys).
+mul_add(K,X,Y,Z) :- mul(K,Y,KY), add(X,KY,Z).
+map_sum_(P,X,Sum)   :- maplist(P,X,Z),   esc(sum_list,Z,[Sum]).
+map_sum_(P,X,Y,Sum) :- maplist(P,X,Y,Z), esc(sum_list,Z,[Sum]).
+map_sum_sw_(P,X,Sum)   :- map_sum_(P*snd,X,Sum).
+map_sum_sw_(P,X,Y,Sum) :- map_sum_(f2sw1(P),X,Y,Sum).
+f2sw1(P,SW-X,SW-Y,Z) :- call(P,X,Y,Z).
+
 
 %! learn(+Method:learn_method, +Stats:stats_method, +ITemp:number, +G:graph, -U:learner) is det.
 %! learn(+Method:learn_method, +Stats:stats_method, +G:graph, -U:learner) is det.
@@ -36,27 +42,18 @@ learn(Method, StatsMethod, Graph, Step) :-
 params_variables(Params, Ins) :- foldl(probs, Params, [], Ins).
 probs(_-Probs) --> append(Probs).
 
-log_prob_dir(As, Ps, LP) :- esc(log_prob_dirichlet(As), Ps, [LP]).
-log_part_dir(As, LZ) :- esc(log_partition_dirichlet, As, [LZ]).
-
-map_sum_(P,X,Sum)   :- maplist(P,X,Z),   esc(sum_list,Z,[Sum]).
-map_sum_(P,X,Y,Sum) :- maplist(P,X,Y,Z), esc(sum_list,Z,[Sum]).
-map_sum_sw_(P,X,Sum)   :- map_sum_(P*snd,X,Sum).
-map_sum_sw_(P,X,Y,Sum) :- map_sum_(f2sw1(P),X,Y,Sum).
-f2sw1(P,SW-X,SW-Y,Z) :- call(P,X,Y,Z).
-
 learn(ml, Stats, ITemp, Graph, LL, P1, P2) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),
    map_swc(pow(ITemp), P1, PP),
    map_sw(stoch, Eta, P2).
 
+
 learn(map(Prior), Stats, ITemp, Graph, Obj, P1, P2) :-
    once(graph_counts(Stats, lin, Graph, PP, Eta, LL)),
    map_sum_sw_(log_prob_dir, Prior, P1, LP0),
-   mul(ITemp, LP0, LP),
    map_swc(add, Eta, Prior, Post),
    map_sw(stoch*maplist(max(0.0)*add(-1.0)), Post, P2), % mode
-   add(LL,LP,Obj),
+   call(mul_add(ITemp, LL), LP0, Obj),
    map_swc(pow(ITemp), P1, PP).
 
 % FIXME: very broken
@@ -64,20 +61,18 @@ learn(vb(Prior), Stats, ITemp, Graph, Obj, A1, A2) :-
    maplist(map_swc(true2,Prior), [A1,Pi]), % establish same shape as prior
    map_swc(mul_add(ITemp,1.0-ITemp), Prior, EffPrior),
    map_sum_sw(log_partition_dirichlet, Prior, LogZPrior),
-   vb_helper(ITemp, LogZPrior, EffPrior, A1, Pi - Div),
+   vb_helper(ITemp, LogZPrior, EffPrior, A1, Pi, Div),
    once(graph_counts(Stats, log, Graph, Pi, Eta, LL)),
    map_swc(mul_add(ITemp), EffPrior, Eta, A2),
-   esc(sub,[LL,Div],[Obj]).
+   sub(Div, LL, Obj).
 
-vb_helper(ITemp, LogZPrior, EffPrior, A, Pi - Div) :-
-   map_sw(mean_log_dirichlet, A, PsiA),
-   map_swc(math:sub, EffPrior, A, Delta),
-   map_swc(math:mul(ITemp), PsiA, Pi),
+vb_helper(ITemp, LogZPrior, EffPrior, A, Pi, Div) :-
+   map_sw(mean_log_dir, A, PsiA),
+   map_swc(sub, EffPrior, A, Delta),
+   map_swc(mul(ITemp), PsiA, Pi),
    map_sum_sw_(log_part_dir, A, LogZA),
    map_sum_sw_(map_sum_(mul), PsiA, Delta, Diff),
-   Div is Diff - LogZA + ITemp*LogZPrior.
-
-mul_add(K,X,Y,Z) :- mul(K,Y,KY), add(X,KY,Z).
+   call(sub(LogZA)*mul_add(ITemp,Diff), LogZPrior, Div).
 
 %! converge(+C:convergence, +L:pred(-learner), -LL:list(float), +P1:sw_params, -P2:sw_params) is det.
 %  Use L to create a predicate to do one step of learning, and then iterate
@@ -95,7 +90,6 @@ converge(Test, Setup, [X0|History], S0, SFinal) :-
       time(converge_x(Test, Step, X0, History, S1, SFinal)))).
 
 converge_x(Test, Step, X0, [X1|History], S1, SFinal) :-
-   debug(learn(iters), 'converge: Cost = ~p.',[X0]),
    call(Step, X1, S1, S2),
    (  converged(Test, X0, X1) -> History=[], SFinal=S2
    ;  converge_x(Test, Step, X1, History, S2, SFinal)
