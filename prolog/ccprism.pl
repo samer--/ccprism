@@ -1,11 +1,11 @@
-:- module(ccprism, [goal_graph/2, graph_params/3, semiring_graph_fold/4, top_value/2]).
+:- module(ccprism, [goal_graph/2, graph_params/3, semiring_graph_fold/4, top_value/2, unpack_viterbi/4]).
 
 /** <module> Top level tabled explanation graph creation */
 
 :- use_module(library(callutils), [(*)/4]).
 :- use_module(library(rbutils),   [rb_fold/4, rb_add//2]).
 :- use_module(ccprism/handlers,   [goal_expls_tables/3, tables_graph/2]).
-:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2, semiring_graph_fold/4, top_value/2]).
+:- use_module(ccprism/graph,      [prune_graph/4, graph_switches/2, semiring_graph_fold/4, top_value/2, top_goal/1]).
 :- use_module(ccprism/switches,   [sw_init/3]).
 
 %% goal_graph(+Goal:callable, -Graph:graph) is det.
@@ -23,3 +23,10 @@ goal_graph(Goal, Graph) :-
 %  Initialise parameters for all switches referenced in graph G.
 %  See sw_init/2 for more information.
 graph_params(Spec,G,Params) :- call(maplist(sw_init(Spec))*graph_switches, G, Params).
+
+unpack_viterbi(Spec, VG, Score, TopG-Tree) :-
+   top_goal(TopG), top_value(VG, TopVal),
+   unpack_(Spec, TopVal, Score, Tree).
+
+unpack_(best,      LP-Tree, LP, Tree).
+unpack_(kth_best(K), Trees, LP, Tree) :- nth1(K, Trees, Score-Tree), LP is -Score.
