@@ -1,5 +1,5 @@
 :- module(lda, [lda/5, lda2/5, unif/2, unif//2, mkunif/2, dirichlet/3]).
-/* Samplers for Latent Dirichlet Allocation (no inteference) */
+/* Samplers for Latent Dirichlet Allocation (no inference) */
 
 :- use_module(library(ccprism/macros)).
 :- use_module(library(ccprism/effects)).
