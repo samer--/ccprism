@@ -16,7 +16,7 @@
                           , sw_expectations/2, sw_log_prob/3, sw_posteriors/3, sw_samples/2
                           ]).
 :- use_module(graph,      [ top_goal/1, top_value/2, tree_stats/2, sw_trees_stats/3, graph_fold/4
-                          , graph_inside/3, graph_viterbi/4 , prune_graph/4, igraph_sample_tree/3
+                          , graph_inside/3, prune_graph/4, igraph_sample_tree/3
                           ]).
 
 bernoulli(P1,X) :- P0 is 1-P1, dist([P0-0,P1-1],X).
@@ -54,7 +54,7 @@ gstep(P0,IG,P1,Counts) :-
 
 mh_machine(Graph, Prior, Probs0, M) :-
    graph_as_conjunction(Graph, Graph1),
-   graph_viterbi(Graph1, Probs0, VTrees, _),
+   call(snd * top_value * graph_fold(best, Probs0), Graph1, VTrees),
    maplist(fst,Prior,SWs),
    mcs_init(SWs, VTrees, Keys, State),
    (  Keys=[] -> unfolder(scan0(=), State, M)

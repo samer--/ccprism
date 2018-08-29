@@ -200,12 +200,6 @@ v_max(LX-X,LY-Y,Z) :- when(ground(LX-LY),(LX>=LY -> Z=LX-X; Z=LY-Y)).
 graph_inside(Graph, Params, IGraph)  :-
    graph_fold(ann(r(=,=,mul,add)), Params, Graph, IGraph).
 
-%! graph_viterbi(+G:graph, ?P:sw_params, -T:list(tree), -LP:float) is det.
-%  Compute Viterbi (most likely) explanation, returning the list of children
-%  of the top node, since the top goal itself is fixed.
-graph_viterbi(Graph, Params, Tree, LP) :-
-   graph_fold(best, Params, Graph, VGraph), top_value(VGraph, LP-Tree).
-
 %! igraph_sample_tree(+IG:igraph, +H:goal, -Ts:list(tree)) is det.
 %
 %  Uses prob effect to sample a tree from a graph annotated with inside
