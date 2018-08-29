@@ -2,6 +2,7 @@
 
 :- use_module(library(math), [stoch/3]).
 :- use_module(library(plrand), []).
+:- use_module(library(autodiff2), [esc/3]).
 
 ops_body(_, _, Ops, Body) :- foldl(op_goal, Ops, Body, true).
 op_goal(op(OpCode, Ins, Outs), (X,Y), Y) :- op_goal(OpCode, Ins, Outs, X).
