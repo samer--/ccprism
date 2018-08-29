@@ -1,7 +1,6 @@
 :- module(ccp_graph, [ graph_switches/2, prune_graph/4, top_value/2, top_goal/1
-                     , graph_fold/4, graph_viterbi/4, graph_inside/3
+                     , graph_fold/4, graph_inside/3, igraph_sample_tree/3, igraph_entropy/3
                      , tree_stats/2, sw_trees_stats/3, accum_stats/3, graph_counts/6
-                     , igraph_sample_tree/3, igraph_entropy/3
                      ]).
 
 /** <module> Inference and statistics on explanation hypergraphs
